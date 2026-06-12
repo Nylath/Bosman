@@ -1,0 +1,44 @@
+﻿{
+    "questions":  [
+                      {
+                          "answers":  [
+                                          {
+                                              "text":  "Odpowiedź błędna A",
+                                              "isCorrect":  false
+                                          },
+                                          {
+                                              "text":  "Odpowiedź poprawna",
+                                              "isCorrect":  true
+                                          },
+                                          {
+                                              "text":  "Odpowiedź błędna B",
+                                              "isCorrect":  false
+                                          }
+                                      ],
+                          "externalId":  "test-grafika-d01-q001",
+                          "categorySlug":  "dzial-testowy",
+                          "text":  "Która odpowiedź jest poprawna?",
+                          "image":  "assets/test.png"
+                      }
+                  ],
+    "schemaVersion":  1,
+    "sampling":  {
+                     "randomQuestions":  null,
+                     "categories":  [
+                                        {
+                                            "name":  "Dział testowy",
+                                            "minimumQuestions":  null,
+                                            "slug":  "dzial-testowy"
+                                        }
+                                    ]
+                 },
+    "exam":  {
+                 "slug":  "egzamin-testowy-grafika",
+                 "passingScore":  null,
+                 "durationMinutes":  null,
+                 "description":  "Test pełnego importu grafiki.",
+                 "answersPerQuestion":  3,
+                 "name":  "Egzamin testowy z grafiką",
+                 "questionsPerAttempt":  null
+             }
+}

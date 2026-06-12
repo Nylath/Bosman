@@ -1,0 +1,44 @@
+﻿{
+    "questions":  [
+                      {
+                          "answers":  [
+                                          {
+                                              "text":  "Odpowiedź błędna A",
+                                              "isCorrect":  false
+                                          },
+                                          {
+                                              "text":  "Odpowiedź poprawna",
+                                              "isCorrect":  true
+                                          },
+                                          {
+                                              "text":  "Odpowiedź błędna B",
+                                              "isCorrect":  false
+                                          }
+                                      ],
+                          "externalId":  "test-d01-q001",
+                          "categorySlug":  "dzial-testowy",
+                          "text":  "Która odpowiedź jest poprawna?",
+                          "image":  null
+                      }
+                  ],
+    "schemaVersion":  1,
+    "sampling":  {
+                     "randomQuestions":  null,
+                     "categories":  [
+                                        {
+                                            "name":  "Dział testowy",
+                                            "minimumQuestions":  null,
+                                            "slug":  "dzial-testowy"
+                                        }
+                                    ]
+                 },
+    "exam":  {
+                 "slug":  "egzamin-testowy",
+                 "passingScore":  null,
+                 "durationMinutes":  null,
+                 "description":  "Minimalna paczka do sprawdzenia walidatora.",
+                 "answersPerQuestion":  3,
+                 "name":  "Egzamin testowy",
+                 "questionsPerAttempt":  null
+             }
+}

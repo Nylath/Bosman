@@ -1,0 +1,12 @@
+﻿{
+    "categories":  [
+                       {
+                           "id":  "9561ae88-3bc6-4da9-8bc5-8fdbec92e16f",
+                           "minimumQuestions":  0
+                       }
+                   ],
+    "passingScore":  1,
+    "questionsPerAttempt":  1,
+    "durationMinutes":  10,
+    "randomQuestions":  1
+}
