@@ -1,7 +1,33 @@
-﻿node_modules/
+﻿@'
+# Dependencies
+node_modules/
+
+# Build output
 dist/
-coverage/
+apps/*/dist/
+
+# Local configuration and secrets
 .env
-.env.*
-!.env.example
+.env.local
+.env.*.local
+
+# Runtime assets imported from ZIP packages
+data/assets/*
+!data/assets/.gitkeep
+
+# Temporary test files
+tmp/
+
+# Logs
 *.log
+npm-debug.log*
+
+# Editor and operating system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+'@ | Set-Content -Encoding utf8 .gitignore
+# Imported runtime assets
+data/assets/**
+!data/assets/.gitkeep
