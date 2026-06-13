@@ -11,6 +11,7 @@ import {
   getAdminSession,
   importAdminExamPackage,
   logoutAdmin,
+  updateAdminExamActive,
   type AdminExam,
   type AdminImportResult,
 } from "../api";
@@ -59,6 +60,51 @@ function UploadIcon() {
   );
 }
 
+function EyeIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M3 12s3.4-5 9-5 9 5 9 5-3.4 5-9 5-9-5-9-5Z"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+
+      <circle
+        cx="12"
+        cy="12"
+        fill="none"
+        r="2.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+    </svg>
+  );
+}
+
+function EyeOffIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M3 3 21 21M10.4 7.2A10.6 10.6 0 0 1 12 7c5.6 0 9 5 9 5a15 15 0 0 1-3 3.2M14.2 14.2A3 3 0 0 1 9.8 9.8M6.3 8.3A15.6 15.6 0 0 0 3 12s3.4 5 9 5c1 0 1.9-.2 2.7-.4"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+    </svg>
+  );
+}
+
 function ReportList(props: {
   title: string;
   items: string[];
@@ -101,6 +147,9 @@ export function AdminDashboardPage() {
 
   const [isImporting, setIsImporting] =
     useState(false);
+
+  const [updatedExamId, setUpdatedExamId] =
+    useState<string | null>(null);
 
   const [error, setError] =
     useState<string | null>(null);
@@ -197,6 +246,41 @@ export function AdminDashboardPage() {
       );
     } finally {
       setIsImporting(false);
+    }
+  }
+
+  async function handleToggleExamActive(
+    exam: AdminExam,
+  ): Promise<void> {
+    setError(null);
+    setUpdatedExamId(exam.id);
+
+    try {
+      const updatedExam =
+        await updateAdminExamActive(
+          exam.id,
+          !exam.isActive,
+        );
+
+      setExams((currentExams) =>
+        currentExams.map((currentExam) =>
+          currentExam.id === updatedExam.id
+            ? updatedExam
+            : currentExam,
+        ),
+      );
+    } catch (caughtError) {
+      if (handleUnauthorized(caughtError)) {
+        return;
+      }
+
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Nie udało się zmienić widoczności egzaminu.",
+      );
+    } finally {
+      setUpdatedExamId(null);
     }
   }
 
@@ -412,7 +496,11 @@ export function AdminDashboardPage() {
           <div className="admin-nautical-exam-list">
             {exams.map((exam) => (
               <article
-                className="admin-nautical-exam-card"
+                className={`admin-nautical-exam-card ${
+                  exam.isActive
+                    ? ""
+                    : "admin-nautical-exam-card--inactive"
+                }`}
                 key={exam.id}
               >
                 <div>
@@ -436,7 +524,7 @@ export function AdminDashboardPage() {
                       <dd>
                         {exam.isActive
                           ? "Aktywny"
-                          : "Nieaktywny"}
+                          : "Ukryty"}
                       </dd>
                     </div>
 
@@ -449,14 +537,43 @@ export function AdminDashboardPage() {
                     </div>
                   </dl>
 
-                  <Link
-                    className="admin-nautical-button"
-                    to={`/admin/egzaminy/${exam.id}/wersje`}
-                  >
-                    <span>Zarządzaj wersjami</span>
+                  <div className="admin-nautical-exam-card__actions">
+                    <Link
+                      className="admin-nautical-button"
+                      to={`/admin/egzaminy/${exam.id}/wersje`}
+                    >
+                      <span>Zarządzaj wersjami</span>
 
-                    <ArrowRightIcon />
-                  </Link>
+                      <ArrowRightIcon />
+                    </Link>
+
+                    <button
+                      className={
+                        exam.isActive
+                          ? "admin-visibility-button admin-visibility-button--hide"
+                          : "admin-visibility-button admin-visibility-button--restore"
+                      }
+                      type="button"
+                      disabled={updatedExamId === exam.id}
+                      onClick={() => {
+                        void handleToggleExamActive(exam);
+                      }}
+                    >
+                      {exam.isActive ? (
+                        <EyeOffIcon />
+                      ) : (
+                        <EyeIcon />
+                      )}
+
+                      <span>
+                        {updatedExamId === exam.id
+                          ? "Zapisywanie…"
+                          : exam.isActive
+                            ? "Ukryj egzamin"
+                            : "Przywróć egzamin"}
+                      </span>
+                    </button>
+                  </div>
                 </div>
               </article>
             ))}

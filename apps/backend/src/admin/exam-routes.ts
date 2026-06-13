@@ -30,6 +30,12 @@ const packageExtensionError = new Error(
 
 const examIdSchema = z.string().uuid();
 
+const updateExamActiveSchema = z
+  .object({
+    isActive: z.boolean(),
+  })
+  .strict();
+
 const upload = multer({
   storage: multer.memoryStorage(),
 
@@ -132,6 +138,78 @@ adminExamRouter.get(
 
       response.json({
         exams: examRows,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+adminExamRouter.patch(
+  "/:examId/active",
+  requireAdminSession,
+  async (request, response, next) => {
+    try {
+      const organizationId = getOrganizationId(response);
+
+      const parsedExamId = examIdSchema.safeParse(
+        request.params.examId,
+      );
+
+      if (!parsedExamId.success) {
+        response.status(400).json({
+          message: "Nieprawidłowy identyfikator egzaminu.",
+        });
+
+        return;
+      }
+
+      const parsedBody = updateExamActiveSchema.safeParse(
+        request.body,
+      );
+
+      if (!parsedBody.success) {
+        response.status(400).json({
+          message:
+            'Prześlij pole "isActive" o wartości true albo false.',
+        });
+
+        return;
+      }
+
+      const [updatedExam] = await db
+        .update(exams)
+        .set({
+          isActive: parsedBody.data.isActive,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(exams.id, parsedExamId.data),
+            eq(exams.organizationId, organizationId),
+          ),
+        )
+        .returning({
+          id: exams.id,
+          slug: exams.slug,
+          name: exams.name,
+          description: exams.description,
+          tileImagePath: exams.tileImagePath,
+          isActive: exams.isActive,
+          createdAt: exams.createdAt,
+          updatedAt: exams.updatedAt,
+        });
+
+      if (!updatedExam) {
+        response.status(404).json({
+          message: "Nie znaleziono egzaminu.",
+        });
+
+        return;
+      }
+
+      response.json({
+        exam: updatedExam,
       });
     } catch (error) {
       next(error);

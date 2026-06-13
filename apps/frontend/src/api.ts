@@ -514,3 +514,30 @@ export async function publishAdminExamVersion(
 
   return response.version;
 }
+
+type UpdateAdminExamActiveResponse = {
+  exam: AdminExam;
+};
+
+export async function updateAdminExamActive(
+  examId: string,
+  isActive: boolean,
+): Promise<AdminExam> {
+  const response =
+    await requestJson<UpdateAdminExamActiveResponse>(
+      `/api/admin/exams/${encodeURIComponent(examId)}/active`,
+      {
+        method: "PATCH",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+          isActive,
+        }),
+      },
+    );
+
+  return response.exam;
+}

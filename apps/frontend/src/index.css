@@ -944,8 +944,9 @@ dd {
 }
 
 .home-history-button__icon {
-  width: 25px;
-  height: 25px;
+  width: 42px;
+  height: 45px;
+  flex: 0 0 auto;
 }
 
 .home-exam-grid {
@@ -2690,4 +2691,71 @@ dd {
   .admin-version-publish-button {
     width: 100%;
   }
+}
+
+/* Admin exam visibility */
+
+.admin-nautical-exam-card--inactive {
+  opacity: 0.72;
+  background: #f4f7f8;
+}
+
+.admin-nautical-exam-card__actions {
+  display: grid;
+  gap: 9px;
+}
+
+.admin-visibility-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border-radius: 11px;
+  padding: 12px 15px;
+  background: #ffffff;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.admin-visibility-button svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+
+.admin-visibility-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.admin-visibility-button:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
+.admin-visibility-button--hide {
+  border: 1px solid #e2b8bf;
+  color: #9e3e4c;
+}
+
+.admin-visibility-button--hide:hover:not(:disabled) {
+  border-color: #bd6875;
+  background: #fff5f6;
+  box-shadow: 0 8px 16px rgb(158 62 76 / 10%);
+}
+
+.admin-visibility-button--restore {
+  border: 1px solid #9ccbd1;
+  color: #137f8e;
+}
+
+.admin-visibility-button--restore:hover:not(:disabled) {
+  border-color: #168b99;
+  background: #effafb;
+  box-shadow: 0 8px 16px rgb(13 116 132 / 10%);
 }

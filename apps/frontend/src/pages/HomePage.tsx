@@ -11,10 +11,28 @@ function ClipboardIcon() {
     <svg
       aria-hidden="true"
       className="home-history-button__icon"
-      viewBox="0 0 24 24"
+      viewBox="0 0 24 26"
     >
       <path
-        d="M9 5h6m-5-2h4a2 2 0 0 1 2 2v1h2a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2V5a2 2 0 0 1 2-2Zm-2 9 2 2 4-4"
+        d="M8.5 3.5h7a1 1 0 0 1 1 1v2h2a2 2 0 0 1 2 2V21a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2V8.5a2 2 0 0 1 2-2h2v-2a1 1 0 0 1 1-1Z"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+
+      <path
+        d="M7.5 17l3.4-3.4 2.4 2.4L17 12"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+
+      <path
+        d="M15.4 12H17v1.6"
         fill="none"
         stroke="currentColor"
         strokeLinecap="round"
