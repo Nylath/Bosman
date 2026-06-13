@@ -101,6 +101,8 @@ export const examVersions = pgTable(
 
     status: examVersionStatus("status").notNull().default("draft"),
 
+    tileImagePath: text("tile_image_path"),
+
     durationMinutes: integer("duration_minutes"),
 
     questionsPerAttempt: integer("questions_per_attempt"),

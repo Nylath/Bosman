@@ -1,0 +1,1 @@
+ALTER TABLE "exam_versions" ADD COLUMN "tile_image_path" text;

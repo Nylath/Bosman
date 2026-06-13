@@ -6,6 +6,79 @@ import {
   type AttemptResult,
 } from "../api";
 
+function ArrowLeftIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="nautical-back-link__icon"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M19 12H6m5-5-5 5 5 5"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
+function ArrowRightIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="history-nautical-card__arrow"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M5 12h13m-5-5 5 5-5 5"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="m5 12 4.5 4.5L19 7"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2.4"
+      />
+    </svg>
+  );
+}
+
+function CrossIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M7 7 17 17M17 7 7 17"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="2.4"
+      />
+    </svg>
+  );
+}
+
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("pl-PL", {
     dateStyle: "medium",
@@ -74,30 +147,36 @@ export function HistoryPage() {
   }, []);
 
   return (
-    <main className="page">
-      <Link className="text-link" to="/">
-        ← Wróć do egzaminów
+    <main className="nautical-page nautical-page--history">
+      <p className="home-logo">Bosman</p>
+
+      <Link className="nautical-back-link" to="/">
+        <ArrowLeftIcon />
+
+        <span>Wróć do menu głównego</span>
       </Link>
 
-      <section className="page-heading">
-        <p className="eyebrow">Bosman</p>
+      <section className="history-nautical-heading">
+        <p className="history-nautical-heading__eyebrow">
+          Twoje postępy
+        </p>
 
         <h1>Historia wyników</h1>
 
         <p>
-          Zobacz zakończone próby i sprawdź
-          pytania wymagające powtórki.
+          Zobacz zakończone próby i wróć do pytań,
+          które wymagają jeszcze powtórki.
         </p>
       </section>
 
       {isLoading && (
-        <p className="message">
+        <p className="home-message">
           Ładowanie historii…
         </p>
       )}
 
       {error && (
-        <p className="message message--error">
+        <p className="home-message home-message--error">
           {error}
         </p>
       )}
@@ -105,85 +184,109 @@ export function HistoryPage() {
       {!isLoading &&
         !error &&
         attempts.length === 0 && (
-          <p className="message">
-            Nie masz jeszcze zakończonych prób.
-          </p>
+          <section className="history-nautical-empty">
+            <h2>Brak zakończonych prób</h2>
+
+            <p>
+              Rozwiąż pierwszy egzamin, aby zobaczyć
+              tutaj swój wynik.
+            </p>
+
+            <Link
+              className="nautical-primary-button"
+              to="/"
+            >
+              <span>Przejdź do egzaminów</span>
+
+              <ArrowRightIcon />
+            </Link>
+          </section>
         )}
 
-      <section className="history-list">
-        {attempts.map((attempt) => (
-          <article
-            className={`history-card ${
-              attempt.passed
-                ? "history-card--passed"
-                : "history-card--failed"
-            }`}
-            key={attempt.id}
-          >
-            <div>
-              <p className="history-card__date">
-                {formatDate(attempt.finishedAt)}
-              </p>
+      <section className="history-nautical-list">
+        {attempts.map((attempt) => {
+          const percentage = calculatePercentage(
+            attempt.score,
+            attempt.totalQuestions,
+          );
 
-              <h2>{attempt.exam.name}</h2>
-
-              <p>
-                {attempt.status === "expired"
-                  ? "Próba zakończona po upływie czasu."
-                  : "Próba zakończona poprawnie."}
-              </p>
-            </div>
-
-            <dl className="history-card__details">
-              <div>
-                <dt>Wynik</dt>
-
-                <dd>
-                  {attempt.score}/
-                  {attempt.totalQuestions}
-                </dd>
-              </div>
-
-              <div>
-                <dt>Procent</dt>
-
-                <dd>
-                  {calculatePercentage(
-                    attempt.score,
-                    attempt.totalQuestions,
+          return (
+            <article
+              className={`history-nautical-card ${
+                attempt.passed
+                  ? "history-nautical-card--passed"
+                  : "history-nautical-card--failed"
+              }`}
+              key={attempt.id}
+            >
+              <div className="history-nautical-card__top">
+                <div
+                  className="history-nautical-card__icon"
+                >
+                  {attempt.passed ? (
+                    <CheckIcon />
+                  ) : (
+                    <CrossIcon />
                   )}
-                  %
-                </dd>
+                </div>
+
+                <div>
+                  <p className="history-nautical-card__date">
+                    {formatDate(attempt.finishedAt)}
+                  </p>
+
+                  <h2>{attempt.exam.name}</h2>
+
+                  <p className="history-nautical-card__status">
+                    {attempt.status === "expired"
+                      ? "Próba zakończona po upływie czasu"
+                      : attempt.passed
+                        ? "Egzamin zaliczony"
+                        : "Egzamin niezaliczony"}
+                  </p>
+                </div>
               </div>
 
-              <div>
-                <dt>Czas</dt>
+              <dl className="history-nautical-card__details">
+                <div>
+                  <dt>Wynik</dt>
 
-                <dd>
-                  {formatElapsedTime(
-                    attempt.elapsedSeconds,
-                  )}
-                </dd>
-              </div>
-            </dl>
+                  <dd>
+                    {attempt.score}/
+                    {attempt.totalQuestions}
+                  </dd>
+                </div>
 
-            <div className="history-card__actions">
-              <Link
-                className="button"
-                to={`/proby/${attempt.id}/wynik`}
-              >
-                Zobacz wynik
-              </Link>
+                <div>
+                  <dt>Procent</dt>
 
-              <Link
-                className="button button--secondary"
-                to={`/proby/${attempt.id}/bledy`}
-              >
-                Sprawdź błędy
-              </Link>
-            </div>
-          </article>
-        ))}
+                  <dd>{percentage}%</dd>
+                </div>
+
+                <div>
+                  <dt>Czas</dt>
+
+                  <dd>
+                    {formatElapsedTime(
+                      attempt.elapsedSeconds,
+                    )}
+                  </dd>
+                </div>
+              </dl>
+
+              <div className="history-nautical-card__actions">
+  <Link
+    className="nautical-primary-button"
+    to={`/proby/${attempt.id}/bledy`}
+  >
+    <span>Sprawdź błędy</span>
+
+    <ArrowRightIcon />
+  </Link>
+</div>
+            </article>
+          );
+        })}
       </section>
     </main>
   );

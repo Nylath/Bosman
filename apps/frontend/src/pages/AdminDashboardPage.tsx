@@ -22,13 +22,47 @@ function formatDate(value: string): string {
   }).format(new Date(value));
 }
 
+function ArrowRightIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="admin-nautical-button__icon"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M5 12h13m-5-5 5 5-5 5"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
+function UploadIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M12 15V4m0 0L8 8m4-4 4 4M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.9"
+      />
+    </svg>
+  );
+}
+
 function ReportList(props: {
   title: string;
   items: string[];
-  variant:
-    | "information"
-    | "warning"
-    | "error";
+  variant: "information" | "warning" | "error";
 }) {
   if (props.items.length === 0) {
     return null;
@@ -36,7 +70,7 @@ function ReportList(props: {
 
   return (
     <section
-      className={`import-report__section import-report__section--${props.variant}`}
+      className={`admin-report-section admin-report-section--${props.variant}`}
     >
       <h3>{props.title}</h3>
 
@@ -178,8 +212,8 @@ export function AdminDashboardPage() {
 
   if (isLoading) {
     return (
-      <main className="page">
-        <p className="message">
+      <main className="nautical-page admin-nautical-page">
+        <p className="home-message">
           Ładowanie panelu administratora…
         </p>
       </main>
@@ -187,26 +221,33 @@ export function AdminDashboardPage() {
   }
 
   return (
-    <main className="page">
-      <header className="admin-header">
+    <main className="nautical-page admin-nautical-page">
+      <header className="admin-dashboard-header">
         <div>
-          <p className="eyebrow">
+          <p className="home-logo">Bosman</p>
+
+          <p className="admin-nautical-eyebrow">
             Panel administratora
           </p>
 
           <h1>Zarządzanie egzaminami</h1>
+
+          <p>
+            Importuj pytania, przeglądaj egzaminy
+            i zarządzaj wersjami publikowanymi.
+          </p>
         </div>
 
-        <div className="admin-header__actions">
+        <div className="admin-dashboard-header__actions">
           <Link
-            className="button button--secondary"
+            className="nautical-secondary-button"
             to="/"
           >
             Menu główne
           </Link>
 
           <button
-            className="button button--secondary"
+            className="nautical-secondary-button"
             type="button"
             onClick={() => {
               void handleLogout();
@@ -218,13 +259,25 @@ export function AdminDashboardPage() {
       </header>
 
       {error && (
-        <p className="message message--error">
+        <p className="home-message home-message--error">
           {error}
         </p>
       )}
 
-      <section className="admin-section">
-        <h2>Import paczki ZIP</h2>
+      <section className="admin-nautical-card">
+        <div className="admin-nautical-card__heading">
+          <div className="admin-nautical-card__icon">
+            <UploadIcon />
+          </div>
+
+          <div>
+            <p className="admin-nautical-eyebrow">
+              Import danych
+            </p>
+
+            <h2>Import paczki ZIP</h2>
+          </div>
+        </div>
 
         <p>
           Wybierz paczkę zawierającą plik
@@ -234,41 +287,57 @@ export function AdminDashboardPage() {
         </p>
 
         <form
-          className="admin-import-form"
+          className="admin-nautical-import-form"
           onSubmit={(event) => {
             void handleImport(event);
           }}
         >
-          <input
-            type="file"
-            accept=".zip,application/zip"
-            disabled={isImporting}
-            onChange={(event) => {
-              setSelectedFile(
-                event.target.files?.[0] ?? null,
-              );
-            }}
-          />
+          <label className="admin-file-input">
+            <span>
+              {selectedFile
+                ? selectedFile.name
+                : "Wybierz paczkę ZIP"}
+            </span>
+
+            <input
+              type="file"
+              accept=".zip,application/zip"
+              disabled={isImporting}
+              onChange={(event) => {
+                setSelectedFile(
+                  event.target.files?.[0] ?? null,
+                );
+              }}
+            />
+          </label>
 
           <button
-            className="button"
+            className="admin-nautical-button"
             type="submit"
             disabled={
               isImporting || !selectedFile
             }
           >
-            {isImporting
-              ? "Importowanie…"
-              : "Zaimportuj jako szkic"}
+            <span>
+              {isImporting
+                ? "Importowanie…"
+                : "Zaimportuj jako szkic"}
+            </span>
+
+            <ArrowRightIcon />
           </button>
         </form>
       </section>
 
       {importResult && (
-        <section className="admin-section import-report">
+        <section className="admin-nautical-card">
+          <p className="admin-nautical-eyebrow">
+            Walidacja paczki
+          </p>
+
           <h2>Raport ostatniego importu</h2>
 
-          <dl className="import-report__summary">
+          <dl className="admin-report-summary">
             <div>
               <dt>Import jako szkic</dt>
 
@@ -327,23 +396,27 @@ export function AdminDashboardPage() {
         </section>
       )}
 
-      <section className="admin-section">
+      <section className="admin-nautical-card">
+        <p className="admin-nautical-eyebrow">
+          Baza egzaminów
+        </p>
+
         <h2>Egzaminy</h2>
 
         {exams.length === 0 ? (
-          <p className="message">
+          <p className="home-message">
             Nie zaimportowano jeszcze żadnego
             egzaminu.
           </p>
         ) : (
-          <div className="admin-exam-list">
+          <div className="admin-nautical-exam-list">
             {exams.map((exam) => (
               <article
-                className="admin-exam-card"
+                className="admin-nautical-exam-card"
                 key={exam.id}
               >
                 <div>
-                  <p className="admin-exam-card__slug">
+                  <p className="admin-nautical-exam-card__slug">
                     {exam.slug}
                   </p>
 
@@ -355,34 +428,36 @@ export function AdminDashboardPage() {
                   </p>
                 </div>
 
-                <div className="admin-exam-card__aside">
-  <dl>
-    <div>
-      <dt>Status</dt>
+                <div className="admin-nautical-exam-card__aside">
+                  <dl>
+                    <div>
+                      <dt>Status</dt>
 
-      <dd>
-        {exam.isActive
-          ? "Aktywny"
-          : "Nieaktywny"}
-      </dd>
-    </div>
+                      <dd>
+                        {exam.isActive
+                          ? "Aktywny"
+                          : "Nieaktywny"}
+                      </dd>
+                    </div>
 
-    <div>
-      <dt>Aktualizacja</dt>
+                    <div>
+                      <dt>Aktualizacja</dt>
 
-      <dd>
-        {formatDate(exam.updatedAt)}
-      </dd>
-    </div>
-  </dl>
+                      <dd>
+                        {formatDate(exam.updatedAt)}
+                      </dd>
+                    </div>
+                  </dl>
 
-  <Link
-    className="button button--secondary"
-    to={`/admin/egzaminy/${exam.id}/wersje`}
-  >
-    Zarządzaj wersjami
-  </Link>
-</div>
+                  <Link
+                    className="admin-nautical-button"
+                    to={`/admin/egzaminy/${exam.id}/wersje`}
+                  >
+                    <span>Zarządzaj wersjami</span>
+
+                    <ArrowRightIcon />
+                  </Link>
+                </div>
               </article>
             ))}
           </div>

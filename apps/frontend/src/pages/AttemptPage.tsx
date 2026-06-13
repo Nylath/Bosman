@@ -19,30 +19,66 @@ function calculateRemainingSeconds(
   expiresAt: string,
   currentTimestamp: number,
 ): number {
-  const expirationTimestamp =
-    new Date(expiresAt).getTime();
-
   return Math.max(
     0,
     Math.ceil(
-      (expirationTimestamp - currentTimestamp) / 1000,
+      (new Date(expiresAt).getTime() -
+        currentTimestamp) /
+        1000,
     ),
   );
 }
 
 function formatRemainingTime(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
-
   const remainingSeconds = seconds % 60;
 
-  return `${String(minutes).padStart(2, "0")}:${String(
-    remainingSeconds,
-  ).padStart(2, "0")}`;
+  return `${String(minutes).padStart(
+    2,
+    "0",
+  )}:${String(remainingSeconds).padStart(2, "0")}`;
+}
+
+function ArrowLeftIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="nautical-back-link__icon"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M19 12H6m5-5-5 5 5 5"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
+function ArrowRightIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="nautical-primary-button__icon"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M5 12h13m-5-5 5 5-5 5"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
 }
 
 export function AttemptPage() {
   const { attemptId } = useParams();
-
   const navigate = useNavigate();
 
   const [attempt, setAttempt] =
@@ -166,10 +202,8 @@ export function AttemptPage() {
     try {
       const result = await submitAttemptAnswer({
         attemptId: attempt.id,
-
         attemptQuestionId:
           attempt.currentQuestion.attemptQuestionId,
-
         selectedAnswerId,
       });
 
@@ -195,8 +229,8 @@ export function AttemptPage() {
 
   if (isLoading) {
     return (
-      <main className="page page--narrow">
-        <p className="message">
+      <main className="nautical-page nautical-page--exam">
+        <p className="home-message">
           Ładowanie próby…
         </p>
       </main>
@@ -205,28 +239,32 @@ export function AttemptPage() {
 
   if (error && !attempt) {
     return (
-      <main className="page page--narrow">
-        <p className="message message--error">
+      <main className="nautical-page nautical-page--exam">
+        <Link className="nautical-back-link" to="/">
+          <ArrowLeftIcon />
+
+          <span>Wróć do menu głównego</span>
+        </Link>
+
+        <p className="home-message home-message--error">
           {error}
         </p>
-
-        <Link className="text-link" to="/">
-          ← Wróć na ekran główny
-        </Link>
       </main>
     );
   }
 
   if (!attempt || !attempt.currentQuestion) {
     return (
-      <main className="page page--narrow">
-        <p className="message message--error">
+      <main className="nautical-page nautical-page--exam">
+        <Link className="nautical-back-link" to="/">
+          <ArrowLeftIcon />
+
+          <span>Wróć do menu głównego</span>
+        </Link>
+
+        <p className="home-message home-message--error">
           Nie udało się odczytać aktualnego pytania.
         </p>
-
-        <Link className="text-link" to="/">
-          ← Wróć na ekran główny
-        </Link>
       </main>
     );
   }
@@ -237,68 +275,74 @@ export function AttemptPage() {
     (question.number / attempt.totalQuestions) * 100;
 
   return (
-    <main className="page page--exam">
-      <header className="attempt-header">
+    <main className="nautical-page nautical-page--exam">
+      <header className="attempt-nautical-header">
         <div>
-          <p className="eyebrow">Próbny egzamin</p>
+          <p className="home-logo">Bosman</p>
 
-          <h1>{attempt.exam.name}</h1>
+          <Link className="nautical-back-link" to="/">
+            <ArrowLeftIcon />
+
+            <span>Wróć do menu głównego</span>
+          </Link>
         </div>
 
-        <div className="timer">
-          <span className="timer__label">
-            Pozostały czas
-          </span>
+        <div className="attempt-nautical-timer">
+          <span>Pozostały czas</span>
 
-          <strong>{formatRemainingTime(remainingSeconds)}</strong>
+          <strong>
+            {formatRemainingTime(remainingSeconds)}
+          </strong>
         </div>
       </header>
 
-      <section className="progress-section">
-        <div className="progress-section__label">
+      <section className="attempt-nautical-progress">
+        <div>
+          <strong>
+            Pytanie {question.number}
+          </strong>
+
           <span>
-            Pytanie {question.number} z{" "}
-            {attempt.totalQuestions}
+            z {attempt.totalQuestions}
           </span>
-
-          <span>{Math.round(progress)}%</span>
         </div>
 
-        <div className="progress-bar">
-          <div
-            className="progress-bar__value"
-            style={{
-              width: `${progress}%`,
-            }}
-          />
-        </div>
+        <span>{Math.round(progress)}%</span>
       </section>
 
-      <section className="question-card">
+      <div className="attempt-nautical-progress-bar">
+        <div
+          style={{
+            width: `${progress}%`,
+          }}
+        />
+      </div>
+
+      <section className="attempt-nautical-card">
+        <p className="attempt-nautical-card__exam">
+          {attempt.exam.name}
+        </p>
+
         {question.imageUrl && (
           <img
-            className="question-card__image"
-            src={question.imageUrl}
             alt=""
+            className="attempt-nautical-card__image"
+            src={question.imageUrl}
           />
         )}
 
-        <p className="question-card__external-id">
-          {question.externalId}
-        </p>
+        <h1>{question.text}</h1>
 
-        <h2>{question.text}</h2>
-
-        <div className="answers">
+        <div className="attempt-nautical-answers">
           {question.answers.map((answer, index) => {
             const isSelected =
               selectedAnswerId === answer.id;
 
             return (
               <button
-                className={`answer ${
+                className={`attempt-nautical-answer ${
                   isSelected
-                    ? "answer--selected"
+                    ? "attempt-nautical-answer--selected"
                     : ""
                 }`}
                 key={answer.id}
@@ -309,7 +353,7 @@ export function AttemptPage() {
                   setSelectedAnswerId(answer.id);
                 }}
               >
-                <span className="answer__letter">
+                <span className="attempt-nautical-answer__letter">
                   {String.fromCharCode(65 + index)}
                 </span>
 
@@ -320,14 +364,14 @@ export function AttemptPage() {
         </div>
 
         {error && (
-          <p className="message message--error">
+          <p className="home-message home-message--error">
             {error}
           </p>
         )}
 
-        <div className="question-card__footer">
+        <footer className="attempt-nautical-card__footer">
           <button
-            className="button"
+            className="nautical-primary-button"
             type="button"
             disabled={
               !selectedAnswerId ||
@@ -338,14 +382,18 @@ export function AttemptPage() {
               void handleNext();
             }}
           >
-            {isSubmitting
-              ? "Zapisywanie…"
-              : question.number ===
-                  attempt.totalQuestions
-                ? "Zakończ egzamin"
-                : "Dalej"}
+            <span>
+              {isSubmitting
+                ? "Zapisywanie…"
+                : question.number ===
+                    attempt.totalQuestions
+                  ? "Zakończ egzamin"
+                  : "Następne pytanie"}
+            </span>
+
+            <ArrowRightIcon />
           </button>
-        </div>
+        </footer>
       </section>
     </main>
   );

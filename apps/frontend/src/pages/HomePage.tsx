@@ -6,22 +6,209 @@ import {
   type PublicExam,
 } from "../api";
 
+function ClipboardIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="home-history-button__icon"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M9 5h6m-5-2h4a2 2 0 0 1 2 2v1h2a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2V5a2 2 0 0 1 2-2Zm-2 9 2 2 4-4"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+    </svg>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="home-exam-card__arrow"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M5 12h13m-5-5 5 5-5 5"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
+function ExamPlaceholder() {
+  return (
+    <div
+      aria-hidden="true"
+      className="home-exam-placeholder"
+    >
+      <svg
+        className="home-exam-placeholder__art"
+        viewBox="0 0 800 650"
+        preserveAspectRatio="xMidYMid slice"
+      >
+        <defs>
+          <linearGradient
+            id="placeholder-background"
+            x1="0"
+            x2="1"
+            y1="0"
+            y2="1"
+          >
+            <stop offset="0%" stopColor="#d9f2f4" />
+            <stop offset="100%" stopColor="#8acbd2" />
+          </linearGradient>
+
+          <linearGradient
+            id="wave-one"
+            x1="0"
+            x2="1"
+            y1="0"
+            y2="0"
+          >
+            <stop offset="0%" stopColor="#68b9c2" />
+            <stop offset="100%" stopColor="#a6d9dc" />
+          </linearGradient>
+
+          <linearGradient
+            id="wave-two"
+            x1="0"
+            x2="1"
+            y1="0"
+            y2="0"
+          >
+            <stop offset="0%" stopColor="#2d96a2" />
+            <stop offset="100%" stopColor="#76c2c9" />
+          </linearGradient>
+
+          <linearGradient
+            id="wave-three"
+            x1="0"
+            x2="1"
+            y1="0"
+            y2="0"
+          >
+            <stop offset="0%" stopColor="#197b89" />
+            <stop offset="100%" stopColor="#54aeb7" />
+          </linearGradient>
+
+          <filter id="anchor-shadow">
+            <feDropShadow
+              dx="0"
+              dy="9"
+              floodColor="#0d6571"
+              floodOpacity="0.18"
+              stdDeviation="8"
+            />
+          </filter>
+        </defs>
+
+        <rect
+          fill="url(#placeholder-background)"
+          height="650"
+          width="800"
+        />
+
+        <g
+          fill="none"
+          opacity="0.6"
+          stroke="#ffffff"
+          strokeWidth="1.2"
+        >
+          <circle cx="400" cy="260" r="118" />
+          <circle cx="400" cy="260" r="165" />
+          <circle cx="400" cy="260" r="213" />
+
+          <path d="M400 32v456M172 260h456" />
+        </g>
+
+        <g
+          fill="#ffffff"
+          fontFamily="Arial, sans-serif"
+          fontSize="22"
+          opacity="0.85"
+          textAnchor="middle"
+        >
+          <text x="400" y="56">N</text>
+          <text x="400" y="484">S</text>
+          <text x="182" y="268">W</text>
+          <text x="618" y="268">E</text>
+        </g>
+
+        <g
+          fill="none"
+          opacity="0.65"
+          stroke="#4eaab3"
+          strokeLinecap="round"
+          strokeWidth="4"
+        >
+          <path d="M636 116q18-15 36 0 18-15 36 0" />
+          <path d="M696 174q14-12 28 0 14-12 28 0" />
+          <path d="M96 215q11-9 22 0 11-9 22 0" />
+        </g>
+
+        <path
+          d="M0 393C125 340 227 442 354 394c137-52 245-39 446 12v244H0Z"
+          fill="url(#wave-one)"
+          opacity="0.72"
+        />
+
+        <path
+          d="M0 442c114-56 221 55 339 4 150-65 306-4 461 40v164H0Z"
+          fill="url(#wave-two)"
+          opacity="0.76"
+        />
+
+        <path
+          d="M0 502c104-56 204 42 337 2 161-49 313 7 463 61v85H0Z"
+          fill="url(#wave-three)"
+          opacity="0.86"
+        />
+
+        <g
+          fill="none"
+          filter="url(#anchor-shadow)"
+          stroke="#ffffff"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="19"
+        >
+          <circle cx="400" cy="173" r="30" />
+          <path d="M400 203v190" />
+          <path d="M354 246h92" />
+          <path d="M319 318c8 74 50 103 81 119 31-16 73-45 81-119" />
+          <path d="m319 318-20 26" />
+          <path d="m481 318 20 26" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
 function ExamCard({ exam }: { exam: PublicExam }) {
   return (
-    <article className="exam-card">
+    <article className="home-exam-card">
       {exam.tileImageUrl ? (
         <img
-          className="exam-card__image"
-          src={exam.tileImageUrl}
           alt=""
+          className="home-exam-card__image"
+          src={exam.tileImageUrl}
         />
       ) : (
-        <div className="exam-card__placeholder">
-          ⚓
-        </div>
+        <ExamPlaceholder />
       )}
 
-      <div className="exam-card__content">
+      <div className="home-exam-card__overlay" />
+
+      <div className="home-exam-card__panel">
         <h2>{exam.name}</h2>
 
         <p>
@@ -29,38 +216,13 @@ function ExamCard({ exam }: { exam: PublicExam }) {
             "Próbny egzamin żeglarski."}
         </p>
 
-        <dl className="exam-card__details">
-          <div>
-            <dt>Pytania</dt>
-
-            <dd>
-              {exam.version.questionsPerAttempt}
-            </dd>
-          </div>
-
-          <div>
-            <dt>Czas</dt>
-
-            <dd>
-              {exam.version.durationMinutes} min
-            </dd>
-          </div>
-
-          <div>
-            <dt>Zaliczenie</dt>
-
-            <dd>
-              {exam.version.passingScore}/
-              {exam.version.questionsPerAttempt}
-            </dd>
-          </div>
-        </dl>
-
         <Link
-          className="button"
+          className="home-exam-card__button"
           to={`/egzaminy/${exam.slug}`}
         >
-          Przejdź do egzaminu
+          <span>Przejdź do egzaminu</span>
+
+          <ArrowIcon />
         </Link>
       </div>
     </article>
@@ -110,46 +272,46 @@ export function HomePage() {
   }, []);
 
   return (
-    <main className="page">
-      <section className="hero">
-        <p className="eyebrow">Bosman</p>
+    <main className="home-page">
+      <section className="home-hero">
+        <p className="home-logo">Bosman</p>
 
         <h1>Próbne egzaminy żeglarskie</h1>
 
-        <p>
+        <p className="home-hero__description">
           Wybierz egzamin i sprawdź swoją wiedzę
           przed właściwym testem.
         </p>
 
-        <div className="hero__actions">
-          <Link
-            className="button button--secondary"
-            to="/historia"
-          >
-            Historia wyników
-          </Link>
-        </div>
+        <Link
+          className="home-history-button"
+          to="/historia"
+        >
+          <ClipboardIcon />
+
+          <span>Historia wyników</span>
+        </Link>
       </section>
 
       {isLoading && (
-        <p className="message">
+        <p className="home-message">
           Ładowanie egzaminów…
         </p>
       )}
 
       {error && (
-        <p className="message message--error">
+        <p className="home-message home-message--error">
           {error}
         </p>
       )}
 
       {!isLoading && !error && exams.length === 0 && (
-        <p className="message">
+        <p className="home-message">
           Brak opublikowanych egzaminów.
         </p>
       )}
 
-      <section className="exam-grid">
+      <section className="home-exam-grid">
         {exams.map((exam) => (
           <ExamCard key={exam.id} exam={exam} />
         ))}

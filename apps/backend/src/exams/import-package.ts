@@ -156,14 +156,25 @@ export async function importExamPackage(
           );
         }
 
-        const referencedAssets = new Set(
-          data.questions
+        const referencedAssets = new Set([
+          ...(data.exam.tileImage === null
+            ? []
+            : [
+                normalizeArchivePath(
+                  data.exam.tileImage,
+                ),
+              ]),
+
+          ...data.questions
             .map((question) => question.image)
             .filter(
-              (image): image is string => image !== null,
+              (image): image is string =>
+                image !== null,
             )
-            .map((image) => normalizeArchivePath(image)),
-        );
+            .map((image) =>
+              normalizeArchivePath(image),
+            ),
+        ]);
 
         const storedAssetPathByArchivePath = new Map<
           string,
@@ -175,6 +186,36 @@ export async function importExamPackage(
             archive,
             archiveAssetPath,
           );
+
+          const normalizedTileImagePath =
+  data.exam.tileImage === null
+    ? null
+    : normalizeArchivePath(
+        data.exam.tileImage,
+      );
+
+const storedTileImagePath =
+  normalizedTileImagePath === null
+    ? null
+    : storedAssetPathByArchivePath.get(
+        normalizedTileImagePath,
+      );
+
+if (
+  normalizedTileImagePath !== null &&
+  !storedTileImagePath
+) {
+  throw new Error(
+    `Nie zapisano grafiki kafelka "${normalizedTileImagePath}".`,
+  );
+}
+
+await transaction
+  .update(examVersions)
+  .set({
+    tileImagePath: storedTileImagePath,
+  })
+  .where(eq(examVersions.id, examVersion.id));
 
           if (!assetFile) {
             throw new Error(

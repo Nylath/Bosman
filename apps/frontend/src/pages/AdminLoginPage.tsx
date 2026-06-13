@@ -11,6 +11,62 @@ import {
   loginAdmin,
 } from "../api";
 
+function ArrowLeftIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="nautical-back-link__icon"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M19 12H6m5-5-5 5 5 5"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
+function ArrowRightIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="admin-nautical-button__icon"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M5 12h13m-5-5 5 5-5 5"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
+function LockIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M7 10V7a5 5 0 0 1 10 0v3m-9 0h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Zm4 4v3"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.9"
+      />
+    </svg>
+  );
+}
+
 export function AdminLoginPage() {
   const navigate = useNavigate();
 
@@ -81,61 +137,84 @@ export function AdminLoginPage() {
   }
 
   return (
-    <main className="page page--narrow">
-      <Link className="text-link" to="/">
-        ← Wróć do menu głównego
+    <main className="nautical-page admin-nautical-page">
+      <p className="home-logo">Bosman</p>
+
+      <Link className="nautical-back-link" to="/">
+        <ArrowLeftIcon />
+
+        <span>Wróć do menu głównego</span>
       </Link>
 
-      <section className="admin-login">
-        <p className="eyebrow">
-          Panel administratora
-        </p>
+      <section className="admin-login-layout">
+        <div className="admin-login-layout__intro">
+          <p className="admin-nautical-eyebrow">
+            Panel administratora
+          </p>
 
-        <h1>Zaloguj się</h1>
+          <h1>Zarządzaj egzaminami</h1>
 
-        <p>
-          Podaj hasło administratora, aby zarządzać
-          bazami pytań i wersjami egzaminów.
-        </p>
+          <p>
+            Importuj paczki ZIP, konfiguruj wersje
+            robocze i publikuj gotowe egzaminy.
+          </p>
+        </div>
 
-        <form
-          className="admin-form"
-          onSubmit={(event) => {
-            void handleSubmit(event);
-          }}
-        >
-          <label>
-            <span>Hasło administratora</span>
+        <section className="admin-login-card">
+          <div className="admin-login-card__icon">
+            <LockIcon />
+          </div>
 
-            <input
-              type="password"
-              value={password}
-              autoComplete="current-password"
-              disabled={isSubmitting}
-              onChange={(event) => {
-                setPassword(event.target.value);
-              }}
-            />
-          </label>
+          <h2>Zaloguj się</h2>
 
-          {error && (
-            <p className="message message--error">
-              {error}
-            </p>
-          )}
+          <p>
+            Podaj hasło administratora, aby przejść
+            do panelu zarządzania.
+          </p>
 
-          <button
-            className="button"
-            type="submit"
-            disabled={
-              isSubmitting || password.length === 0
-            }
+          <form
+            className="admin-nautical-form"
+            onSubmit={(event) => {
+              void handleSubmit(event);
+            }}
           >
-            {isSubmitting
-              ? "Logowanie…"
-              : "Zaloguj się"}
-          </button>
-        </form>
+            <label>
+              <span>Hasło administratora</span>
+
+              <input
+                type="password"
+                value={password}
+                autoComplete="current-password"
+                disabled={isSubmitting}
+                onChange={(event) => {
+                  setPassword(event.target.value);
+                }}
+              />
+            </label>
+
+            {error && (
+              <p className="home-message home-message--error">
+                {error}
+              </p>
+            )}
+
+            <button
+              className="admin-nautical-button"
+              type="submit"
+              disabled={
+                isSubmitting || password.length === 0
+              }
+            >
+              <span>
+                {isSubmitting
+                  ? "Logowanie…"
+                  : "Zaloguj się"}
+              </span>
+
+              <ArrowRightIcon />
+            </button>
+          </form>
+        </section>
       </section>
     </main>
   );

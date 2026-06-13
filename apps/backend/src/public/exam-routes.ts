@@ -99,7 +99,7 @@ const selectPublishedExamSql = `
     e.slug,
     e.name,
     e.description,
-    e.tile_image_path,
+    ev.tile_image_path,
     ev.id AS version_id,
     ev.version_number,
     ev.duration_minutes,
@@ -111,6 +111,7 @@ const selectPublishedExamSql = `
     SELECT
       id,
       version_number,
+      tile_image_path,
       duration_minutes,
       questions_per_attempt,
       passing_score,

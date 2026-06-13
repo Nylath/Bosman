@@ -69,6 +69,115 @@ function parseNullableInteger(
   return parsedValue;
 }
 
+function ArrowLeftIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="nautical-back-link__icon"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M19 12H6m5-5-5 5 5 5"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
+function ArrowRightIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="admin-nautical-button__icon"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M5 12h13m-5-5 5 5-5 5"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
+function SettingsIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm7-3.5 2-1-2-3-2.2.6a7.8 7.8 0 0 0-1.4-.8L15 4.5h-6l-.4 2.3c-.5.2-1 .5-1.4.8L5 7l-2 3 2 1v2l-2 1 2 3 2.2-.6c.4.3.9.6 1.4.8L9 19.5h6l.4-2.3c.5-.2 1-.5 1.4-.8L19 17l2-3-2-1v-1Z"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.6"
+      />
+    </svg>
+  );
+}
+
+function CategoriesIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M5 6h14M5 12h14M5 18h14M3 6h.01M3 12h.01M3 18h.01"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="m5 12 4.5 4.5L19 7"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2.4"
+      />
+    </svg>
+  );
+}
+
+function PublishIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M12 16V4m0 0L8 8m4-4 4 4M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.9"
+      />
+    </svg>
+  );
+}
+
 export function AdminExamVersionPage() {
   const { versionId } = useParams();
   const navigate = useNavigate();
@@ -145,6 +254,23 @@ export function AdminExamVersionPage() {
     );
   }
 
+  function handleUnauthorized(
+    caughtError: unknown,
+  ): boolean {
+    if (
+      caughtError instanceof ApiError &&
+      caughtError.status === 401
+    ) {
+      void navigate("/admin/logowanie", {
+        replace: true,
+      });
+
+      return true;
+    }
+
+    return false;
+  }
+
   useEffect(() => {
     if (!versionId) {
       setError(
@@ -165,14 +291,7 @@ export function AdminExamVersionPage() {
         }
       })
       .catch((caughtError: unknown) => {
-        if (
-          caughtError instanceof ApiError &&
-          caughtError.status === 401
-        ) {
-          void navigate("/admin/logowanie", {
-            replace: true,
-          });
-
+        if (handleUnauthorized(caughtError)) {
           return;
         }
 
@@ -194,23 +313,6 @@ export function AdminExamVersionPage() {
       requestIsActive = false;
     };
   }, [navigate, versionId]);
-
-  function handleUnauthorized(
-    caughtError: unknown,
-  ): boolean {
-    if (
-      caughtError instanceof ApiError &&
-      caughtError.status === 401
-    ) {
-      void navigate("/admin/logowanie", {
-        replace: true,
-      });
-
-      return true;
-    }
-
-    return false;
-  }
 
   async function handleSave(
     event: FormEvent<HTMLFormElement>,
@@ -323,8 +425,8 @@ export function AdminExamVersionPage() {
 
   if (isLoading) {
     return (
-      <main className="page">
-        <p className="message">
+      <main className="nautical-page admin-nautical-page">
+        <p className="home-message">
           Ładowanie konfiguracji…
         </p>
       </main>
@@ -333,13 +435,15 @@ export function AdminExamVersionPage() {
 
   if (error && !version) {
     return (
-      <main className="page">
-        <p className="message message--error">
+      <main className="nautical-page admin-nautical-page">
+        <p className="home-message home-message--error">
           {error}
         </p>
 
-        <Link className="text-link" to="/admin">
-          ← Wróć do panelu administratora
+        <Link className="nautical-back-link" to="/admin">
+          <ArrowLeftIcon />
+
+          <span>Wróć do panelu administratora</span>
         </Link>
       </main>
     );
@@ -352,64 +456,80 @@ export function AdminExamVersionPage() {
   const isEditable = version.status === "draft";
 
   return (
-    <main className="page">
+    <main className="nautical-page admin-nautical-page">
+      <p className="home-logo">Bosman</p>
+
       <Link
-        className="text-link"
+        className="nautical-back-link"
         to={`/admin/egzaminy/${version.exam.id}/wersje`}
       >
-        ← Wróć do listy wersji
+        <ArrowLeftIcon />
+
+        <span>Wróć do listy wersji</span>
       </Link>
 
-      <header className="admin-header">
-        <div>
-          <p className="eyebrow">
-            Panel administratora
-          </p>
+      <header className="admin-version-header">
+        <p className="admin-nautical-eyebrow">
+          Konfiguracja wersji
+        </p>
 
-          <h1>
-            {version.exam.name} — wersja{" "}
-            {version.versionNumber}
-          </h1>
+        <h1>{version.exam.name}</h1>
 
-          <p>
-            Status:{" "}
-            <strong>
-              {translateStatus(version.status)}
-            </strong>
-          </p>
+        <div className="admin-version-header__meta">
+          <span>
+            Wersja {version.versionNumber}
+          </span>
+
+          <span
+            className={`admin-version-status admin-version-status--${version.status}`}
+          >
+            {translateStatus(version.status)}
+          </span>
         </div>
       </header>
 
       {message && (
-        <p className="message message--success">
+        <p className="home-message admin-version-message--success">
           {message}
         </p>
       )}
 
       {error && (
-        <p className="message message--error">
+        <p className="home-message home-message--error">
           {error}
         </p>
       )}
 
       {!isEditable && (
-        <p className="message">
-          Ta wersja nie jest już edytowalna.
-          Zmiany wprowadź przez ponowny import
-          paczki ZIP jako nowy szkic.
+        <p className="home-message">
+          Ta wersja nie jest już edytowalna. Zmiany
+          wprowadź przez ponowny import paczki ZIP
+          jako nowy szkic.
         </p>
       )}
 
       <form
-        className="admin-version-form"
+        className="admin-version-nautical-form"
         onSubmit={(event) => {
           void handleSave(event);
         }}
       >
-        <section className="admin-section">
-          <h2>Podstawowe parametry</h2>
+        <section className="admin-nautical-card">
+          <div className="admin-nautical-card__heading">
+            <div className="admin-nautical-card__icon">
+              <SettingsIcon />
+            </div>
 
-          <div className="admin-fields-grid">
+            <div>
+              <p className="admin-nautical-eyebrow">
+                Ustawienia egzaminu
+              </p>
+
+              <h2>Podstawowe parametry</h2>
+            </div>
+          </div>
+
+          <div className="admin-version-fields">
             <label>
               <span>Czas trwania w minutach</span>
 
@@ -476,13 +596,27 @@ export function AdminExamVersionPage() {
           </div>
         </section>
 
-        <section className="admin-section">
-          <h2>Minimalna liczba pytań z działów</h2>
+        <section className="admin-nautical-card">
+          <div className="admin-nautical-card__heading">
+            <div className="admin-nautical-card__icon">
+              <CategoriesIcon />
+            </div>
 
-          <div className="admin-category-list">
+            <div>
+              <p className="admin-nautical-eyebrow">
+                Reguły losowania
+              </p>
+
+              <h2>
+                Minimalna liczba pytań z działów
+              </h2>
+            </div>
+          </div>
+
+          <div className="admin-version-category-list">
             {categories.map((category) => (
               <label
-                className="admin-category-row"
+                className="admin-version-category-row"
                 key={category.id}
               >
                 <span>
@@ -525,24 +659,40 @@ export function AdminExamVersionPage() {
         </section>
 
         {isEditable && (
-          <div className="admin-version-actions">
+          <div className="admin-version-save-row">
             <button
-              className="button"
+              className="admin-nautical-button"
               type="submit"
               disabled={isSaving || isPublishing}
             >
-              {isSaving
-                ? "Zapisywanie…"
-                : "Zapisz konfigurację"}
+              <span>
+                {isSaving
+                  ? "Zapisywanie…"
+                  : "Zapisz konfigurację"}
+              </span>
+
+              <ArrowRightIcon />
             </button>
           </div>
         )}
       </form>
 
-      <section className="admin-section">
-        <h2>Gotowość do publikacji</h2>
+      <section className="admin-nautical-card">
+        <div className="admin-nautical-card__heading">
+          <div className="admin-nautical-card__icon">
+            <PublishIcon />
+          </div>
 
-        <dl className="import-report__summary">
+          <div>
+            <p className="admin-nautical-eyebrow">
+              Kontrola jakości
+            </p>
+
+            <h2>Gotowość do publikacji</h2>
+          </div>
+        </div>
+
+        <dl className="admin-version-statistics">
           <div>
             <dt>Działy</dt>
 
@@ -578,7 +728,7 @@ export function AdminExamVersionPage() {
         </dl>
 
         {version.publication.blockers.length > 0 ? (
-          <section className="import-report__section import-report__section--warning">
+          <section className="admin-report-section admin-report-section--warning">
             <h3>Blokady publikacji</h3>
 
             <ul>
@@ -590,14 +740,20 @@ export function AdminExamVersionPage() {
             </ul>
           </section>
         ) : (
-          <p className="message message--success">
-            Wersja spełnia warunki publikacji.
-          </p>
+          <div className="admin-version-ready">
+            <div className="admin-version-ready__icon">
+              <CheckIcon />
+            </div>
+
+            <span>
+              Wersja spełnia warunki publikacji.
+            </span>
+          </div>
         )}
 
         {isEditable && (
           <button
-            className="button"
+            className="admin-nautical-button admin-version-publish-button"
             type="button"
             disabled={
               !version.publication.canPublish ||
@@ -608,9 +764,13 @@ export function AdminExamVersionPage() {
               void handlePublish();
             }}
           >
-            {isPublishing
-              ? "Publikowanie…"
-              : "Opublikuj wersję"}
+            <span>
+              {isPublishing
+                ? "Publikowanie…"
+                : "Opublikuj wersję"}
+            </span>
+
+            <PublishIcon />
           </button>
         )}
       </section>

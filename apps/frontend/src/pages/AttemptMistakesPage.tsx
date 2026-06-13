@@ -9,6 +9,43 @@ import {
   type AttemptMistake,
 } from "../api";
 
+function ArrowLeftIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="nautical-back-link__icon"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M19 12H6m5-5-5 5 5 5"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="m5 12 4.5 4.5L19 7"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2.4"
+      />
+    </svg>
+  );
+}
+
 export function AttemptMistakesPage() {
   const { attemptId } = useParams();
 
@@ -61,33 +98,39 @@ export function AttemptMistakesPage() {
   }, [attemptId]);
 
   return (
-    <main className="page page--narrow">
+    <main className="nautical-page nautical-page--mistakes">
+      <p className="home-logo">Bosman</p>
+
       <Link
-        className="text-link"
+        className="nautical-back-link"
         to={`/proby/${attemptId}/wynik`}
       >
-        ← Wróć do wyniku
+        <ArrowLeftIcon />
+
+        <span>Wróć do wyniku</span>
       </Link>
 
-      <section className="page-heading">
-        <p className="eyebrow">Powtórka materiału</p>
+      <section className="mistakes-nautical-heading">
+        <p className="mistakes-nautical-heading__eyebrow">
+          Powtórka materiału
+        </p>
 
         <h1>Błędne odpowiedzi</h1>
 
         <p>
-          Sprawdź pytania, które wymagają
-          dodatkowej uwagi.
+          Sprawdź pytania, które warto jeszcze raz
+          przeanalizować przed egzaminem.
         </p>
       </section>
 
       {isLoading && (
-        <p className="message">
+        <p className="home-message">
           Ładowanie błędów…
         </p>
       )}
 
       {error && (
-        <p className="message message--error">
+        <p className="home-message home-message--error">
           {error}
         </p>
       )}
@@ -95,10 +138,10 @@ export function AttemptMistakesPage() {
       {!isLoading &&
         !error &&
         mistakes.length === 0 && (
-          <section className="empty-success">
-            <p className="empty-success__icon">
-              ✓
-            </p>
+          <section className="mistakes-nautical-empty">
+            <div className="mistakes-nautical-empty__icon">
+              <CheckIcon />
+            </div>
 
             <h2>Brak błędnych odpowiedzi</h2>
 
@@ -107,33 +150,36 @@ export function AttemptMistakesPage() {
               poprawne.
             </p>
 
-            <Link className="button" to="/historia">
-              Przejdź do historii
-            </Link>
+            <Link
+  className="nautical-primary-button mistakes-nautical-empty__button"
+  to="/historia"
+>
+  Historia wyników
+</Link>
           </section>
         )}
 
-      <section className="mistakes-list">
+      <section className="mistakes-nautical-list">
         {mistakes.map((mistake) => (
           <article
-            className="mistake-card"
+            className="mistakes-nautical-card"
             key={mistake.externalId}
           >
-            <p className="mistake-card__number">
+            <p className="mistakes-nautical-card__number">
               Pytanie {mistake.number}
             </p>
 
             {mistake.imageUrl && (
               <img
-                className="mistake-card__image"
-                src={mistake.imageUrl}
                 alt=""
+                className="mistakes-nautical-card__image"
+                src={mistake.imageUrl}
               />
             )}
 
             <h2>{mistake.text}</h2>
 
-            <div className="mistake-answer mistake-answer--wrong">
+            <div className="mistakes-nautical-answer mistakes-nautical-answer--wrong">
               <strong>Twoja odpowiedź</strong>
 
               <span>
@@ -142,7 +188,7 @@ export function AttemptMistakesPage() {
               </span>
             </div>
 
-            <div className="mistake-answer mistake-answer--correct">
+            <div className="mistakes-nautical-answer mistakes-nautical-answer--correct">
               <strong>Poprawna odpowiedź</strong>
 
               <span>

@@ -63,6 +63,12 @@ export const examPackageSchema = z
           .min(1)
           .nullable()
           .default(null),
+        tileImage: z
+          .string()
+          .trim()
+          .min(1)
+          .nullable()
+          .default(null),
         durationMinutes: positiveIntegerOrNullSchema,
         questionsPerAttempt: positiveIntegerOrNullSchema,
         passingScore: positiveIntegerOrNullSchema,
@@ -161,6 +167,47 @@ function getExtension(filePath: string): string {
   }
 
   return filePath.slice(dotPosition).toLowerCase();
+}
+
+function validateReferencedImage(input: {
+  imagePath: string;
+  label: string;
+  archive: JSZip;
+  report: ExamPackageValidationReport;
+}): void {
+  const normalizedImagePath = normalizeArchivePath(
+    input.imagePath,
+  );
+
+  if (!isSafeArchivePath(normalizedImagePath)) {
+    input.report.errors.push(
+      `${input.label}: nieprawidłowa ścieżka grafiki "${input.imagePath}".`,
+    );
+
+    return;
+  }
+
+  if (!normalizedImagePath.startsWith("assets/")) {
+    input.report.errors.push(
+      `${input.label}: grafika musi znajdować się w katalogu assets/.`,
+    );
+  }
+
+  if (
+    !allowedImageExtensions.has(
+      getExtension(normalizedImagePath),
+    )
+  ) {
+    input.report.errors.push(
+      `${input.label}: niedozwolony format grafiki "${input.imagePath}".`,
+    );
+  }
+
+  if (!getArchiveFile(input.archive, normalizedImagePath)) {
+    input.report.errors.push(
+      `${input.label}: brak grafiki "${input.imagePath}" w paczce ZIP.`,
+    );
+  }
 }
 
 function addDuplicateErrors(
@@ -277,20 +324,35 @@ function validateQuestions(
   report: ExamPackageValidationReport,
 ): void {
   const categorySlugs = new Set(
-    data.sampling.categories.map((category) => category.slug),
+    data.sampling.categories.map(
+      (category) => category.slug,
+    ),
   );
 
   addDuplicateErrors(
-    data.sampling.categories.map((category) => category.slug),
+    data.sampling.categories.map(
+      (category) => category.slug,
+    ),
     "Slug działu",
     report,
   );
 
   addDuplicateErrors(
-    data.questions.map((question) => question.externalId),
+    data.questions.map(
+      (question) => question.externalId,
+    ),
     "Identyfikator pytania",
     report,
   );
+
+  if (data.exam.tileImage !== null) {
+    validateReferencedImage({
+      imagePath: data.exam.tileImage,
+      label: "Grafika kafelka egzaminu",
+      archive,
+      report,
+    });
+  }
 
   for (const question of data.questions) {
     if (!categorySlugs.has(question.categorySlug)) {
@@ -299,15 +361,19 @@ function validateQuestions(
       );
     }
 
-    if (question.answers.length !== data.exam.answersPerQuestion) {
+    if (
+      question.answers.length !==
+      data.exam.answersPerQuestion
+    ) {
       report.errors.push(
         `${question.externalId}: wykryto ${question.answers.length} odpowiedzi zamiast ${data.exam.answersPerQuestion}.`,
       );
     }
 
-    const correctAnswers = question.answers.filter(
-      (answer) => answer.isCorrect,
-    );
+    const correctAnswers =
+      question.answers.filter(
+        (answer) => answer.isCorrect,
+      );
 
     if (correctAnswers.length !== 1) {
       report.errors.push(
@@ -315,43 +381,22 @@ function validateQuestions(
       );
     }
 
-    if (question.image === null) {
-      continue;
-    }
-
-    const normalizedImagePath = normalizeArchivePath(question.image);
-
-    if (!isSafeArchivePath(normalizedImagePath)) {
-      report.errors.push(
-        `${question.externalId}: nieprawidłowa ścieżka grafiki "${question.image}".`,
-      );
-
-      continue;
-    }
-
-    if (!normalizedImagePath.startsWith("assets/")) {
-      report.errors.push(
-        `${question.externalId}: grafika musi znajdować się w katalogu assets/.`,
-      );
-    }
-
-    if (!allowedImageExtensions.has(getExtension(normalizedImagePath))) {
-      report.errors.push(
-        `${question.externalId}: niedozwolony format grafiki "${question.image}".`,
-      );
-    }
-
-    if (!getArchiveFile(archive, normalizedImagePath)) {
-      report.errors.push(
-        `${question.externalId}: brak grafiki "${question.image}" w paczce ZIP.`,
-      );
+    if (question.image !== null) {
+      validateReferencedImage({
+        imagePath: question.image,
+        label: question.externalId,
+        archive,
+        report,
+      });
     }
   }
 
   for (const category of data.sampling.categories) {
-    const questionsInCategory = data.questions.filter(
-      (question) => question.categorySlug === category.slug,
-    ).length;
+    const questionsInCategory =
+      data.questions.filter(
+        (question) =>
+          question.categorySlug === category.slug,
+      ).length;
 
     report.information.push(
       `Dział "${category.name}": ${questionsInCategory} pytań`,
@@ -359,7 +404,8 @@ function validateQuestions(
 
     if (
       category.minimumQuestions !== null &&
-      questionsInCategory < category.minimumQuestions
+      questionsInCategory <
+        category.minimumQuestions
     ) {
       report.errors.push(
         `Dział "${category.name}" zawiera ${questionsInCategory} pytań, ale wymagane minimum wynosi ${category.minimumQuestions}.`,
@@ -386,36 +432,75 @@ function addAssetInformation(
   data: ExamPackage,
   report: ExamPackageValidationReport,
 ): void {
-  const assetFiles = Object.values(archive.files).filter(
+  const assetFiles = Object.values(
+    archive.files,
+  ).filter(
     (entry) =>
       !entry.dir &&
-      normalizeArchivePath(entry.name).startsWith("assets/"),
+      normalizeArchivePath(
+        entry.name,
+      ).startsWith("assets/"),
   );
 
-  const referencedAssets = new Set(
-    data.questions
+  const referencedAssets = new Set([
+    ...(data.exam.tileImage === null
+      ? []
+      : [
+          normalizeArchivePath(
+            data.exam.tileImage,
+          ),
+        ]),
+
+    ...data.questions
       .map((question) => question.image)
-      .filter((image): image is string => image !== null)
-      .map((image) => normalizeArchivePath(image)),
+      .filter(
+        (image): image is string =>
+          image !== null,
+      )
+      .map((image) =>
+        normalizeArchivePath(image),
+      ),
+  ]);
+
+  report.information.push(
+    `Egzamin: ${data.exam.name}`,
   );
 
-  report.information.push(`Egzamin: ${data.exam.name}`);
-  report.information.push(`Działy: ${data.sampling.categories.length}`);
-  report.information.push(`Pytania: ${data.questions.length}`);
+  report.information.push(
+    `Działy: ${data.sampling.categories.length}`,
+  );
+
+  report.information.push(
+    `Pytania: ${data.questions.length}`,
+  );
+
   report.information.push(
     `Odpowiedzi na pytanie: ${data.exam.answersPerQuestion}`,
   );
-  report.information.push(`Grafiki w ZIP-ie: ${assetFiles.length}`);
+
   report.information.push(
-    `Grafiki używane przez pytania: ${referencedAssets.size}`,
+    `Grafika kafelka egzaminu: ${
+      data.exam.tileImage === null
+        ? "NIE"
+        : "TAK"
+    }`,
+  );
+
+  report.information.push(
+    `Grafiki w ZIP-ie: ${assetFiles.length}`,
+  );
+
+  report.information.push(
+    `Grafiki używane przez egzamin: ${referencedAssets.size}`,
   );
 
   for (const asset of assetFiles) {
-    const normalizedAssetName = normalizeArchivePath(asset.name);
+    const normalizedAssetName =
+      normalizeArchivePath(asset.name);
 
     if (!referencedAssets.has(normalizedAssetName)) {
       report.warnings.push(
-        `Grafika "${normalizedAssetName}" znajduje się w ZIP-ie, ale nie jest używana przez żadne pytanie.`,
+        `Grafika "${normalizedAssetName}" znajduje się w ZIP-ie, ale nie jest używana przez egzamin.`,
       );
     }
   }
