@@ -10,10 +10,12 @@ import {
 } from "react-router";
 
 import {
+  cancelAttempt,
   getAttempt,
   submitAttemptAnswer,
   type Attempt,
 } from "../api";
+import { ConfirmCancelAttemptModal } from "../components/ConfirmCancelAttemptModal";
 
 function calculateRemainingSeconds(
   expiresAt: string,
@@ -92,6 +94,14 @@ export function AttemptPage() {
 
   const [isSubmitting, setIsSubmitting] =
     useState(false);
+
+  const [isCancelling, setIsCancelling] =
+    useState(false);
+
+  const [
+    isCancelModalOpen,
+    setIsCancelModalOpen,
+  ] = useState(false);
 
   const [error, setError] =
     useState<string | null>(null);
@@ -227,6 +237,36 @@ export function AttemptPage() {
     }
   }
 
+  async function handleCancel(): Promise<void> {
+    if (!attempt) {
+      return;
+    }
+
+    setIsCancelling(true);
+    setError(null);
+
+    try {
+      await cancelAttempt(attempt.id);
+
+      void navigate(
+        `/egzaminy/${attempt.exam.slug}`,
+        {
+          replace: true,
+        },
+      );
+    } catch (caughtError) {
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Nie udało się przerwać egzaminu.",
+      );
+
+      setIsCancelModalOpen(false);
+    } finally {
+      setIsCancelling(false);
+    }
+  }
+
   if (isLoading) {
     return (
       <main className="nautical-page nautical-page--exam">
@@ -280,11 +320,24 @@ export function AttemptPage() {
         <div>
           <p className="home-logo">Bosman</p>
 
-          <Link className="nautical-back-link" to="/">
-            <ArrowLeftIcon />
+          <div className="attempt-nautical-navigation">
+            <Link className="nautical-back-link" to="/">
+              <ArrowLeftIcon />
 
-            <span>Wróć do menu głównego</span>
-          </Link>
+              <span>Wróć do menu głównego</span>
+            </Link>
+
+            <button
+              className="attempt-stop-button"
+              type="button"
+              disabled={isSubmitting || isCancelling}
+              onClick={() => {
+                setIsCancelModalOpen(true);
+              }}
+            >
+              Przerwij egzamin
+            </button>
+          </div>
         </div>
 
         <div className="attempt-nautical-timer">
@@ -348,7 +401,7 @@ export function AttemptPage() {
                 key={answer.id}
                 type="button"
                 aria-pressed={isSelected}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isCancelling}
                 onClick={() => {
                   setSelectedAnswerId(answer.id);
                 }}
@@ -376,6 +429,7 @@ export function AttemptPage() {
             disabled={
               !selectedAnswerId ||
               isSubmitting ||
+              isCancelling ||
               remainingSeconds === 0
             }
             onClick={() => {
@@ -395,6 +449,17 @@ export function AttemptPage() {
           </button>
         </footer>
       </section>
+
+      <ConfirmCancelAttemptModal
+        isOpen={isCancelModalOpen}
+        isCancelling={isCancelling}
+        onClose={() => {
+          setIsCancelModalOpen(false);
+        }}
+        onConfirm={() => {
+          void handleCancel();
+        }}
+      />
     </main>
   );
 }

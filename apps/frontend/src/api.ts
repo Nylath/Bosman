@@ -541,3 +541,33 @@ export async function updateAdminExamActive(
 
   return response.exam;
 }
+
+type GetActiveAttemptResponse = {
+  attempt: Attempt | null;
+};
+
+type CancelAttemptResponse = {
+  status: "cancelled";
+};
+
+export async function getActiveAttemptForExam(
+  slug: string,
+): Promise<Attempt | null> {
+  const response =
+    await requestJson<GetActiveAttemptResponse>(
+      `/api/exams/${encodeURIComponent(slug)}/attempts/active`,
+    );
+
+  return response.attempt;
+}
+
+export async function cancelAttempt(
+  attemptId: string,
+): Promise<void> {
+  await requestJson<CancelAttemptResponse>(
+    `/api/attempts/${encodeURIComponent(attemptId)}/cancel`,
+    {
+      method: "POST",
+    },
+  );
+}

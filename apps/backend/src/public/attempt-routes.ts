@@ -3,8 +3,10 @@ import { Router } from "express";
 import { z } from "zod";
 
 import { config } from "../config.js";
+import { cancelLocalAttempt } from "../exams/attempt-cancellation-management.js";
 import { submitLocalAttemptAnswer } from "../exams/attempt-answer-management.js";
 import {
+  getActiveLocalAttemptForExam,
   getLocalAttempt,
   startOrResumeLocalAttempt,
 } from "../exams/attempt-management.js";
@@ -78,6 +80,93 @@ publicAttemptRouter.post(
       response
         .status(result.created ? 201 : 200)
         .json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+publicAttemptRouter.get(
+  "/exams/:slug/attempts/active",
+  async (request, response, next) => {
+    try {
+      if (!ensureLocalMode(response)) {
+        return;
+      }
+
+      const parsedSlug =
+        examSlugSchema.safeParse(
+          request.params.slug,
+        );
+
+      if (!parsedSlug.success) {
+        response.status(400).json({
+          message:
+            "Nieprawidłowy adres egzaminu.",
+        });
+
+        return;
+      }
+
+      const attempt =
+        await getActiveLocalAttemptForExam(
+          parsedSlug.data,
+        );
+
+      response.json({
+        attempt,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+publicAttemptRouter.post(
+  "/attempts/:attemptId/cancel",
+  async (request, response, next) => {
+    try {
+      if (!ensureLocalMode(response)) {
+        return;
+      }
+
+      const parsedAttemptId =
+        attemptIdSchema.safeParse(
+          request.params.attemptId,
+        );
+
+      if (!parsedAttemptId.success) {
+        response.status(400).json({
+          message:
+            "Nieprawidłowy identyfikator próby.",
+        });
+
+        return;
+      }
+
+      const result = await cancelLocalAttempt(
+        parsedAttemptId.data,
+      );
+
+      if (result.status === "not_found") {
+        response.status(404).json({
+          message:
+            "Nie znaleziono próby egzaminacyjnej.",
+        });
+
+        return;
+      }
+
+      if (result.status === "not_in_progress") {
+        response.status(409).json({
+          message:
+            "Próba egzaminacyjna nie jest już aktywna.",
+        });
+
+        return;
+      }
+
+      response.json(result);
     } catch (error) {
       next(error);
     }

@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import {
   Link,
@@ -6,10 +7,14 @@ import {
 } from "react-router";
 
 import {
+  cancelAttempt,
+  getActiveAttemptForExam,
   getPublishedExam,
   startOrResumeAttempt,
+  type Attempt,
   type PublicExam,
 } from "../api";
+import { ConfirmCancelAttemptModal } from "../components/ConfirmCancelAttemptModal";
 
 function ArrowLeftIcon() {
   return (
@@ -130,14 +135,12 @@ function NauticalPlaceholder() {
   );
 }
 
-function DetailIcon({
-  children,
-}: {
-  children: React.ReactNode;
+function DetailIcon(props: {
+  children: ReactNode;
 }) {
   return (
     <span className="exam-start-detail__icon">
-      {children}
+      {props.children}
     </span>
   );
 }
@@ -149,11 +152,22 @@ export function ExamStartPage() {
   const [exam, setExam] =
     useState<PublicExam | null>(null);
 
+  const [activeAttempt, setActiveAttempt] =
+    useState<Attempt | null>(null);
+
   const [isLoading, setIsLoading] =
     useState(true);
 
   const [isStarting, setIsStarting] =
     useState(false);
+
+  const [isCancelling, setIsCancelling] =
+    useState(false);
+
+  const [
+    isCancelModalOpen,
+    setIsCancelModalOpen,
+  ] = useState(false);
 
   const [error, setError] =
     useState<string | null>(null);
@@ -168,12 +182,23 @@ export function ExamStartPage() {
 
     let requestIsActive = true;
 
-    void getPublishedExam(slug)
-      .then((publishedExam) => {
-        if (requestIsActive) {
+    void Promise.all([
+      getPublishedExam(slug),
+      getActiveAttemptForExam(slug),
+    ])
+      .then(
+        ([
+          publishedExam,
+          loadedActiveAttempt,
+        ]) => {
+          if (!requestIsActive) {
+            return;
+          }
+
           setExam(publishedExam);
-        }
-      })
+          setActiveAttempt(loadedActiveAttempt);
+        },
+      )
       .catch((caughtError: unknown) => {
         if (!requestIsActive) {
           return;
@@ -196,7 +221,7 @@ export function ExamStartPage() {
     };
   }, [slug]);
 
-  async function handleStart(): Promise<void> {
+  async function handleStartOrContinue(): Promise<void> {
     if (!slug) {
       return;
     }
@@ -220,6 +245,30 @@ export function ExamStartPage() {
     }
   }
 
+  async function handleCancel(): Promise<void> {
+    if (!activeAttempt) {
+      return;
+    }
+
+    setIsCancelling(true);
+    setError(null);
+
+    try {
+      await cancelAttempt(activeAttempt.id);
+
+      setActiveAttempt(null);
+      setIsCancelModalOpen(false);
+    } catch (caughtError) {
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Nie udało się przerwać egzaminu.",
+      );
+    } finally {
+      setIsCancelling(false);
+    }
+  }
+
   if (isLoading) {
     return (
       <main className="nautical-page">
@@ -230,19 +279,24 @@ export function ExamStartPage() {
     );
   }
 
-  if (error || !exam) {
+  if (error && !exam) {
     return (
       <main className="nautical-page">
         <Link className="nautical-back-link" to="/">
           <ArrowLeftIcon />
+
           <span>Wróć do menu głównego</span>
         </Link>
 
         <p className="home-message home-message--error">
-          {error ?? "Nie znaleziono egzaminu."}
+          {error}
         </p>
       </main>
     );
+  }
+
+  if (!exam) {
+    return null;
   }
 
   return (
@@ -251,6 +305,7 @@ export function ExamStartPage() {
 
       <Link className="nautical-back-link" to="/">
         <ArrowLeftIcon />
+
         <span>Wróć do menu głównego</span>
       </Link>
 
@@ -306,28 +361,53 @@ export function ExamStartPage() {
             </div>
           </dl>
 
+          {activeAttempt && (
+            <p className="exam-start-resume-message">
+              Masz rozpoczęte podejście. Możesz
+              kontynuować od ostatniego pytania albo
+              przerwać je i rozpocząć od nowa.
+            </p>
+          )}
+
           {error && (
             <p className="home-message home-message--error">
               {error}
             </p>
           )}
 
-          <button
-            className="nautical-primary-button"
-            type="button"
-            disabled={isStarting}
-            onClick={() => {
-              void handleStart();
-            }}
-          >
-            <span>
-              {isStarting
-                ? "Rozpoczynanie…"
-                : "Rozpocznij egzamin"}
-            </span>
+          <div className="exam-start-actions">
+            <button
+              className="nautical-primary-button"
+              type="button"
+              disabled={isStarting || isCancelling}
+              onClick={() => {
+                void handleStartOrContinue();
+              }}
+            >
+              <span>
+                {isStarting
+                  ? "Otwieranie…"
+                  : activeAttempt
+                    ? "Kontynuuj egzamin"
+                    : "Rozpocznij egzamin"}
+              </span>
 
-            <ArrowRightIcon />
-          </button>
+              <ArrowRightIcon />
+            </button>
+
+            {activeAttempt && (
+              <button
+                className="attempt-stop-button"
+                type="button"
+                disabled={isStarting || isCancelling}
+                onClick={() => {
+                  setIsCancelModalOpen(true);
+                }}
+              >
+                Przerwij egzamin
+              </button>
+            )}
+          </div>
         </article>
 
         <aside className="exam-start-cover">
@@ -342,6 +422,17 @@ export function ExamStartPage() {
           )}
         </aside>
       </section>
+
+      <ConfirmCancelAttemptModal
+        isOpen={isCancelModalOpen}
+        isCancelling={isCancelling}
+        onClose={() => {
+          setIsCancelModalOpen(false);
+        }}
+        onConfirm={() => {
+          void handleCancel();
+        }}
+      />
     </main>
   );
 }

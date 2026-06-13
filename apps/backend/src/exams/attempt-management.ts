@@ -700,3 +700,76 @@ export async function getLocalAttempt(
     client.release();
   }
 }
+
+export async function getActiveLocalAttemptForExam(
+  examSlug: string,
+): Promise<AttemptView | null> {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const context = await getLocalContext(
+      client,
+      false,
+    );
+
+    const activeAttemptResult =
+      await client.query<{
+        id: string;
+      }>(
+        `
+          SELECT
+            a.id
+          FROM attempts a
+          INNER JOIN exams e
+            ON e.id = a.exam_id
+          WHERE a.participant_id = $1
+            AND e.organization_id = $2
+            AND e.slug = $3
+            AND e.is_active = TRUE
+            AND a.status = 'in_progress'
+          ORDER BY a.started_at DESC
+          LIMIT 1
+          FOR UPDATE OF a;
+        `,
+        [
+          context.participant_id,
+          context.organization_id,
+          examSlug,
+        ],
+      );
+
+    const activeAttempt =
+      activeAttemptResult.rows[0];
+
+    if (!activeAttempt) {
+      await client.query("COMMIT");
+
+      return null;
+    }
+
+    const attempt = await loadAttemptView(
+      client,
+      activeAttempt.id,
+      context.participant_id,
+    );
+
+    await client.query("COMMIT");
+
+    if (
+      !attempt ||
+      attempt.status !== "in_progress"
+    ) {
+      return null;
+    }
+
+    return attempt;
+  } catch (error) {
+    await client.query("ROLLBACK");
+
+    throw error;
+  } finally {
+    client.release();
+  }
+}
