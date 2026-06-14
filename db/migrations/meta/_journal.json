@@ -50,6 +50,13 @@
       "when": 1781339750719,
       "tag": "0006_keen_onslaught",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1781430247268,
+      "tag": "0007_absurd_victor_mancha",
+      "breakpoints": true
     }
   ]
 }

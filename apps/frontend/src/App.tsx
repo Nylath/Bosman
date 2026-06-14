@@ -4,6 +4,7 @@ import { AdminDashboardPage } from "./pages/AdminDashboardPage";
 import { AdminExamVersionPage } from "./pages/AdminExamVersionPage";
 import { AdminExamVersionsPage } from "./pages/AdminExamVersionsPage";
 import { AdminLoginPage } from "./pages/AdminLoginPage";
+import { AdminParticipantsPage } from "./pages/AdminParticipantsPage";
 import { AttemptMistakesPage } from "./pages/AttemptMistakesPage";
 import { AttemptPage } from "./pages/AttemptPage";
 import { AttemptResultPage } from "./pages/AttemptResultPage";
@@ -51,6 +52,11 @@ export default function App() {
         path="/admin"
         element={<AdminDashboardPage />}
       />
+
+      <Route
+  path="/admin/uczestnicy"
+  element={<AdminParticipantsPage />}
+/>
 
       <Route
         path="/admin/egzaminy/:examId/wersje"

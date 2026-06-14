@@ -324,6 +324,12 @@ export function AdminDashboardPage() {
 
         <div className="admin-dashboard-header__actions">
           <Link
+  className="nautical-secondary-button"
+  to="/admin/uczestnicy"
+>
+  Uczestnicy
+</Link>
+          <Link
             className="nautical-secondary-button"
             to="/"
           >

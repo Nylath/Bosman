@@ -571,3 +571,118 @@ export async function cancelAttempt(
     },
   );
 }
+
+export type AdminParticipantExamAccess = {
+  id: string;
+  examId: string;
+  examSlug: string;
+  examName: string;
+  isActive: boolean;
+  validFrom: string;
+  validUntil: string | null;
+  revokedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminParticipant = {
+  id: string;
+  label: string;
+  isActive: boolean;
+  expiresAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  examAccesses: AdminParticipantExamAccess[];
+};
+
+export type AdminAvailableExam = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  isActive: boolean;
+};
+
+type GetAdminParticipantsResponse = {
+  participants: AdminParticipant[];
+};
+
+type CreateAdminParticipantResponse = {
+  participant: AdminParticipant;
+  accessCode: string;
+};
+
+type GetAdminAvailableExamsResponse = {
+  exams: AdminAvailableExam[];
+};
+
+type UpdateAdminParticipantExamAccessResponse = {
+  access: AdminParticipantExamAccess;
+};
+
+export async function getAdminParticipants(): Promise<
+  AdminParticipant[]
+> {
+  const response =
+    await requestJson<GetAdminParticipantsResponse>(
+      "/api/admin/participants",
+    );
+
+  return response.participants;
+}
+
+export async function createAdminParticipant(
+  label: string,
+): Promise<CreateAdminParticipantResponse> {
+  return requestJson<CreateAdminParticipantResponse>(
+    "/api/admin/participants",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        label,
+      }),
+    },
+  );
+}
+
+export async function getAdminAvailableExams(): Promise<
+  AdminAvailableExam[]
+> {
+  const response =
+    await requestJson<GetAdminAvailableExamsResponse>(
+      "/api/admin/participants/available-exams",
+    );
+
+  return response.exams;
+}
+
+export async function updateAdminParticipantExamAccess(input: {
+  participantId: string;
+  examId: string;
+  isActive?: boolean;
+  validFrom?: string | null;
+  validUntil?: string | null;
+}): Promise<AdminParticipantExamAccess> {
+  const response =
+    await requestJson<UpdateAdminParticipantExamAccessResponse>(
+      `/api/admin/participants/${encodeURIComponent(
+        input.participantId,
+      )}/exam-access/${encodeURIComponent(input.examId)}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          isActive: input.isActive,
+          validFrom: input.validFrom,
+          validUntil: input.validUntil,
+        }),
+      },
+    );
+
+  return response.access;
+}

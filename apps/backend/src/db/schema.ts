@@ -446,16 +446,19 @@ export const participants = pgTable(
       .on(table.organizationId)
       .where(sql`${table.kind} = 'local'`),
 
+    uniqueIndex("participants_organization_id_label_course_unique")
+  .on(table.organizationId, table.label)
+  .where(sql`${table.kind} = 'course'`),
+
     check(
-      "participants_kind_course_relation_valid",
-      sql`(
-        ${table.kind} = 'local'
-        AND ${table.courseId} IS NULL
-      ) OR (
-        ${table.kind} = 'course'
-        AND ${table.courseId} IS NOT NULL
-      )`,
-    ),
+  "participants_kind_course_relation_valid",
+  sql`(
+    ${table.kind} = 'local'
+    AND ${table.courseId} IS NULL
+  ) OR (
+    ${table.kind} = 'course'
+  )`,
+),
   ],
 );
 
@@ -491,6 +494,76 @@ export const participantAccessCodes = pgTable(
   (table) => [
     index("participant_access_codes_participant_id_idx").on(
       table.participantId,
+    ),
+  ],
+);
+
+export const participantExamAccesses = pgTable(
+  "participant_exam_accesses",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+
+    participantId: uuid("participant_id")
+      .notNull()
+      .references(() => participants.id, {
+        onDelete: "cascade",
+      }),
+
+    examId: uuid("exam_id")
+      .notNull()
+      .references(() => exams.id, {
+        onDelete: "restrict",
+      }),
+
+    isActive: boolean("is_active").notNull().default(true),
+
+    validFrom: timestamp("valid_from", {
+      withTimezone: true,
+    })
+      .notNull()
+      .defaultNow(),
+
+    validUntil: timestamp("valid_until", {
+      withTimezone: true,
+    }),
+
+    revokedAt: timestamp("revoked_at", {
+      withTimezone: true,
+    }),
+
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+    })
+      .notNull()
+      .defaultNow(),
+
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+    })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("participant_exam_accesses_participant_id_idx").on(
+      table.participantId,
+    ),
+
+    index("participant_exam_accesses_exam_id_idx").on(
+      table.examId,
+    ),
+
+    index("participant_exam_accesses_valid_until_idx").on(
+      table.validUntil,
+    ),
+
+    unique("participant_exam_accesses_participant_exam_unique").on(
+      table.participantId,
+      table.examId,
+    ),
+
+    check(
+      "participant_exam_accesses_dates_valid",
+      sql`${table.validUntil} IS NULL OR ${table.validUntil} >= ${table.validFrom}`,
     ),
   ],
 );

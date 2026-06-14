@@ -2925,3 +2925,204 @@ dd {
     width: 100%;
   }
 }
+
+/* Admin participants */
+
+.admin-participant-form,
+.admin-access-form {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.admin-participant-form label,
+.admin-access-form label {
+  display: grid;
+  gap: 7px;
+  color: #38576b;
+  font-weight: 800;
+}
+
+.admin-participant-form input,
+.admin-access-form input,
+.admin-access-form select {
+  width: 100%;
+  border: 1px solid #bfd6da;
+  border-radius: 12px;
+  padding: 13px 14px;
+  color: #092844;
+  background: #ffffff;
+  font: inherit;
+}
+
+.admin-participant-form input:focus,
+.admin-access-form input:focus,
+.admin-access-form select:focus {
+  outline: 3px solid rgb(27 150 163 / 18%);
+  border-color: #168b99;
+}
+
+.admin-access-form {
+  grid-template-columns: minmax(180px, 1.2fr) minmax(180px, 1.2fr) minmax(160px, 0.8fr) auto;
+  align-items: end;
+}
+
+.admin-access-code-box {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  margin-top: 18px;
+  border: 1px dashed #168b99;
+  border-radius: 16px;
+  padding: 16px;
+  background: #effafb;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.admin-access-code-box:hover {
+  border-color: #0f7280;
+  background: #e5f7f9;
+  box-shadow: 0 10px 22px rgb(19 127 142 / 12%);
+  transform: translateY(-1px);
+}
+
+.admin-access-code-box p {
+  margin: 0;
+  color: #137f8e;
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.admin-access-code-box strong {
+  color: #092844;
+  font-size: clamp(1.55rem, 4vw, 2.2rem);
+  letter-spacing: 0.08em;
+}
+
+.admin-access-code-box span {
+  color: #557083;
+  line-height: 1.55;
+}
+
+.admin-participants-list {
+  display: grid;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.admin-participant-card {
+  display: grid;
+  gap: 16px;
+  border: 1px solid #d5e8eb;
+  border-radius: 18px;
+  padding: 18px;
+  background: #ffffff;
+}
+
+.admin-participant-card header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.admin-participant-card h3 {
+  margin: 0;
+  color: #092844;
+  font-size: 1.35rem;
+}
+
+.admin-participant-card p {
+  margin: 6px 0 0;
+  color: #557083;
+}
+
+.admin-status-pill {
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.admin-status-pill--active {
+  color: #137f8e;
+  background: #e7f7f8;
+}
+
+.admin-status-pill--inactive {
+  color: #9e3e4c;
+  background: #fff0f2;
+}
+
+.admin-participant-access-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-participant-access-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #e2eff1;
+  border-radius: 14px;
+  padding: 13px;
+  background: #f8fcfd;
+}
+
+.admin-participant-access-row strong {
+  display: block;
+  color: #092844;
+}
+
+.admin-participant-access-row span {
+  display: block;
+  margin-top: 3px;
+  color: #6b8393;
+  font-size: 0.86rem;
+}
+
+.admin-participant-access-row p {
+  margin: 0;
+  color: #557083;
+}
+
+.admin-small-danger-button {
+  border: 1px solid #e1b1b8;
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: #9e3e4c;
+  background: #ffffff;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.admin-small-danger-button:hover:not(:disabled) {
+  border-color: #bd6875;
+  background: #fff5f6;
+}
+
+.admin-small-danger-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@media (max-width: 900px) {
+  .admin-access-form {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-participant-access-row {
+    grid-template-columns: 1fr;
+  }
+}
