@@ -12,6 +12,8 @@ import { adminExamVersionRouter } from "./admin/exam-version-routes.js";
 import { adminExamRouter } from "./admin/exam-routes.js";
 import { adminAuthRouter } from "./admin/routes.js";
 import { adminParticipantRouter } from "./admin/participant-routes.js";
+import { participantAuthRouter } from "./participant/routes.js";
+import { participantExamRouter } from "./participant/exam-routes.js";
 
 import { bootstrapApplication } from "./bootstrap/index.js";
 import { config } from "./config.js";
@@ -90,6 +92,10 @@ app.use("/api/admin/exams", adminExamRouter);
 app.use("/api/admin/exam-versions", adminExamVersionRouter);
 
 app.use("/api/admin/participants", adminParticipantRouter);
+
+app.use("/api/participant/auth", participantAuthRouter);
+
+app.use("/api/participant/exams", participantExamRouter);
 
 app.use(
   (

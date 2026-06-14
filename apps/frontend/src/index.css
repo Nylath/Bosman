@@ -3126,3 +3126,118 @@ dd {
     grid-template-columns: 1fr;
   }
 }
+
+/* Participant login */
+
+.participant-login-page {
+  display: grid;
+  place-items: center;
+}
+
+.participant-login-card {
+  width: min(100%, 560px);
+  border: 1px solid rgb(184 218 223 / 86%);
+  border-radius: 28px;
+  padding: clamp(28px, 5vw, 46px);
+  background: rgb(255 255 255 / 88%);
+  box-shadow: 0 26px 70px rgb(7 47 70 / 16%);
+  backdrop-filter: blur(12px);
+}
+
+.participant-login-card .home-logo {
+  margin-bottom: 24px;
+}
+
+.participant-login-card__eyebrow {
+  margin: 0 0 10px;
+  color: #137f8e;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.participant-login-card h1 {
+  margin: 0;
+  color: #092844;
+  font-size: clamp(2.2rem, 7vw, 4.2rem);
+  line-height: 0.96;
+  letter-spacing: -0.07em;
+}
+
+.participant-login-card p:not(
+    .participant-login-card__eyebrow
+  ) {
+  color: #557083;
+  line-height: 1.65;
+}
+
+.participant-login-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 26px;
+}
+
+.participant-login-form label {
+  display: grid;
+  gap: 8px;
+  color: #38576b;
+  font-weight: 900;
+}
+
+.participant-login-form input {
+  width: 100%;
+  border: 1px solid #bfd6da;
+  border-radius: 15px;
+  padding: 16px 17px;
+  color: #092844;
+  background: #ffffff;
+  font: inherit;
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.participant-login-form input:focus {
+  outline: 3px solid rgb(27 150 163 / 18%);
+  border-color: #168b99;
+}
+
+.participant-login-card__admin-link {
+  display: inline-flex;
+  margin-top: 22px;
+  color: #137f8e;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.participant-login-card__admin-link:hover {
+  text-decoration: underline;
+}
+
+/* School home */
+
+.home-participant-badge {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  width: fit-content;
+  margin: 0 0 18px;
+  border: 1px solid #b7dce0;
+  border-radius: 999px;
+  padding: 9px 13px;
+  color: #185967;
+  background: #eef8f9;
+  font-weight: 800;
+}
+
+.home-participant-badge strong {
+  color: #092844;
+}
+
+.home-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}

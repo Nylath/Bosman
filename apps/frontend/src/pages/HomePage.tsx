@@ -1,10 +1,26 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import {
+  Link,
+  useNavigate,
+} from "react-router";
 
 import {
+  ApiError,
+  getParticipantExams,
+  getParticipantSession,
   getPublishedExams,
+  logoutParticipant,
   type PublicExam,
 } from "../api";
+
+const appMode = import.meta.env.VITE_APP_MODE;
+
+const isSchoolMode = appMode === "SCHOOL";
+
+type ParticipantInfo = {
+  id: string;
+  label: string;
+};
 
 function ClipboardIcon() {
   return (
@@ -155,10 +171,18 @@ function ExamPlaceholder() {
           opacity="0.85"
           textAnchor="middle"
         >
-          <text x="400" y="56">N</text>
-          <text x="400" y="484">S</text>
-          <text x="182" y="268">W</text>
-          <text x="618" y="268">E</text>
+          <text x="400" y="56">
+            N
+          </text>
+          <text x="400" y="484">
+            S
+          </text>
+          <text x="182" y="268">
+            W
+          </text>
+          <text x="618" y="268">
+            E
+          </text>
         </g>
 
         <g
@@ -248,11 +272,19 @@ function ExamCard({ exam }: { exam: PublicExam }) {
 }
 
 export function HomePage() {
+  const navigate = useNavigate();
+
   const [exams, setExams] = useState<PublicExam[]>(
     [],
   );
 
+  const [participant, setParticipant] =
+    useState<ParticipantInfo | null>(null);
+
   const [isLoading, setIsLoading] = useState(true);
+
+  const [isLoggingOut, setIsLoggingOut] =
+    useState(false);
 
   const [error, setError] = useState<string | null>(
     null,
@@ -261,14 +293,48 @@ export function HomePage() {
   useEffect(() => {
     let requestIsActive = true;
 
-    void getPublishedExams()
-      .then((publishedExams) => {
-        if (requestIsActive) {
-          setExams(publishedExams);
+    async function loadHome(): Promise<void> {
+      if (isSchoolMode) {
+        const session = await getParticipantSession();
+
+        if (!requestIsActive) {
+          return;
         }
-      })
+
+        setParticipant(session.participant);
+
+        const participantExams =
+          await getParticipantExams();
+
+        if (requestIsActive) {
+          setExams(participantExams);
+        }
+
+        return;
+      }
+
+      const publishedExams = await getPublishedExams();
+
+      if (requestIsActive) {
+        setExams(publishedExams);
+      }
+    }
+
+    void loadHome()
       .catch((caughtError: unknown) => {
         if (!requestIsActive) {
+          return;
+        }
+
+        if (
+          isSchoolMode &&
+          caughtError instanceof ApiError &&
+          caughtError.status === 401
+        ) {
+          void navigate("/dostep", {
+            replace: true,
+          });
+
           return;
         }
 
@@ -287,12 +353,33 @@ export function HomePage() {
     return () => {
       requestIsActive = false;
     };
-  }, []);
+  }, [navigate]);
+
+  async function handleParticipantLogout(): Promise<void> {
+    setIsLoggingOut(true);
+
+    try {
+      await logoutParticipant();
+
+      void navigate("/dostep", {
+        replace: true,
+      });
+    } finally {
+      setIsLoggingOut(false);
+    }
+  }
 
   return (
     <main className="home-page">
       <section className="home-hero">
         <p className="home-logo">Bosman</p>
+
+        {participant && (
+          <p className="home-participant-badge">
+            Zalogowano jako:{" "}
+            <strong>{participant.label}</strong>
+          </p>
+        )}
 
         <h1>Próbne egzaminy żeglarskie</h1>
 
@@ -301,14 +388,37 @@ export function HomePage() {
           przed właściwym testem.
         </p>
 
-        <Link
-          className="home-history-button"
-          to="/historia"
-        >
-          <ClipboardIcon />
+        <div className="home-hero-actions">
+          {!isSchoolMode && (
+            <Link
+              className="home-history-button"
+              to="/historia"
+            >
+              <ClipboardIcon />
 
-          <span>Historia wyników</span>
-        </Link>
+              <span>Historia wyników</span>
+            </Link>
+          )}
+
+          {isSchoolMode && (
+            <button
+              className="home-history-button"
+              type="button"
+              disabled={isLoggingOut}
+              onClick={() => {
+                void handleParticipantLogout();
+              }}
+            >
+              <ClipboardIcon />
+
+              <span>
+                {isLoggingOut
+                  ? "Wylogowywanie…"
+                  : "Wyloguj się"}
+              </span>
+            </button>
+          )}
+        </div>
       </section>
 
       {isLoading && (
@@ -325,7 +435,9 @@ export function HomePage() {
 
       {!isLoading && !error && exams.length === 0 && (
         <p className="home-message">
-          Brak opublikowanych egzaminów.
+          {isSchoolMode
+            ? "Nie masz obecnie aktywnego dostępu do żadnego egzaminu."
+            : "Brak opublikowanych egzaminów."}
         </p>
       )}
 

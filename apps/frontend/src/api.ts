@@ -686,3 +686,67 @@ export async function updateAdminParticipantExamAccess(input: {
 
   return response.access;
 }
+
+export type ParticipantSession = {
+  authenticated: true;
+  expiresAt: string;
+  participant: {
+    id: string;
+    label: string;
+  };
+};
+
+type ParticipantLoggedOutSession = {
+  authenticated: false;
+};
+
+export async function loginParticipant(
+  code: string,
+): Promise<ParticipantSession> {
+  return requestJson<ParticipantSession>(
+    "/api/participant/auth/login",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        code,
+      }),
+    },
+  );
+}
+
+export async function getParticipantSession(): Promise<
+  ParticipantSession
+> {
+  return requestJson<ParticipantSession>(
+    "/api/participant/auth/session",
+  );
+}
+
+export async function logoutParticipant(): Promise<
+  ParticipantLoggedOutSession
+> {
+  return requestJson<ParticipantLoggedOutSession>(
+    "/api/participant/auth/logout",
+    {
+      method: "POST",
+    },
+  );
+}
+
+type GetParticipantExamsResponse = {
+  exams: PublicExam[];
+};
+
+export async function getParticipantExams(): Promise<
+  PublicExam[]
+> {
+  const response =
+    await requestJson<GetParticipantExamsResponse>(
+      "/api/participant/exams",
+    );
+
+  return response.exams;
+}

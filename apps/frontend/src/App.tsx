@@ -12,6 +12,7 @@ import { ExamStartPage } from "./pages/ExamStartPage";
 import { HistoryPage } from "./pages/HistoryPage";
 import { HomePage } from "./pages/HomePage";
 import { NotFoundPage } from "./pages/NotFoundPage";
+import { ParticipantLoginPage } from "./pages/ParticipantLoginPage";
 
 export default function App() {
   return (
@@ -22,6 +23,11 @@ export default function App() {
         path="/historia"
         element={<HistoryPage />}
       />
+
+      <Route
+  path="/dostep"
+  element={<ParticipantLoginPage />}
+/>
 
       <Route
         path="/egzaminy/:slug"
