@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import {
   Link,
+  useNavigate,
   useParams,
 } from "react-router";
 
 import {
   getAttemptResult,
+  shouldRedirectToParticipantLogin,
   type AttemptResult,
 } from "../api";
 
@@ -91,6 +93,7 @@ function CrossIcon() {
 
 export function AttemptResultPage() {
   const { attemptId } = useParams();
+  const navigate = useNavigate();
 
   const [result, setResult] =
     useState<AttemptResult | null>(null);
@@ -122,6 +125,14 @@ export function AttemptResultPage() {
           return;
         }
 
+        if (shouldRedirectToParticipantLogin(caughtError)) {
+  void navigate("/dostep", {
+    replace: true,
+  });
+
+  return;
+}
+
         setError(
           caughtError instanceof Error
             ? caughtError.message
@@ -137,7 +148,7 @@ export function AttemptResultPage() {
     return () => {
       requestIsActive = false;
     };
-  }, [attemptId]);
+  }, [attemptId, navigate]);
 
   if (isLoading) {
     return (

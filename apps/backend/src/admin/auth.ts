@@ -26,9 +26,12 @@ import {
 const ADMIN_COOKIE_NAME = "bosman_admin_session";
 const LOCAL_ORGANIZATION_SLUG = "bosman-local";
 
+export type AdminRole = "system" | "school";
+
 export type ActiveAdminSession = {
   id: string;
   organizationId: string;
+  role: AdminRole;
   expiresAt: Date;
 };
 
@@ -36,6 +39,7 @@ export type AdminLoginResult =
   | {
       status: "authenticated";
       token: string;
+      role: AdminRole;
       expiresAt: Date;
     }
   | {
@@ -110,7 +114,7 @@ async function getAdminOrganizationId(): Promise<string> {
 
 async function verifyAdminPassword(
   password: string,
-): Promise<boolean> {
+): Promise<AdminRole | null> {
   if (config.appMode === "LOCAL") {
     if (!config.adminPassword) {
       throw new Error(
@@ -118,7 +122,12 @@ async function verifyAdminPassword(
       );
     }
 
-    return comparePlainSecrets(password, config.adminPassword);
+    return comparePlainSecrets(
+      password,
+      config.adminPassword,
+    )
+      ? "system"
+      : null;
   }
 
   if (!config.adminPasswordHash) {
@@ -128,10 +137,29 @@ async function verifyAdminPassword(
   }
 
   if (bcrypt.truncates(password)) {
-    return false;
+    return null;
   }
 
-  return bcrypt.compare(password, config.adminPasswordHash);
+  if (
+    await bcrypt.compare(
+      password,
+      config.adminPasswordHash,
+    )
+  ) {
+    return "system";
+  }
+
+  if (
+    config.schoolAdminPasswordHash &&
+    (await bcrypt.compare(
+      password,
+      config.schoolAdminPasswordHash,
+    ))
+  ) {
+    return "school";
+  }
+
+  return null;
 }
 
 async function recordLoginAttempt(input: {
@@ -203,7 +231,8 @@ export async function loginAdmin(
     };
   }
 
-  const passwordIsValid = await verifyAdminPassword(password);
+  const adminRole = await verifyAdminPassword(password);
+const passwordIsValid = adminRole !== null;
 
   await recordLoginAttempt({
     organizationId,
@@ -217,7 +246,9 @@ export async function loginAdmin(
     };
   }
 
-  const token = randomBytes(32).toString("base64url");
+  const token = `${adminRole}.${randomBytes(32).toString(
+  "base64url",
+)}`;
 
   const expiresAt = new Date(
     Date.now() + config.adminSessionTtlHours * 60 * 60 * 1000,
@@ -232,8 +263,19 @@ export async function loginAdmin(
   return {
     status: "authenticated",
     token,
+    role: adminRole,
     expiresAt,
   };
+}
+
+function getAdminRoleFromToken(token: string): AdminRole {
+  const [rolePrefix] = token.split(".");
+
+  if (rolePrefix === "school") {
+    return "school";
+  }
+
+  return "system";
 }
 
 function getAdminTokenFromRequest(
@@ -280,7 +322,10 @@ export async function getActiveAdminSession(
     })
     .where(eq(adminSessions.id, session.id));
 
-  return session;
+  return {
+  ...session,
+  role: getAdminRoleFromToken(token),
+};
 }
 
 export async function logoutAdmin(

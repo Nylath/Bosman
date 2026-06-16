@@ -40,6 +40,8 @@ const environmentSchema = z
     ADMIN_PASSWORD: z.string().min(8).optional(),
 
     ADMIN_PASSWORD_HASH: z.string().min(1).optional(),
+
+    SCHOOL_ADMIN_PASSWORD_HASH: z.string().min(1).optional(),
     
     ADMIN_SESSION_TTL_HOURS: z.coerce
     .number()
@@ -117,6 +119,8 @@ export const config = {
   ),
   adminPassword: environment.ADMIN_PASSWORD,
   adminPasswordHash: environment.ADMIN_PASSWORD_HASH,
+  schoolAdminPasswordHash:
+  environment.SCHOOL_ADMIN_PASSWORD_HASH,
   adminSessionTtlHours: environment.ADMIN_SESSION_TTL_HOURS,
   adminLoginMaxFailures: environment.ADMIN_LOGIN_MAX_FAILURES,
   adminLoginWindowMinutes: environment.ADMIN_LOGIN_WINDOW_MINUTES,

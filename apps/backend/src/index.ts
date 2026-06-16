@@ -14,6 +14,7 @@ import { adminAuthRouter } from "./admin/routes.js";
 import { adminParticipantRouter } from "./admin/participant-routes.js";
 import { participantAuthRouter } from "./participant/routes.js";
 import { participantExamRouter } from "./participant/exam-routes.js";
+import { participantAttemptRouter } from "./participant/attempt-routes.js";
 
 import { bootstrapApplication } from "./bootstrap/index.js";
 import { config } from "./config.js";
@@ -96,6 +97,8 @@ app.use("/api/admin/participants", adminParticipantRouter);
 app.use("/api/participant/auth", participantAuthRouter);
 
 app.use("/api/participant/exams", participantExamRouter);
+
+app.use("/api/participant", participantAttemptRouter);
 
 app.use(
   (

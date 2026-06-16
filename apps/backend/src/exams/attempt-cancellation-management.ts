@@ -142,3 +142,88 @@ export async function cancelLocalAttempt(
     client.release();
   }
 }
+
+export type CancelParticipantAttemptResult =
+  CancelLocalAttemptResult;
+
+export async function cancelParticipantAttempt(input: {
+  participantId: string;
+  attemptId: string;
+}): Promise<CancelParticipantAttemptResult> {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const attemptResult =
+      await client.query<LockedAttemptRow>(
+        `
+          SELECT
+            id,
+            status
+          FROM attempts
+          WHERE id = $1
+            AND participant_id = $2
+          LIMIT 1
+          FOR UPDATE;
+        `,
+        [
+          input.attemptId,
+          input.participantId,
+        ],
+      );
+
+    const attempt = attemptResult.rows[0];
+
+    if (!attempt) {
+      await client.query("ROLLBACK");
+
+      return {
+        status: "not_found",
+      };
+    }
+
+    if (attempt.status !== "in_progress") {
+      await client.query("ROLLBACK");
+
+      return {
+        status: "not_in_progress",
+      };
+    }
+
+    await client.query(
+      `
+        UPDATE attempts
+        SET
+          status = 'cancelled'::attempt_status,
+          elapsed_seconds = GREATEST(
+            0,
+            FLOOR(
+              EXTRACT(
+                EPOCH FROM (
+                  LEAST(NOW(), expires_at) -
+                  started_at
+                )
+              )
+            )::integer
+          ),
+          finished_at = NOW(),
+          updated_at = NOW()
+        WHERE id = $1;
+      `,
+      [attempt.id],
+    );
+
+    await client.query("COMMIT");
+
+    return {
+      status: "cancelled",
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+
+    throw error;
+  } finally {
+    client.release();
+  }
+}

@@ -3241,3 +3241,195 @@ dd {
   flex-wrap: wrap;
   gap: 12px;
 }
+
+/* School home topbar */
+
+.home-topbar {
+  display: flex;
+  width: 100%;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.home-participant-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.home-participant-panel .home-participant-badge {
+  margin: 0;
+}
+
+.home-logout-button {
+  border: 1px solid #b7dce0;
+  border-radius: 999px;
+  padding: 9px 13px;
+  color: #185967;
+  background: #ffffff;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.home-logout-button:hover:not(:disabled) {
+  border-color: #168b99;
+  color: #0f6f7d;
+}
+
+.home-logout-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.home-hero {
+  width: 100%;
+}
+
+/* Admin dashboard top actions fix */
+
+.admin-dashboard-header__actions {
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.admin-dashboard-header__actions .nautical-secondary-button {
+  white-space: nowrap;
+}
+
+/* Permanent delete participant */
+
+.admin-participant-card__header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.admin-danger-outline-button {
+  border: 1px solid #f0b4ae;
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: #9f2d24;
+  background: #fff7f6;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.admin-danger-outline-button:hover:not(:disabled) {
+  border-color: #c43b30;
+  color: #7f211a;
+}
+
+.admin-danger-outline-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.admin-delete-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgb(7 26 40 / 54%);
+  backdrop-filter: blur(6px);
+}
+
+.admin-delete-modal {
+  width: min(100%, 520px);
+  border: 1px solid #f0b4ae;
+  border-radius: 24px;
+  padding: 28px;
+  background: #ffffff;
+  box-shadow: 0 30px 90px rgb(7 26 40 / 28%);
+}
+
+.admin-delete-modal h2 {
+  margin: 0 0 14px;
+  color: #7f211a;
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  letter-spacing: -0.05em;
+}
+
+.admin-delete-modal p {
+  color: #345168;
+  line-height: 1.6;
+}
+
+.admin-delete-modal strong {
+  color: #092844;
+}
+
+.admin-delete-modal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 22px;
+}
+
+.admin-danger-button {
+  border: 0;
+  border-radius: 999px;
+  padding: 11px 16px;
+  color: #ffffff;
+  background: #b83228;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.admin-danger-button:hover:not(:disabled) {
+  background: #8f271f;
+}
+
+.admin-danger-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+/* Home exam grid width fix */
+
+.home-exam-grid {
+  width: min(100%, 1120px);
+}
+
+.home-exam-card {
+  width: 100%;
+}
+
+/* Home layout width + centering fix */
+
+.home-hero,
+.home-exam-grid {
+  width: min(100%, 1120px);
+  margin-inline: auto;
+}
+
+.home-exam-card {
+  width: 100%;
+}
+
+.home-history-button__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  font-size: 32px;
+}
+
+.home-history-button__icon svg {
+  width: 1em;
+  height: 1em;
+}

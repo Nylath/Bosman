@@ -773,3 +773,483 @@ export async function getActiveLocalAttemptForExam(
     client.release();
   }
 }
+
+export async function startOrResumeParticipantAttempt(input: {
+  organizationId: string;
+  participantId: string;
+  examSlug: string;
+}): Promise<StartAttemptResult> {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const examResult =
+      await client.query<PublishedExamRow>(
+        `
+          SELECT
+            e.id AS exam_id,
+            e.slug AS exam_slug,
+            e.name AS exam_name,
+            ev.id AS version_id,
+            ev.duration_minutes,
+            ev.questions_per_attempt,
+            ev.random_questions
+          FROM participant_exam_accesses pea
+          INNER JOIN exams e
+            ON e.id = pea.exam_id
+          INNER JOIN LATERAL (
+            SELECT
+              id,
+              duration_minutes,
+              questions_per_attempt,
+              random_questions
+            FROM exam_versions
+            WHERE exam_id = e.id
+              AND status = 'published'
+              AND duration_minutes IS NOT NULL
+              AND questions_per_attempt IS NOT NULL
+              AND passing_score IS NOT NULL
+            ORDER BY
+              published_at DESC NULLS LAST,
+              version_number DESC
+            LIMIT 1
+          ) ev ON TRUE
+          WHERE pea.participant_id = $1
+            AND e.organization_id = $2
+            AND e.slug = $3
+            AND e.is_active = TRUE
+            AND pea.is_active = TRUE
+            AND pea.revoked_at IS NULL
+            AND pea.valid_from <= NOW()
+            AND (
+              pea.valid_until IS NULL
+              OR pea.valid_until > NOW()
+            )
+          LIMIT 1;
+        `,
+        [
+          input.participantId,
+          input.organizationId,
+          input.examSlug,
+        ],
+      );
+
+    const exam = examResult.rows[0];
+
+    if (!exam) {
+      await client.query("ROLLBACK");
+
+      return {
+        status: "not_found",
+      };
+    }
+
+    const activeAttemptResult = await client.query<{
+      id: string;
+      expires_at: Date;
+    }>(
+      `
+        SELECT
+          id,
+          expires_at
+        FROM attempts
+        WHERE participant_id = $1
+          AND exam_id = $2
+          AND status = 'in_progress'
+        ORDER BY started_at DESC
+        LIMIT 1
+        FOR UPDATE;
+      `,
+      [
+        input.participantId,
+        exam.exam_id,
+      ],
+    );
+
+    const activeAttempt = activeAttemptResult.rows[0];
+
+    if (activeAttempt) {
+      if (activeAttempt.expires_at.getTime() > Date.now()) {
+        const attempt = await loadAttemptView(
+          client,
+          activeAttempt.id,
+          input.participantId,
+        );
+
+        if (!attempt) {
+          throw new Error(
+            "Nie udało się odczytać aktywnej próby.",
+          );
+        }
+
+        await client.query("COMMIT");
+
+        return {
+          status: "ready",
+          created: false,
+          attempt,
+        };
+      }
+
+      await client.query(
+        `
+          UPDATE attempts
+          SET
+            status = 'expired',
+            finished_at = NOW(),
+            updated_at = NOW()
+          WHERE id = $1;
+        `,
+        [activeAttempt.id],
+      );
+    }
+
+    const categoryResult = await client.query<CategoryRow>(
+      `
+        SELECT
+          id,
+          minimum_questions
+        FROM categories
+        WHERE exam_version_id = $1
+        ORDER BY position;
+      `,
+      [exam.version_id],
+    );
+
+    const questionResult =
+      await client.query<QuestionSelectionRow>(
+        `
+          SELECT
+            id,
+            category_id
+          FROM questions
+          WHERE exam_version_id = $1;
+        `,
+        [exam.version_id],
+      );
+
+    const selectedQuestionIds = new Set<string>();
+
+    const minimumQuestions: QuestionSelectionRow[] = [];
+
+    for (const category of categoryResult.rows) {
+      const categoryPool = questionResult.rows.filter(
+        (question) =>
+          question.category_id === category.id &&
+          !selectedQuestionIds.has(question.id),
+      );
+
+      const selectedFromCategory = pickRandom(
+        categoryPool,
+        category.minimum_questions,
+      );
+
+      for (const question of selectedFromCategory) {
+        selectedQuestionIds.add(question.id);
+        minimumQuestions.push(question);
+      }
+    }
+
+    const remainingPool = questionResult.rows.filter(
+      (question) =>
+        !selectedQuestionIds.has(question.id),
+    );
+
+    const additionalQuestions = pickRandom(
+      remainingPool,
+      exam.random_questions,
+    );
+
+    const selectedQuestions = shuffle([
+      ...minimumQuestions,
+      ...additionalQuestions,
+    ]);
+
+    if (
+      selectedQuestions.length !==
+      exam.questions_per_attempt
+    ) {
+      throw new Error(
+        "Wylosowana liczba pytań nie odpowiada konfiguracji egzaminu.",
+      );
+    }
+
+    const answerResult =
+      await client.query<AnswerSelectionRow>(
+        `
+          SELECT
+            id,
+            question_id,
+            text
+          FROM answers
+          WHERE question_id = ANY($1::uuid[])
+          ORDER BY question_id, position;
+        `,
+        [
+          selectedQuestions.map(
+            (question) => question.id,
+          ),
+        ],
+      );
+
+    const answersByQuestionId = new Map<
+      string,
+      AnswerSelectionRow[]
+    >();
+
+    for (const answer of answerResult.rows) {
+      const existingAnswers =
+        answersByQuestionId.get(answer.question_id) ?? [];
+
+      existingAnswers.push(answer);
+
+      answersByQuestionId.set(
+        answer.question_id,
+        existingAnswers,
+      );
+    }
+
+    const attemptResult = await client.query<{
+      id: string;
+    }>(
+      `
+        INSERT INTO attempts (
+          organization_id,
+          participant_id,
+          course_id,
+          exam_id,
+          exam_version_id,
+          status,
+          total_questions,
+          current_question_position,
+          started_at,
+          expires_at
+        )
+        VALUES (
+          $1,
+          $2,
+          NULL,
+          $3,
+          $4,
+          'in_progress',
+          $5,
+          0,
+          NOW(),
+          NOW() + make_interval(mins => $6)
+        )
+        RETURNING id;
+      `,
+      [
+        input.organizationId,
+        input.participantId,
+        exam.exam_id,
+        exam.version_id,
+        selectedQuestions.length,
+        exam.duration_minutes,
+      ],
+    );
+
+    const attempt = attemptResult.rows[0];
+
+    if (!attempt) {
+      throw new Error(
+        "Nie udało się utworzyć próby egzaminacyjnej.",
+      );
+    }
+
+    for (
+      let questionPosition = 0;
+      questionPosition < selectedQuestions.length;
+      questionPosition += 1
+    ) {
+      const selectedQuestion =
+        selectedQuestions[questionPosition];
+
+      const attemptQuestionResult = await client.query<{
+        id: string;
+      }>(
+        `
+          INSERT INTO attempt_questions (
+            attempt_id,
+            question_id,
+            position
+          )
+          VALUES ($1, $2, $3)
+          RETURNING id;
+        `,
+        [
+          attempt.id,
+          selectedQuestion.id,
+          questionPosition,
+        ],
+      );
+
+      const attemptQuestion =
+        attemptQuestionResult.rows[0];
+
+      if (!attemptQuestion) {
+        throw new Error(
+          "Nie udało się zapisać pytania próby.",
+        );
+      }
+
+      const questionAnswers =
+        answersByQuestionId.get(selectedQuestion.id) ?? [];
+
+      for (const [
+        optionPosition,
+        answer,
+      ] of shuffle(questionAnswers).entries()) {
+        await client.query(
+          `
+            INSERT INTO attempt_question_options (
+              attempt_question_id,
+              answer_id,
+              position
+            )
+            VALUES ($1, $2, $3);
+          `,
+          [
+            attemptQuestion.id,
+            answer.id,
+            optionPosition,
+          ],
+        );
+      }
+    }
+
+    const attemptView = await loadAttemptView(
+      client,
+      attempt.id,
+      input.participantId,
+    );
+
+    if (!attemptView) {
+      throw new Error(
+        "Nie udało się odczytać utworzonej próby.",
+      );
+    }
+
+    await client.query("COMMIT");
+
+    return {
+      status: "ready",
+      created: true,
+      attempt: attemptView,
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getParticipantAttempt(input: {
+  participantId: string;
+  attemptId: string;
+}): Promise<AttemptView | null> {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const attempt = await loadAttemptView(
+      client,
+      input.attemptId,
+      input.participantId,
+    );
+
+    await client.query("COMMIT");
+
+    return attempt;
+  } catch (error) {
+    await client.query("ROLLBACK");
+
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getActiveParticipantAttemptForExam(input: {
+  organizationId: string;
+  participantId: string;
+  examSlug: string;
+}): Promise<AttemptView | null> {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const activeAttemptResult =
+      await client.query<{
+        id: string;
+      }>(
+        `
+          SELECT
+            a.id
+          FROM attempts a
+          INNER JOIN exams e
+            ON e.id = a.exam_id
+          INNER JOIN participant_exam_accesses pea
+            ON pea.exam_id = e.id
+           AND pea.participant_id = a.participant_id
+          WHERE a.participant_id = $1
+            AND e.organization_id = $2
+            AND e.slug = $3
+            AND e.is_active = TRUE
+            AND a.status = 'in_progress'
+            AND pea.is_active = TRUE
+            AND pea.revoked_at IS NULL
+            AND pea.valid_from <= NOW()
+            AND (
+              pea.valid_until IS NULL
+              OR pea.valid_until > NOW()
+            )
+          ORDER BY a.started_at DESC
+          LIMIT 1
+          FOR UPDATE OF a;
+        `,
+        [
+          input.participantId,
+          input.organizationId,
+          input.examSlug,
+        ],
+      );
+
+    const activeAttempt =
+      activeAttemptResult.rows[0];
+
+    if (!activeAttempt) {
+      await client.query("COMMIT");
+
+      return null;
+    }
+
+    const attempt = await loadAttemptView(
+      client,
+      activeAttempt.id,
+      input.participantId,
+    );
+
+    await client.query("COMMIT");
+
+    if (
+      !attempt ||
+      attempt.status !== "in_progress"
+    ) {
+      return null;
+    }
+
+    return attempt;
+  } catch (error) {
+    await client.query("ROLLBACK");
+
+    throw error;
+  } finally {
+    client.release();
+  }
+}

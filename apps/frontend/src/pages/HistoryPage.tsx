@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import {
+  Link,
+  useNavigate,
+} from "react-router";
 
 import {
   getAttemptHistory,
+  shouldRedirectToParticipantLogin,
   type AttemptResult,
 } from "../api";
 
@@ -105,6 +109,7 @@ function calculatePercentage(
 }
 
 export function HistoryPage() {
+  const navigate = useNavigate();
   const [attempts, setAttempts] = useState<
     AttemptResult[]
   >([]);
@@ -129,6 +134,14 @@ export function HistoryPage() {
           return;
         }
 
+        if (shouldRedirectToParticipantLogin(caughtError)) {
+  void navigate("/dostep", {
+    replace: true,
+  });
+
+  return;
+}
+
         setError(
           caughtError instanceof Error
             ? caughtError.message
@@ -144,7 +157,7 @@ export function HistoryPage() {
     return () => {
       requestIsActive = false;
     };
-  }, []);
+  }, [navigate]);
 
   return (
     <main className="nautical-page nautical-page--history">

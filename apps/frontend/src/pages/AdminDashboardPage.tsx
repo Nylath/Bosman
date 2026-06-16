@@ -12,6 +12,7 @@ import {
   importAdminExamPackage,
   logoutAdmin,
   updateAdminExamActive,
+  deleteAdminExam,
   type AdminExam,
   type AdminImportResult,
 } from "../api";
@@ -151,6 +152,12 @@ export function AdminDashboardPage() {
   const [updatedExamId, setUpdatedExamId] =
     useState<string | null>(null);
 
+  const [examToDelete, setExamToDelete] =
+  useState<AdminExam | null>(null);
+
+const [isDeletingExam, setIsDeletingExam] =
+  useState(false);
+
   const [error, setError] =
     useState<string | null>(null);
 
@@ -181,8 +188,16 @@ export function AdminDashboardPage() {
     let requestIsActive = true;
 
     void getAdminSession()
-      .then(async () => {
-        const loadedExams = await getAdminExams();
+  .then(async (session) => {
+    if (session.role === "school") {
+      void navigate("/admin/uczestnicy", {
+        replace: true,
+      });
+
+      return;
+    }
+
+    const loadedExams = await getAdminExams();
 
         if (requestIsActive) {
           setExams(loadedExams);
@@ -283,6 +298,41 @@ export function AdminDashboardPage() {
       setUpdatedExamId(null);
     }
   }
+
+  async function handleDeleteExam(): Promise<void> {
+  if (!examToDelete) {
+    return;
+  }
+
+  const deletedExamId = examToDelete.id;
+
+  setError(null);
+  setIsDeletingExam(true);
+
+  try {
+    await deleteAdminExam(deletedExamId);
+
+    setExams((currentExams) =>
+      currentExams.filter(
+        (exam) => exam.id !== deletedExamId,
+      ),
+    );
+
+    setExamToDelete(null);
+  } catch (caughtError) {
+    if (handleUnauthorized(caughtError)) {
+      return;
+    }
+
+    setError(
+      caughtError instanceof Error
+        ? caughtError.message
+        : "Nie udało się trwale usunąć egzaminu.",
+    );
+  } finally {
+    setIsDeletingExam(false);
+  }
+}
 
   async function handleLogout(): Promise<void> {
     try {
@@ -579,6 +629,19 @@ export function AdminDashboardPage() {
                             : "Przywróć egzamin"}
                       </span>
                     </button>
+                    <button
+  className="admin-danger-outline-button"
+  type="button"
+  disabled={
+    updatedExamId === exam.id ||
+    isDeletingExam
+  }
+  onClick={() => {
+    setExamToDelete(exam);
+  }}
+>
+  Usuń trwale
+</button>
                   </div>
                 </div>
               </article>
@@ -586,6 +649,59 @@ export function AdminDashboardPage() {
           </div>
         )}
       </section>
+      {examToDelete && (
+  <div className="admin-delete-modal-backdrop">
+    <section
+      aria-modal="true"
+      className="admin-delete-modal"
+      role="dialog"
+    >
+      <p className="admin-nautical-eyebrow">
+        Trwałe usunięcie
+      </p>
+
+      <h2>Usunąć egzamin?</h2>
+
+      <p>
+        Usuniesz egzamin{" "}
+        <strong>{examToDelete.name}</strong>{" "}
+        razem z jego wersjami, pytaniami,
+        odpowiedziami, dostępami kursantów,
+        podejściami, wynikami i grafikami.
+      </p>
+
+      <p>
+        Tej operacji nie można cofnąć.
+      </p>
+
+      <div className="admin-delete-modal__actions">
+        <button
+          className="nautical-secondary-button"
+          type="button"
+          disabled={isDeletingExam}
+          onClick={() => {
+            setExamToDelete(null);
+          }}
+        >
+          Anuluj
+        </button>
+
+        <button
+          className="admin-danger-button"
+          type="button"
+          disabled={isDeletingExam}
+          onClick={() => {
+            void handleDeleteExam();
+          }}
+        >
+          {isDeletingExam
+            ? "Usuwanie…"
+            : "Usuń trwale"}
+        </button>
+      </div>
+    </section>
+  </div>
+)}
     </main>
   );
 }

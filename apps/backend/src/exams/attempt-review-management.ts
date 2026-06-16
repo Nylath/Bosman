@@ -532,3 +532,238 @@ export async function getLocalAttemptHistory(): Promise<
     client.release();
   }
 }
+
+export async function getParticipantAttemptResult(input: {
+  participantId: string;
+  attemptId: string;
+}): Promise<ReadAttemptResult> {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    await finalizeExpiredAttempts(
+      client,
+      input.participantId,
+    );
+
+    const status = await loadAttemptStatus(
+      client,
+      input.attemptId,
+      input.participantId,
+    );
+
+    if (!status) {
+      await client.query("ROLLBACK");
+
+      return {
+        status: "not_found",
+      };
+    }
+
+    if (
+      status !== "completed" &&
+      status !== "expired"
+    ) {
+      await client.query("ROLLBACK");
+
+      return {
+        status: "not_finished",
+      };
+    }
+
+    const result = await loadResult(
+      client,
+      input.attemptId,
+      input.participantId,
+    );
+
+    if (!result) {
+      throw new Error(
+        "Nie udało się odczytać wyniku próby.",
+      );
+    }
+
+    await client.query("COMMIT");
+
+    return {
+      status: "ready",
+      result,
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getParticipantAttemptMistakes(input: {
+  participantId: string;
+  attemptId: string;
+}): Promise<ReadAttemptMistakesResult> {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    await finalizeExpiredAttempts(
+      client,
+      input.participantId,
+    );
+
+    const status = await loadAttemptStatus(
+      client,
+      input.attemptId,
+      input.participantId,
+    );
+
+    if (!status) {
+      await client.query("ROLLBACK");
+
+      return {
+        status: "not_found",
+      };
+    }
+
+    if (
+      status !== "completed" &&
+      status !== "expired"
+    ) {
+      await client.query("ROLLBACK");
+
+      return {
+        status: "not_finished",
+      };
+    }
+
+    const result = await client.query<MistakeRow>(
+      `
+        SELECT
+          attempt_question.position,
+          question.external_id,
+          question.text AS question_text,
+          question.image_path,
+          selected_answer.id AS selected_answer_id,
+          selected_answer.text AS selected_answer_text,
+          correct_answer.id AS correct_answer_id,
+          correct_answer.text AS correct_answer_text
+        FROM attempts attempt
+        INNER JOIN attempt_questions attempt_question
+          ON attempt_question.attempt_id = attempt.id
+        INNER JOIN questions question
+          ON question.id = attempt_question.question_id
+        LEFT JOIN attempt_responses response
+          ON response.attempt_question_id = attempt_question.id
+        LEFT JOIN answers selected_answer
+          ON selected_answer.id = response.selected_answer_id
+        INNER JOIN answers correct_answer
+          ON correct_answer.question_id = question.id
+         AND correct_answer.is_correct = TRUE
+        WHERE attempt.id = $1
+          AND attempt.participant_id = $2
+          AND attempt.status IN (
+            'completed'::attempt_status,
+            'expired'::attempt_status
+          )
+          AND (
+            response.id IS NULL
+            OR selected_answer.is_correct = FALSE
+          )
+        ORDER BY attempt_question.position;
+      `,
+      [input.attemptId, input.participantId],
+    );
+
+    await client.query("COMMIT");
+
+    return {
+      status: "ready",
+
+      mistakes: result.rows.map((row) => ({
+        number: row.position + 1,
+        externalId: row.external_id,
+        text: row.question_text,
+
+        imageUrl:
+          row.image_path === null
+            ? null
+            : assetStorage.getPublicUrl(row.image_path),
+
+        selectedAnswer:
+          row.selected_answer_id === null ||
+          row.selected_answer_text === null
+            ? null
+            : {
+                id: row.selected_answer_id,
+                text: row.selected_answer_text,
+              },
+
+        correctAnswer: {
+          id: row.correct_answer_id,
+          text: row.correct_answer_text,
+        },
+      })),
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getParticipantAttemptHistory(input: {
+  participantId: string;
+}): Promise<AttemptHistoryItem[]> {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    await finalizeExpiredAttempts(
+      client,
+      input.participantId,
+    );
+
+    const result = await client.query<HistoryRow>(
+      `
+        SELECT
+          attempt.id,
+          attempt.status,
+          exam.slug AS exam_slug,
+          exam.name AS exam_name,
+          attempt.score,
+          attempt.total_questions,
+          attempt.passed,
+          attempt.elapsed_seconds,
+          attempt.started_at,
+          attempt.finished_at
+        FROM attempts attempt
+        INNER JOIN exams exam
+          ON exam.id = attempt.exam_id
+        WHERE attempt.participant_id = $1
+          AND attempt.status IN (
+            'completed'::attempt_status,
+            'expired'::attempt_status
+          )
+        ORDER BY
+          attempt.finished_at DESC NULLS LAST,
+          attempt.started_at DESC;
+      `,
+      [input.participantId],
+    );
+
+    await client.query("COMMIT");
+
+    return result.rows.map(mapResult);
+  } catch (error) {
+    await client.query("ROLLBACK");
+
+    throw error;
+  } finally {
+    client.release();
+  }
+}

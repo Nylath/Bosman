@@ -4,6 +4,8 @@ import {
   useNavigate,
 } from "react-router";
 
+import { PiChartBar } from "react-icons/pi";
+
 import {
   ApiError,
   getParticipantExams,
@@ -22,42 +24,7 @@ type ParticipantInfo = {
   label: string;
 };
 
-function ClipboardIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="home-history-button__icon"
-      viewBox="0 0 24 26"
-    >
-      <path
-        d="M8.5 3.5h7a1 1 0 0 1 1 1v2h2a2 2 0 0 1 2 2V21a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2V8.5a2 2 0 0 1 2-2h2v-2a1 1 0 0 1 1-1Z"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
-      />
 
-      <path
-        d="M7.5 17l3.4-3.4 2.4 2.4L17 12"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
-      />
-
-      <path
-        d="M15.4 12H17v1.6"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
-      />
-    </svg>
-  );
-}
 
 function ArrowIcon() {
   return (
@@ -372,14 +339,31 @@ export function HomePage() {
   return (
     <main className="home-page">
       <section className="home-hero">
-        <p className="home-logo">Bosman</p>
+        <div className="home-topbar">
+  <p className="home-logo">Bosman</p>
 
-        {participant && (
-          <p className="home-participant-badge">
-            Zalogowano jako:{" "}
-            <strong>{participant.label}</strong>
-          </p>
-        )}
+  {participant && (
+    <div className="home-participant-panel">
+      <p className="home-participant-badge">
+        Zalogowano jako:{" "}
+        <strong>{participant.label}</strong>
+      </p>
+
+      <button
+        className="home-logout-button"
+        type="button"
+        disabled={isLoggingOut}
+        onClick={() => {
+          void handleParticipantLogout();
+        }}
+      >
+        {isLoggingOut
+          ? "Wylogowywanie…"
+          : "Wyloguj się"}
+      </button>
+    </div>
+  )}
+</div>
 
         <h1>Próbne egzaminy żeglarskie</h1>
 
@@ -389,36 +373,20 @@ export function HomePage() {
         </p>
 
         <div className="home-hero-actions">
-          {!isSchoolMode && (
-            <Link
-              className="home-history-button"
-              to="/historia"
-            >
-              <ClipboardIcon />
+  <Link
+    className="home-history-button"
+    to="/historia"
+  >
+    <span
+  aria-hidden="true"
+  className="home-history-button__icon"
+>
+  <PiChartBar />
+</span>
 
-              <span>Historia wyników</span>
-            </Link>
-          )}
-
-          {isSchoolMode && (
-            <button
-              className="home-history-button"
-              type="button"
-              disabled={isLoggingOut}
-              onClick={() => {
-                void handleParticipantLogout();
-              }}
-            >
-              <ClipboardIcon />
-
-              <span>
-                {isLoggingOut
-                  ? "Wylogowywanie…"
-                  : "Wyloguj się"}
-              </span>
-            </button>
-          )}
-        </div>
+<span>Historia wyników</span>
+  </Link>
+</div>
       </section>
 
       {isLoading && (

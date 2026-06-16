@@ -10,6 +10,7 @@ import {
   cancelAttempt,
   getActiveAttemptForExam,
   getPublishedExam,
+  shouldRedirectToParticipantLogin,
   startOrResumeAttempt,
   type Attempt,
   type PublicExam,
@@ -204,6 +205,14 @@ export function ExamStartPage() {
           return;
         }
 
+        if (shouldRedirectToParticipantLogin(caughtError)) {
+  void navigate("/dostep", {
+    replace: true,
+  });
+
+  return;
+}
+
         setError(
           caughtError instanceof Error
             ? caughtError.message
@@ -219,7 +228,7 @@ export function ExamStartPage() {
     return () => {
       requestIsActive = false;
     };
-  }, [slug]);
+  }, [slug, navigate]);
 
   async function handleStartOrContinue(): Promise<void> {
     if (!slug) {

@@ -8,7 +8,7 @@ import {
   updateExamVersionConfiguration,
 } from "../exams/version-management.js";
 
-import { requireAdminSession } from "./middleware.js";
+import { requireSystemAdminSession } from "./middleware.js";
 
 const versionIdSchema = z.string().uuid();
 
@@ -74,7 +74,7 @@ export const adminExamVersionRouter = Router();
 
 adminExamVersionRouter.get(
   "/:versionId",
-  requireAdminSession,
+  requireSystemAdminSession,
   async (request, response, next) => {
     try {
       const parsedVersionId = versionIdSchema.safeParse(
@@ -113,7 +113,7 @@ adminExamVersionRouter.get(
 
 adminExamVersionRouter.put(
   "/:versionId/configuration",
-  requireAdminSession,
+  requireSystemAdminSession,
   async (request, response, next) => {
     try {
       const parsedVersionId = versionIdSchema.safeParse(
@@ -184,7 +184,7 @@ adminExamVersionRouter.put(
 
 adminExamVersionRouter.post(
   "/:versionId/publish",
-  requireAdminSession,
+  requireSystemAdminSession,
   async (request, response, next) => {
     try {
       const parsedVersionId = versionIdSchema.safeParse(

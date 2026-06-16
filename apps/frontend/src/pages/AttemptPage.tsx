@@ -12,6 +12,7 @@ import {
 import {
   cancelAttempt,
   getAttempt,
+  shouldRedirectToParticipantLogin,
   submitAttemptAnswer,
   type Attempt,
 } from "../api";
@@ -154,6 +155,14 @@ export function AttemptPage() {
           return;
         }
 
+        if (shouldRedirectToParticipantLogin(caughtError)) {
+  void navigate("/dostep", {
+    replace: true,
+  });
+
+  return;
+}
+
         setError(
           caughtError instanceof Error
             ? caughtError.message
@@ -227,6 +236,14 @@ export function AttemptPage() {
 
       setAttempt(result.attempt);
     } catch (caughtError) {
+
+      if (shouldRedirectToParticipantLogin(caughtError)) {
+  void navigate("/dostep", {
+    replace: true,
+  });
+
+  return;
+}
       setError(
         caughtError instanceof Error
           ? caughtError.message
@@ -255,6 +272,14 @@ export function AttemptPage() {
         },
       );
     } catch (caughtError) {
+      if (shouldRedirectToParticipantLogin(caughtError)) {
+  void navigate("/dostep", {
+    replace: true,
+  });
+
+  return;
+}
+
       setError(
         caughtError instanceof Error
           ? caughtError.message

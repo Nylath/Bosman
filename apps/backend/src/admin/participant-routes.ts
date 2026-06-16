@@ -8,6 +8,7 @@ import { z } from "zod";
 import { pool } from "../db/client.js";
 
 import { requireAdminSession } from "./middleware.js";
+import { requireSystemAdminSession } from "./middleware.js";
 
 const participantIdSchema = z.string().uuid();
 const examIdSchema = z.string().uuid();
@@ -530,6 +531,116 @@ adminParticipantRouter.put(
       });
     } catch (error) {
       next(error);
+    }
+  },
+);
+
+adminParticipantRouter.delete(
+  "/:participantId",
+  requireSystemAdminSession,
+  async (request, response, next) => {
+    const client = await pool.connect();
+
+    try {
+      const organizationId = getOrganizationId(response);
+
+      const parsedParticipantId =
+        participantIdSchema.safeParse(
+          request.params.participantId,
+        );
+
+      if (!parsedParticipantId.success) {
+        response.status(400).json({
+          message:
+            "Nieprawidłowy identyfikator uczestnika.",
+        });
+
+        return;
+      }
+
+      await client.query("BEGIN");
+
+      const participantResult = await client.query<{
+        id: string;
+        label: string;
+        kind: "local" | "course";
+      }>(
+        `
+          SELECT
+            id,
+            label,
+            kind
+          FROM participants
+          WHERE id = $1
+            AND organization_id = $2
+          LIMIT 1
+          FOR UPDATE;
+        `,
+        [
+          parsedParticipantId.data,
+          organizationId,
+        ],
+      );
+
+      const participant = participantResult.rows[0];
+
+      if (!participant) {
+        await client.query("ROLLBACK");
+
+        response.status(404).json({
+          message: "Nie znaleziono uczestnika.",
+        });
+
+        return;
+      }
+
+      if (participant.kind !== "course") {
+        await client.query("ROLLBACK");
+
+        response.status(403).json({
+          message:
+            "Nie można trwale usunąć lokalnego profilu systemowego.",
+        });
+
+        return;
+      }
+
+      await client.query(
+        `
+          DELETE FROM attempts
+          WHERE participant_id = $1;
+        `,
+        [participant.id],
+      );
+
+      await client.query(
+        `
+          DELETE FROM participants
+          WHERE id = $1
+            AND organization_id = $2
+            AND kind = 'course';
+        `,
+        [
+          participant.id,
+          organizationId,
+        ],
+      );
+
+      await client.query("COMMIT");
+
+      response.json({
+        deleted: true,
+        participant: {
+          id: participant.id,
+          label: participant.label,
+        },
+      });
+    } catch (error) {
+      await client.query("ROLLBACK");
+
+      next(error);
+    } finally {
+      client.release();
     }
   },
 );

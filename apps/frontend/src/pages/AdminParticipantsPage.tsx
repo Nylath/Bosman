@@ -8,6 +8,7 @@ import {
 import {
   ApiError,
   createAdminParticipant,
+  deleteAdminParticipant,
   getAdminAvailableExams,
   getAdminParticipants,
   getAdminSession,
@@ -16,6 +17,7 @@ import {
   type AdminAvailableExam,
   type AdminParticipant,
   type AdminParticipantExamAccess,
+  type AdminRole,
 } from "../api";
 
 function formatDateTime(value: string): string {
@@ -120,6 +122,9 @@ export function AdminParticipantsPage() {
     AdminParticipant[]
   >([]);
 
+  const [adminRole, setAdminRole] =
+  useState<AdminRole | null>(null);
+
   const [availableExams, setAvailableExams] = useState<
     AdminAvailableExam[]
   >([]);
@@ -149,6 +154,12 @@ export function AdminParticipantsPage() {
   const [isUpdatingAccess, setIsUpdatingAccess] =
     useState(false);
 
+  const [participantToDelete, setParticipantToDelete] =
+  useState<AdminParticipant | null>(null);
+
+const [isDeletingParticipant, setIsDeletingParticipant] =
+  useState(false);
+
   const [error, setError] = useState<string | null>(null);
 
   const selectedParticipant = useMemo(
@@ -167,6 +178,8 @@ export function AdminParticipantsPage() {
       ) ?? null,
     [availableExams, selectedExamId],
   );
+
+  const isSystemAdmin = adminRole === "system";
 
   function handleUnauthorized(
     caughtError: unknown,
@@ -215,9 +228,11 @@ export function AdminParticipantsPage() {
     let requestIsActive = true;
 
     void getAdminSession()
-      .then(async () => {
-        await loadData();
-      })
+  .then(async (session) => {
+    setAdminRole(session.role);
+
+    await loadData();
+  })
       .catch((caughtError: unknown) => {
         if (handleUnauthorized(caughtError)) {
           return;
@@ -362,6 +377,48 @@ export function AdminParticipantsPage() {
     }
   }
 
+  async function handleDeleteParticipant(): Promise<void> {
+  if (!participantToDelete || !isSystemAdmin) {
+  return;
+}
+
+  const deletedParticipantId = participantToDelete.id;
+
+  setError(null);
+  setIsDeletingParticipant(true);
+
+  try {
+    await deleteAdminParticipant(deletedParticipantId);
+
+    const remainingParticipants = participants.filter(
+      (participant) =>
+        participant.id !== deletedParticipantId,
+    );
+
+    setParticipants(remainingParticipants);
+
+    if (selectedParticipantId === deletedParticipantId) {
+      setSelectedParticipantId(
+        remainingParticipants[0]?.id ?? "",
+      );
+    }
+
+    setParticipantToDelete(null);
+  } catch (caughtError) {
+    if (handleUnauthorized(caughtError)) {
+      return;
+    }
+
+    setError(
+      caughtError instanceof Error
+        ? caughtError.message
+        : "Nie udało się trwale usunąć uczestnika.",
+    );
+  } finally {
+    setIsDeletingParticipant(false);
+  }
+}
+
   async function handleLogout(): Promise<void> {
     await logoutAdmin();
 
@@ -387,25 +444,33 @@ export function AdminParticipantsPage() {
           <p className="home-logo">Bosman</p>
 
           <p className="admin-nautical-eyebrow">
-            Panel administratora
-          </p>
+  {isSystemAdmin
+    ? "Panel administratora"
+    : "Panel szkółki"}
+</p>
 
-          <h1>Uczestnicy</h1>
+<h1>
+  {isSystemAdmin
+    ? "Uczestnicy"
+    : "Kursanci i dostępy"}
+</h1>
 
-          <p>
-            Dodawaj kursantów, generuj kody dostępu
-            i przypisuj egzaminy próbne z osobną datą
-            ważności.
-          </p>
+<p>
+  {isSystemAdmin
+    ? "Dodawaj kursantów, generuj kody dostępu i przypisuj egzaminy próbne z osobną datą ważności."
+    : "Zarządzaj kodami dostępu dla kursantów i przypisuj im egzaminy próbne dostępne w aplikacji."}
+</p>
         </div>
 
         <div className="admin-dashboard-header__actions">
-          <Link
-            className="nautical-secondary-button"
-            to="/admin"
-          >
-            Wróć do panelu
-          </Link>
+          {isSystemAdmin && (
+  <Link
+    className="nautical-secondary-button"
+    to="/admin"
+  >
+    Wróć do panelu
+  </Link>
+)}
 
           <button
             className="nautical-secondary-button"
@@ -612,17 +677,32 @@ export function AdminParticipantsPage() {
                     </p>
                   </div>
 
-                  <span
-                    className={
-                      participant.isActive
-                        ? "admin-status-pill admin-status-pill--active"
-                        : "admin-status-pill admin-status-pill--inactive"
-                    }
-                  >
-                    {participant.isActive
-                      ? "aktywny"
-                      : "nieaktywny"}
-                  </span>
+                  <div className="admin-participant-card__header-actions">
+  <span
+    className={
+      participant.isActive
+        ? "admin-status-pill admin-status-pill--active"
+        : "admin-status-pill admin-status-pill--inactive"
+    }
+  >
+    {participant.isActive
+      ? "aktywny"
+      : "nieaktywny"}
+  </span>
+
+  {isSystemAdmin && (
+  <button
+    className="admin-danger-outline-button"
+    type="button"
+    disabled={isDeletingParticipant}
+    onClick={() => {
+      setParticipantToDelete(participant);
+    }}
+  >
+    Usuń trwale
+  </button>
+)}
+</div>
                 </header>
 
                 <div className="admin-participant-access-grid">
@@ -679,6 +759,59 @@ export function AdminParticipantsPage() {
           </div>
         )}
       </section>
+      {participantToDelete && (
+  <div className="admin-delete-modal-backdrop">
+    <section
+      aria-modal="true"
+      className="admin-delete-modal"
+      role="dialog"
+    >
+      <p className="admin-nautical-eyebrow">
+        Trwałe usunięcie
+      </p>
+
+      <h2>Usunąć uczestnika?</h2>
+
+      <p>
+        Usuniesz uczestnika{" "}
+        <strong>{participantToDelete.label}</strong>{" "}
+        razem z jego kodami dostępu, sesjami,
+        dostępami do egzaminów, podejściami i historią
+        wyników.
+      </p>
+
+      <p>
+        Tej operacji nie można cofnąć.
+      </p>
+
+      <div className="admin-delete-modal__actions">
+        <button
+          className="nautical-secondary-button"
+          type="button"
+          disabled={isDeletingParticipant}
+          onClick={() => {
+            setParticipantToDelete(null);
+          }}
+        >
+          Anuluj
+        </button>
+
+        <button
+          className="admin-danger-button"
+          type="button"
+          disabled={isDeletingParticipant}
+          onClick={() => {
+            void handleDeleteParticipant();
+          }}
+        >
+          {isDeletingParticipant
+            ? "Usuwanie…"
+            : "Usuń trwale"}
+        </button>
+      </div>
+    </section>
+  </div>
+)}
     </main>
   );
 }

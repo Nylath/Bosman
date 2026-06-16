@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import {
   Link,
+  useNavigate,
   useParams,
 } from "react-router";
 
 import {
   getAttemptMistakes,
+  shouldRedirectToParticipantLogin,
   type AttemptMistake,
 } from "../api";
 
@@ -48,6 +50,7 @@ function CheckIcon() {
 
 export function AttemptMistakesPage() {
   const { attemptId } = useParams();
+  const navigate = useNavigate();
 
   const [mistakes, setMistakes] = useState<
     AttemptMistake[]
@@ -80,6 +83,14 @@ export function AttemptMistakesPage() {
           return;
         }
 
+        if (shouldRedirectToParticipantLogin(caughtError)) {
+    void navigate("/dostep", {
+      replace: true,
+    });
+
+    return;
+        }
+
         setError(
           caughtError instanceof Error
             ? caughtError.message
@@ -95,7 +106,7 @@ export function AttemptMistakesPage() {
     return () => {
       requestIsActive = false;
     };
-  }, [attemptId]);
+  }, [attemptId, navigate]);
 
   return (
     <main className="nautical-page nautical-page--mistakes">

@@ -1,3 +1,6 @@
+const appMode = import.meta.env.VITE_APP_MODE;
+const isSchoolMode = appMode === "SCHOOL";
+
 export class ApiError extends Error {
   public readonly status: number;
 
@@ -10,6 +13,16 @@ export class ApiError extends Error {
     this.name = "ApiError";
     this.status = status;
   }
+}
+
+export function shouldRedirectToParticipantLogin(
+  error: unknown,
+): boolean {
+  return (
+    isSchoolMode &&
+    error instanceof ApiError &&
+    error.status === 401
+  );
 }
 
 export type PublicExam = {
@@ -99,8 +112,11 @@ export type AttemptMistake = {
   };
 };
 
+export type AdminRole = "system" | "school";
+
 export type AdminSession = {
   authenticated: true;
+  role: AdminRole;
   expiresAt: string;
 };
 
@@ -114,6 +130,7 @@ export type AdminExam = {
   createdAt: string;
   updatedAt: string;
 };
+
 
 export type AdminImportReport = {
   errors: string[];
@@ -186,6 +203,21 @@ type GetAdminExamsResponse = {
   exams: AdminExam[];
 };
 
+type DeleteAdminExamResponse = {
+  deleted: true;
+
+  exam: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+
+  assets: {
+    removed: number;
+    failed: string[];
+  };
+};
+
 async function requestJson<T>(
   url: string,
   options?: RequestInit,
@@ -231,10 +263,12 @@ export async function getPublishedExams(): Promise<
 export async function getPublishedExam(
   slug: string,
 ): Promise<PublicExam> {
+  const url = isSchoolMode
+    ? `/api/participant/exams/${encodeURIComponent(slug)}`
+    : `/api/exams/${encodeURIComponent(slug)}`;
+
   const response =
-    await requestJson<PublishedExamResponse>(
-      `/api/exams/${encodeURIComponent(slug)}`,
-    );
+    await requestJson<PublishedExamResponse>(url);
 
   return response.exam;
 }
@@ -242,21 +276,25 @@ export async function getPublishedExam(
 export async function startOrResumeAttempt(
   slug: string,
 ): Promise<StartAttemptResponse> {
-  return requestJson<StartAttemptResponse>(
-    `/api/exams/${encodeURIComponent(slug)}/attempts`,
-    {
-      method: "POST",
-    },
-  );
+  const url = isSchoolMode
+    ? `/api/participant/exams/${encodeURIComponent(slug)}/attempts`
+    : `/api/exams/${encodeURIComponent(slug)}/attempts`;
+
+  return requestJson<StartAttemptResponse>(url, {
+    method: "POST",
+  });
 }
+
 
 export async function getAttempt(
   attemptId: string,
 ): Promise<Attempt> {
+  const url = isSchoolMode
+    ? `/api/participant/attempts/${encodeURIComponent(attemptId)}`
+    : `/api/attempts/${encodeURIComponent(attemptId)}`;
+
   const response =
-    await requestJson<GetAttemptResponse>(
-      `/api/attempts/${encodeURIComponent(attemptId)}`,
-    );
+    await requestJson<GetAttemptResponse>(url);
 
   return response.attempt;
 }
@@ -266,8 +304,12 @@ export async function submitAttemptAnswer(input: {
   attemptQuestionId: string;
   selectedAnswerId: string;
 }): Promise<SubmitAttemptAnswerResponse> {
+  const url = isSchoolMode
+    ? `/api/participant/attempts/${encodeURIComponent(input.attemptId)}/answers`
+    : `/api/attempts/${encodeURIComponent(input.attemptId)}/answers`;
+
   return requestJson<SubmitAttemptAnswerResponse>(
-    `/api/attempts/${encodeURIComponent(input.attemptId)}/answers`,
+    url,
     {
       method: "POST",
 
@@ -286,10 +328,12 @@ export async function submitAttemptAnswer(input: {
 export async function getAttemptResult(
   attemptId: string,
 ): Promise<AttemptResult> {
+  const url = isSchoolMode
+    ? `/api/participant/attempts/${encodeURIComponent(attemptId)}/result`
+    : `/api/attempts/${encodeURIComponent(attemptId)}/result`;
+
   const response =
-    await requestJson<GetAttemptResultResponse>(
-      `/api/attempts/${encodeURIComponent(attemptId)}/result`,
-    );
+    await requestJson<GetAttemptResultResponse>(url);
 
   return response.result;
 }
@@ -297,10 +341,12 @@ export async function getAttemptResult(
 export async function getAttemptMistakes(
   attemptId: string,
 ): Promise<AttemptMistake[]> {
+  const url = isSchoolMode
+    ? `/api/participant/attempts/${encodeURIComponent(attemptId)}/mistakes`
+    : `/api/attempts/${encodeURIComponent(attemptId)}/mistakes`;
+
   const response =
-    await requestJson<GetAttemptMistakesResponse>(
-      `/api/attempts/${encodeURIComponent(attemptId)}/mistakes`,
-    );
+    await requestJson<GetAttemptMistakesResponse>(url);
 
   return response.mistakes;
 }
@@ -308,10 +354,12 @@ export async function getAttemptMistakes(
 export async function getAttemptHistory(): Promise<
   AttemptResult[]
 > {
+  const url = isSchoolMode
+    ? "/api/participant/history"
+    : "/api/history";
+
   const response =
-    await requestJson<GetAttemptHistoryResponse>(
-      "/api/history",
-    );
+    await requestJson<GetAttemptHistoryResponse>(url);
 
   return response.attempts;
 }
@@ -542,6 +590,17 @@ export async function updateAdminExamActive(
   return response.exam;
 }
 
+export async function deleteAdminExam(
+  examId: string,
+): Promise<DeleteAdminExamResponse> {
+  return requestJson<DeleteAdminExamResponse>(
+    `/api/admin/exams/${encodeURIComponent(examId)}`,
+    {
+      method: "DELETE",
+    },
+  );
+}
+
 type GetActiveAttemptResponse = {
   attempt: Attempt | null;
 };
@@ -553,23 +612,26 @@ type CancelAttemptResponse = {
 export async function getActiveAttemptForExam(
   slug: string,
 ): Promise<Attempt | null> {
+  const url = isSchoolMode
+    ? `/api/participant/exams/${encodeURIComponent(slug)}/attempts/active`
+    : `/api/exams/${encodeURIComponent(slug)}/attempts/active`;
+
   const response =
-    await requestJson<GetActiveAttemptResponse>(
-      `/api/exams/${encodeURIComponent(slug)}/attempts/active`,
-    );
+    await requestJson<GetActiveAttemptResponse>(url);
 
   return response.attempt;
 }
 
 export async function cancelAttempt(
   attemptId: string,
-): Promise<void> {
-  await requestJson<CancelAttemptResponse>(
-    `/api/attempts/${encodeURIComponent(attemptId)}/cancel`,
-    {
-      method: "POST",
-    },
-  );
+): Promise<CancelAttemptResponse> {
+  const url = isSchoolMode
+    ? `/api/participant/attempts/${encodeURIComponent(attemptId)}/cancel`
+    : `/api/attempts/${encodeURIComponent(attemptId)}/cancel`;
+
+  return requestJson<CancelAttemptResponse>(url, {
+    method: "POST",
+  });
 }
 
 export type AdminParticipantExamAccess = {
@@ -610,6 +672,14 @@ type GetAdminParticipantsResponse = {
 type CreateAdminParticipantResponse = {
   participant: AdminParticipant;
   accessCode: string;
+};
+
+type DeleteAdminParticipantResponse = {
+  deleted: true;
+  participant: {
+    id: string;
+    label: string;
+  };
 };
 
 type GetAdminAvailableExamsResponse = {
@@ -685,6 +755,17 @@ export async function updateAdminParticipantExamAccess(input: {
     );
 
   return response.access;
+}
+
+export async function deleteAdminParticipant(
+  participantId: string,
+): Promise<DeleteAdminParticipantResponse> {
+  return requestJson<DeleteAdminParticipantResponse>(
+    `/api/admin/participants/${encodeURIComponent(participantId)}`,
+    {
+      method: "DELETE",
+    },
+  );
 }
 
 export type ParticipantSession = {

@@ -81,9 +81,10 @@ adminAuthRouter.get("/session", async (request, response, next) => {
     }
 
     response.json({
-      authenticated: true,
-      expiresAt: session.expiresAt,
-    });
+  authenticated: true,
+  role: session.role,
+  expiresAt: session.expiresAt,
+});
   } catch (error) {
     next(error);
   }
