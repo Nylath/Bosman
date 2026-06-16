@@ -11,6 +11,8 @@ import {
   loginParticipant,
 } from "../api";
 
+import { organizationBranding } from "../organizationBranding";
+
 function normalizeCodeInput(value: string): string {
   return value
     .toUpperCase()
@@ -114,18 +116,17 @@ export function ParticipantLoginPage() {
   return (
     <main className="nautical-page participant-login-page">
       <section className="participant-login-card">
-        <p className="home-logo">Bosman</p>
+        <p className="home-logo">
+  {organizationBranding.appName}
+</p>
 
-        <p className="participant-login-card__eyebrow">
-          Dostęp kursanta
-        </p>
+<p className="participant-login-card__eyebrow">
+  {organizationBranding.organizationName}
+</p>
 
-        <h1>Wpisz kod dostępu</h1>
+<h1>{organizationBranding.loginTitle}</h1>
 
-        <p>
-          Po zalogowaniu zobaczysz egzaminy próbne,
-          do których masz aktywny dostęp.
-        </p>
+<p>{organizationBranding.loginDescription}</p>
 
         <form
           className="participant-login-form"

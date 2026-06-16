@@ -3433,3 +3433,12 @@ dd {
   width: 1em;
   height: 1em;
 }
+
+.home-hero__organization {
+  margin: 0 0 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(15, 89, 101, 0.78);
+}

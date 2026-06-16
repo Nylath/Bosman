@@ -15,6 +15,8 @@ import {
   type PublicExam,
 } from "../api";
 
+import { organizationBranding } from "../organizationBranding";
+
 const appMode = import.meta.env.VITE_APP_MODE;
 
 const isSchoolMode = appMode === "SCHOOL";
@@ -340,7 +342,9 @@ export function HomePage() {
     <main className="home-page">
       <section className="home-hero">
         <div className="home-topbar">
-  <p className="home-logo">Bosman</p>
+  <p className="home-logo">
+  {organizationBranding.appName}
+</p>
 
   {participant && (
     <div className="home-participant-panel">
@@ -365,12 +369,15 @@ export function HomePage() {
   )}
 </div>
 
-        <h1>Próbne egzaminy żeglarskie</h1>
+        <p className="home-hero__organization">
+  {organizationBranding.organizationName}
+</p>
 
-        <p className="home-hero__description">
-          Wybierz egzamin i sprawdź swoją wiedzę
-          przed właściwym testem.
-        </p>
+<h1>{organizationBranding.homeTitle}</h1>
+
+<p className="home-hero__description">
+  {organizationBranding.homeDescription}
+</p>
 
         <div className="home-hero-actions">
   <Link
