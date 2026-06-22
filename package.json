@@ -2,6 +2,9 @@
   "name": "bosman",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -10,6 +13,7 @@
     "dev:frontend": "npm run dev --workspace=@bosman/frontend",
     "dev:backend": "npm run dev --workspace=@bosman/backend",
     "build": "npm run build --workspaces --if-present",
+    "start": "npm run start --workspace=@bosman/backend",
     "test": "npm run test --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "db:generate": "drizzle-kit generate",

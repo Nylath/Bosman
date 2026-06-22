@@ -5,6 +5,8 @@
 } from "express";
 import express from "express";
 
+import { fileURLToPath } from "node:url";
+
 import { publicExamRouter } from "./public/exam-routes.js";
 import { publicAttemptRouter } from "./public/attempt-routes.js";
 
@@ -19,6 +21,17 @@ import { participantAttemptRouter } from "./participant/attempt-routes.js";
 import { bootstrapApplication } from "./bootstrap/index.js";
 import { config } from "./config.js";
 import { pool } from "./db/client.js";
+
+const frontendDistDirectory = fileURLToPath(
+  new URL("../../frontend/dist/", import.meta.url),
+);
+
+const frontendIndexFile = fileURLToPath(
+  new URL(
+    "../../frontend/dist/index.html",
+    import.meta.url,
+  ),
+);
 
 type JsonParseError = SyntaxError & {
   type?: string;
@@ -37,6 +50,12 @@ function isJsonParseError(
 const app = express();
 
 app.use(express.json());
+
+app.use(
+  express.static(frontendDistDirectory, {
+    index: false,
+  }),
+);
 
 app.use("/assets", express.static(config.assetDirectory));
 
@@ -100,6 +119,30 @@ app.use("/api/participant/exams", participantExamRouter);
 
 app.use("/api/participant", participantAttemptRouter);
 
+app.use("/api", (_request, response) => {
+  response.status(404).json({
+    message: "Nie znaleziono endpointu API.",
+  });
+});
+
+app.use("/assets", (_request, response) => {
+  response.status(404).end();
+});
+
+app.get(
+  "/{*splat}",
+  (_request, response, next) => {
+    response.sendFile(
+      frontendIndexFile,
+      (error) => {
+        if (error) {
+          next(error);
+        }
+      },
+    );
+  },
+);
+
 app.use(
   (
     error: unknown,
@@ -127,18 +170,30 @@ async function start(): Promise<void> {
   await pool.query("SELECT 1;");
   await bootstrapApplication();
 
-  app.listen(config.port, () => {
-    console.log(
-      `Bosman backend działa na http://localhost:${config.port}`,
-    );
+  app.listen(
+    config.port,
+    "0.0.0.0",
+    () => {
+      console.log(
+        `Bosman działa na porcie ${config.port}`,
+      );
 
-    console.log(`Tryb aplikacji: ${config.appMode}`);
-    console.log("Połączenie z PostgreSQL działa poprawnie.");
-  });
+      console.log(
+        `Tryb aplikacji: ${config.appMode}`,
+      );
+
+      console.log(
+        "Połączenie z PostgreSQL działa poprawnie.",
+      );
+    },
+  );
 }
 
 void start().catch((error: unknown) => {
-  console.error("Nie udało się uruchomić backendu:", error);
+  console.error(
+    "Nie udało się uruchomić backendu:",
+    error,
+  );
 
   process.exit(1);
 });
