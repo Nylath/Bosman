@@ -3547,3 +3547,122 @@ dd {
     margin-top: 10px;
   }
 }
+
+.home-participant-greeting {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+
+  min-width: 0;
+  margin: 0;
+
+  color: #0d7882;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.home-participant-greeting span {
+  flex-shrink: 0;
+  color: #168f98;
+  font-weight: 500;
+}
+
+.home-participant-greeting strong {
+  min-width: 0;
+  overflow: hidden;
+
+  color: #063b5a;
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.home-participant-action {
+  flex-shrink: 0;
+
+  min-height: 32px;
+  padding: 3px 0;
+
+  border: 0;
+  background: transparent;
+  color: #0b8993;
+
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+
+  text-decoration: underline;
+  text-decoration-color: rgba(11, 137, 147, 0.55);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+
+  cursor: pointer;
+  opacity: 1;
+}
+
+.home-participant-action:hover {
+  color: #066b74;
+  text-decoration-color: currentColor;
+  text-decoration-thickness: 2px;
+}
+
+.home-participant-action:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+@media (max-width: 640px) {
+  .home-topbar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: 16px;
+
+    width: 100%;
+  }
+
+  .home-logo {
+    margin: 0;
+    white-space: nowrap;
+  }
+
+  .home-participant-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-self: end;
+    gap: 1px;
+
+    min-width: 0;
+    max-width: 58vw;
+  }
+
+  .home-participant-greeting {
+    display: flex;
+    justify-content: flex-end;
+
+    width: 100%;
+    min-width: 0;
+
+    font-size: 13px;
+    text-align: right;
+  }
+
+  .home-participant-greeting strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .home-participant-action {
+    min-height: 28px;
+    padding: 2px 0;
+
+    font-size: 12px;
+    line-height: 1.2;
+  }
+
+  .home-hero-actions {
+    margin-top: 10px;
+  }
+}
