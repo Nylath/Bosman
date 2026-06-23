@@ -346,27 +346,31 @@ export function HomePage() {
   {organizationBranding.appName}
 </p>
 
-  {participant && (
-    <div className="home-participant-panel">
-      <p className="home-participant-badge">
-        Zalogowano jako:{" "}
-        <strong>{participant.label}</strong>
-      </p>
+{participant && (
+  <div className="home-participant-panel">
+    <p className="home-participant-greeting">
+      <span>Witaj,</span>
 
-      <button
-        className="home-logout-button"
-        type="button"
-        disabled={isLoggingOut}
-        onClick={() => {
-          void handleParticipantLogout();
-        }}
-      >
-        {isLoggingOut
-          ? "Wylogowywanie…"
-          : "Wyloguj się"}
-      </button>
-    </div>
-  )}
+      <strong title={participant.label}>
+        {participant.label}
+      </strong>
+    </p>
+
+    <button
+      className="home-participant-action"
+      type="button"
+      disabled={isLoggingOut}
+      onClick={() => {
+        void handleParticipantLogout();
+      }}
+    >
+      {isLoggingOut
+        ? "Wylogowywanie…"
+        : "Wyloguj się"}
+    </button>
+  </div>
+)}
+
 </div>
 
         <p className="home-hero__organization">
