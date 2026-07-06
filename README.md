@@ -1,5 +1,7 @@
 # Bosman
 
+[![CI](https://github.com/Nylath/Bosman/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Nylath/Bosman/actions/workflows/ci.yml)
+
 A full-stack web application for sailing schools that allows participants to prepare for theoretical sailing exams through interactive mock tests.
 
 Bosman provides separate interfaces for school administrators and course participants. Administrators manage participants, access codes and available exams, while participants can complete randomized tests, review results and track their previous attempts.
