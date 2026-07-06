@@ -174,14 +174,11 @@ export function ExamStartPage() {
     useState<string | null>(null);
 
   useEffect(() => {
-    if (!slug) {
-      setError("Brakuje adresu egzaminu.");
-      setIsLoading(false);
+  if (!slug) {
+    return;
+  }
 
-      return;
-    }
-
-    let requestIsActive = true;
+  let requestIsActive = true;
 
     void Promise.all([
       getPublishedExam(slug),
@@ -277,6 +274,27 @@ export function ExamStartPage() {
       setIsCancelling(false);
     }
   }
+
+  if (!slug) {
+  return (
+    <main className="nautical-page">
+      <p className="home-logo">Bosman</p>
+
+      <Link
+        className="nautical-back-link"
+        to="/"
+      >
+        <ArrowLeftIcon />
+
+        <span>Wróć do menu głównego</span>
+      </Link>
+
+      <p className="home-message home-message--error">
+        Brakuje adresu egzaminu.
+      </p>
+    </main>
+  );
+}
 
   if (isLoading) {
     return (

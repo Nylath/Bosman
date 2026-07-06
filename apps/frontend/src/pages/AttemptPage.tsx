@@ -108,7 +108,7 @@ export function AttemptPage() {
     useState<string | null>(null);
 
   const [currentTimestamp, setCurrentTimestamp] =
-    useState(Date.now());
+  useState(() => Date.now());
 
   const remainingSeconds = useMemo(() => {
     if (!attempt) {
@@ -122,14 +122,11 @@ export function AttemptPage() {
   }, [attempt, currentTimestamp]);
 
   useEffect(() => {
-    if (!attemptId) {
-      setError("Brakuje identyfikatora próby.");
-      setIsLoading(false);
+  if (!attemptId) {
+    return;
+  }
 
-      return;
-    }
-
-    let requestIsActive = true;
+  let requestIsActive = true;
 
     void getAttempt(attemptId)
       .then((loadedAttempt) => {
@@ -190,9 +187,7 @@ export function AttemptPage() {
     };
   }, []);
 
-  useEffect(() => {
-    setSelectedAnswerId(null);
-  }, [attempt?.currentQuestion?.attemptQuestionId]);
+  
 
   useEffect(() => {
     if (
@@ -234,7 +229,8 @@ export function AttemptPage() {
         return;
       }
 
-      setAttempt(result.attempt);
+      setSelectedAnswerId(null);
+setAttempt(result.attempt);
     } catch (caughtError) {
 
       if (shouldRedirectToParticipantLogin(caughtError)) {
@@ -291,6 +287,22 @@ export function AttemptPage() {
       setIsCancelling(false);
     }
   }
+
+  if (!attemptId) {
+  return (
+    <main className="nautical-page nautical-page--exam">
+      <Link className="nautical-back-link" to="/">
+        <ArrowLeftIcon />
+
+        <span>Wróć do menu głównego</span>
+      </Link>
+
+      <p className="home-message home-message--error">
+        Brakuje identyfikatora próby.
+      </p>
+    </main>
+  );
+}
 
   if (isLoading) {
     return (

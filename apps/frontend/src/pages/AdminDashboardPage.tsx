@@ -1,5 +1,9 @@
 import type { FormEvent } from "react";
-import { useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import {
   Link,
   useNavigate,
@@ -161,9 +165,8 @@ const [isDeletingExam, setIsDeletingExam] =
   const [error, setError] =
     useState<string | null>(null);
 
-  function handleUnauthorized(
-    caughtError: unknown,
-  ): boolean {
+  const handleUnauthorized = useCallback(
+  (caughtError: unknown): boolean => {
     if (
       caughtError instanceof ApiError &&
       caughtError.status === 401
@@ -176,7 +179,9 @@ const [isDeletingExam, setIsDeletingExam] =
     }
 
     return false;
-  }
+  },
+  [navigate],
+);
 
   async function loadExams(): Promise<void> {
     const loadedExams = await getAdminExams();
@@ -225,7 +230,7 @@ const [isDeletingExam, setIsDeletingExam] =
     return () => {
       requestIsActive = false;
     };
-  }, []);
+  }, [handleUnauthorized, navigate]);
 
   async function handleImport(
     event: FormEvent<HTMLFormElement>,

@@ -1,5 +1,9 @@
 import type { FormEvent } from "react";
-import { useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import {
   Link,
   useNavigate,
@@ -218,9 +222,10 @@ export function AdminExamVersionPage() {
   const [error, setError] =
     useState<string | null>(null);
 
-  function applyVersion(
+  const applyVersion = useCallback(
+  (
     loadedVersion: AdminExamVersionDetails,
-  ): void {
+  ): void => {
     setVersion(loadedVersion);
 
     setDurationMinutes(
@@ -252,11 +257,12 @@ export function AdminExamVersionPage() {
         ),
       })),
     );
-  }
+  },
+  [],
+);
 
-  function handleUnauthorized(
-    caughtError: unknown,
-  ): boolean {
+  const handleUnauthorized = useCallback(
+  (caughtError: unknown): boolean => {
     if (
       caughtError instanceof ApiError &&
       caughtError.status === 401
@@ -269,50 +275,52 @@ export function AdminExamVersionPage() {
     }
 
     return false;
-  }
+  },
+  [navigate],
+);
 
   useEffect(() => {
-    if (!versionId) {
+  if (!versionId) {
+    return;
+  }
+
+  let requestIsActive = true;
+
+  void getAdminExamVersion(versionId)
+    .then((loadedVersion) => {
+      if (requestIsActive) {
+        applyVersion(loadedVersion);
+      }
+    })
+    .catch((caughtError: unknown) => {
+      if (!requestIsActive) {
+        return;
+      }
+
+      if (handleUnauthorized(caughtError)) {
+        return;
+      }
+
       setError(
-        "Brakuje identyfikatora wersji egzaminu.",
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Nie udało się pobrać wersji.",
       );
+    })
+    .finally(() => {
+      if (requestIsActive) {
+        setIsLoading(false);
+      }
+    });
 
-      setIsLoading(false);
-
-      return;
-    }
-
-    let requestIsActive = true;
-
-    void getAdminExamVersion(versionId)
-      .then((loadedVersion) => {
-        if (requestIsActive) {
-          applyVersion(loadedVersion);
-        }
-      })
-      .catch((caughtError: unknown) => {
-        if (handleUnauthorized(caughtError)) {
-          return;
-        }
-
-        if (requestIsActive) {
-          setError(
-            caughtError instanceof Error
-              ? caughtError.message
-              : "Nie udało się pobrać wersji.",
-          );
-        }
-      })
-      .finally(() => {
-        if (requestIsActive) {
-          setIsLoading(false);
-        }
-      });
-
-    return () => {
-      requestIsActive = false;
-    };
-  }, [navigate, versionId]);
+  return () => {
+    requestIsActive = false;
+  };
+}, [
+  applyVersion,
+  handleUnauthorized,
+  versionId,
+]);
 
   async function handleSave(
     event: FormEvent<HTMLFormElement>,
@@ -422,6 +430,27 @@ export function AdminExamVersionPage() {
       setIsPublishing(false);
     }
   }
+
+  if (!versionId) {
+  return (
+    <main className="nautical-page admin-nautical-page">
+      <p className="home-logo">Bosman</p>
+
+      <Link
+        className="nautical-back-link"
+        to="/admin"
+      >
+        <ArrowLeftIcon />
+
+        <span>Wróć do panelu administratora</span>
+      </Link>
+
+      <p className="home-message home-message--error">
+        Brakuje identyfikatora wersji egzaminu.
+      </p>
+    </main>
+  );
+}
 
   if (isLoading) {
     return (

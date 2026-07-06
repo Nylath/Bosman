@@ -1,5 +1,10 @@
 import type { FormEvent } from "react";
-import { useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   Link,
   useNavigate,
@@ -181,9 +186,8 @@ const [isDeletingParticipant, setIsDeletingParticipant] =
 
   const isSystemAdmin = adminRole === "system";
 
-  function handleUnauthorized(
-    caughtError: unknown,
-  ): boolean {
+ const handleUnauthorized = useCallback(
+  (caughtError: unknown): boolean => {
     if (
       caughtError instanceof ApiError &&
       caughtError.status === 401
@@ -196,66 +200,77 @@ const [isDeletingParticipant, setIsDeletingParticipant] =
     }
 
     return false;
-  }
+  },
+  [navigate],
+);
 
-  async function loadData(): Promise<void> {
-    const [
-      loadedParticipants,
-      loadedAvailableExams,
-    ] = await Promise.all([
-      getAdminParticipants(),
-      getAdminAvailableExams(),
-    ]);
+  const loadData = useCallback(async (): Promise<void> => {
+  const [
+    loadedParticipants,
+    loadedAvailableExams,
+  ] = await Promise.all([
+    getAdminParticipants(),
+    getAdminAvailableExams(),
+  ]);
 
-    setParticipants(loadedParticipants);
-    setAvailableExams(loadedAvailableExams);
+  setParticipants(loadedParticipants);
+  setAvailableExams(loadedAvailableExams);
 
-    if (
-      !selectedParticipantId &&
-      loadedParticipants[0]
-    ) {
-      setSelectedParticipantId(
-        loadedParticipants[0].id,
-      );
-    }
+  setSelectedParticipantId((currentId) => {
+    return (
+      currentId ??
+      loadedParticipants[0]?.id ??
+      ""
+    );
+  });
 
-    if (!selectedExamId && loadedAvailableExams[0]) {
-      setSelectedExamId(loadedAvailableExams[0].id);
-    }
-  }
+  setSelectedExamId((currentId) => {
+    return (
+      currentId ??
+      loadedAvailableExams[0]?.id ??
+      ""
+    );
+  });
+}, []);
 
   useEffect(() => {
-    let requestIsActive = true;
+  let requestIsActive = true;
 
-    void getAdminSession()
-  .then(async (session) => {
-    setAdminRole(session.role);
+  void getAdminSession()
+    .then(async (session) => {
+      if (!requestIsActive) {
+        return;
+      }
 
-    await loadData();
-  })
-      .catch((caughtError: unknown) => {
-        if (handleUnauthorized(caughtError)) {
-          return;
-        }
+      setAdminRole(session.role);
 
-        if (requestIsActive) {
-          setError(
-            caughtError instanceof Error
-              ? caughtError.message
-              : "Nie udało się załadować uczestników.",
-          );
-        }
-      })
-      .finally(() => {
-        if (requestIsActive) {
-          setIsLoading(false);
-        }
-      });
+      await loadData();
+    })
+    .catch((caughtError: unknown) => {
+      if (!requestIsActive) {
+        return;
+      }
 
-    return () => {
-      requestIsActive = false;
-    };
-  }, []);
+      if (handleUnauthorized(caughtError)) {
+        return;
+      }
+
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Nie udało się załadować uczestników.",
+      );
+    })
+    .finally(() => {
+      if (requestIsActive) {
+        setIsLoading(false);
+      }
+    });
+
+  return () => {
+    requestIsActive = false;
+  };
+}, [handleUnauthorized, loadData]);
 
   async function handleCreateParticipant(
     event: FormEvent<HTMLFormElement>,

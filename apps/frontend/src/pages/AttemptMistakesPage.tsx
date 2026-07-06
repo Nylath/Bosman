@@ -63,14 +63,11 @@ export function AttemptMistakesPage() {
     useState<string | null>(null);
 
   useEffect(() => {
-    if (!attemptId) {
-      setError("Brakuje identyfikatora próby.");
-      setIsLoading(false);
+  if (!attemptId) {
+    return;
+  }
 
-      return;
-    }
-
-    let requestIsActive = true;
+  let requestIsActive = true;
 
     void getAttemptMistakes(attemptId)
       .then((loadedMistakes) => {
@@ -108,7 +105,30 @@ export function AttemptMistakesPage() {
     };
   }, [attemptId, navigate]);
 
+  if (!attemptId) {
   return (
+    <main className="nautical-page nautical-page--mistakes">
+      <p className="home-logo">Bosman</p>
+
+      <Link
+        className="nautical-back-link"
+        to="/"
+      >
+        <ArrowLeftIcon />
+
+        <span>Wróć do menu głównego</span>
+      </Link>
+
+      <p className="home-message home-message--error">
+        Brakuje identyfikatora próby.
+      </p>
+    </main>
+  );
+}
+
+  return (
+
+    
     <main className="nautical-page nautical-page--mistakes">
       <p className="home-logo">Bosman</p>
 

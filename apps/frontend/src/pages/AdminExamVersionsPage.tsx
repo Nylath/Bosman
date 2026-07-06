@@ -110,14 +110,11 @@ export function AdminExamVersionsPage() {
     useState<string | null>(null);
 
   useEffect(() => {
-    if (!examId) {
-      setError("Brakuje identyfikatora egzaminu.");
-      setIsLoading(false);
+  if (!examId) {
+    return;
+  }
 
-      return;
-    }
-
-    let requestIsActive = true;
+  let requestIsActive = true;
 
     void Promise.all([
       getAdminExams(),
@@ -137,25 +134,27 @@ export function AdminExamVersionsPage() {
         setVersions(loadedVersions);
       })
       .catch((caughtError: unknown) => {
-        if (
-          caughtError instanceof ApiError &&
-          caughtError.status === 401
-        ) {
-          void navigate("/admin/logowanie", {
-            replace: true,
-          });
+  if (!requestIsActive) {
+    return;
+  }
 
-          return;
-        }
+  if (
+    caughtError instanceof ApiError &&
+    caughtError.status === 401
+  ) {
+    void navigate("/admin/logowanie", {
+      replace: true,
+    });
 
-        if (requestIsActive) {
-          setError(
-            caughtError instanceof Error
-              ? caughtError.message
-              : "Nie udało się pobrać wersji.",
-          );
-        }
-      })
+    return;
+  }
+
+  setError(
+    caughtError instanceof Error
+      ? caughtError.message
+      : "Nie udało się pobrać wersji.",
+  );
+})
       .finally(() => {
         if (requestIsActive) {
           setIsLoading(false);
@@ -166,6 +165,27 @@ export function AdminExamVersionsPage() {
       requestIsActive = false;
     };
   }, [examId, navigate]);
+
+  if (!examId) {
+  return (
+    <main className="nautical-page admin-nautical-page">
+      <p className="home-logo">Bosman</p>
+
+      <Link
+        className="nautical-back-link"
+        to="/admin"
+      >
+        <ArrowLeftIcon />
+
+        <span>Wróć do panelu administratora</span>
+      </Link>
+
+      <p className="home-message home-message--error">
+        Brakuje identyfikatora egzaminu.
+      </p>
+    </main>
+  );
+}
 
   if (isLoading) {
     return (
