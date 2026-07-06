@@ -1,9 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Link,
-  useNavigate,
-  useParams,
-} from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 
 import {
   getAttemptMistakes,
@@ -32,10 +28,7 @@ function ArrowLeftIcon() {
 
 function CheckIcon() {
   return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-    >
+    <svg aria-hidden="true" viewBox="0 0 24 24">
       <path
         d="m5 12 4.5 4.5L19 7"
         fill="none"
@@ -52,22 +45,18 @@ export function AttemptMistakesPage() {
   const { attemptId } = useParams();
   const navigate = useNavigate();
 
-  const [mistakes, setMistakes] = useState<
-    AttemptMistake[]
-  >([]);
+  const [mistakes, setMistakes] = useState<AttemptMistake[]>([]);
 
-  const [isLoading, setIsLoading] =
-    useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [error, setError] =
-    useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-  if (!attemptId) {
-    return;
-  }
+    if (!attemptId) {
+      return;
+    }
 
-  let requestIsActive = true;
+    let requestIsActive = true;
 
     void getAttemptMistakes(attemptId)
       .then((loadedMistakes) => {
@@ -81,11 +70,11 @@ export function AttemptMistakesPage() {
         }
 
         if (shouldRedirectToParticipantLogin(caughtError)) {
-    void navigate("/dostep", {
-      replace: true,
-    });
+          void navigate("/dostep", {
+            replace: true,
+          });
 
-    return;
+          return;
         }
 
         setError(
@@ -106,96 +95,70 @@ export function AttemptMistakesPage() {
   }, [attemptId, navigate]);
 
   if (!attemptId) {
+    return (
+      <main className="nautical-page nautical-page--mistakes">
+        <p className="home-logo">Bosman</p>
+
+        <Link className="nautical-back-link" to="/">
+          <ArrowLeftIcon />
+
+          <span>Wróć do menu głównego</span>
+        </Link>
+
+        <p className="home-message home-message--error">
+          Brakuje identyfikatora próby.
+        </p>
+      </main>
+    );
+  }
+
   return (
     <main className="nautical-page nautical-page--mistakes">
       <p className="home-logo">Bosman</p>
 
-      <Link
-        className="nautical-back-link"
-        to="/"
-      >
-        <ArrowLeftIcon />
-
-        <span>Wróć do menu głównego</span>
-      </Link>
-
-      <p className="home-message home-message--error">
-        Brakuje identyfikatora próby.
-      </p>
-    </main>
-  );
-}
-
-  return (
-
-    
-    <main className="nautical-page nautical-page--mistakes">
-      <p className="home-logo">Bosman</p>
-
-      <Link
-        className="nautical-back-link"
-        to={`/proby/${attemptId}/wynik`}
-      >
+      <Link className="nautical-back-link" to={`/proby/${attemptId}/wynik`}>
         <ArrowLeftIcon />
 
         <span>Wróć do wyniku</span>
       </Link>
 
       <section className="mistakes-nautical-heading">
-        <p className="mistakes-nautical-heading__eyebrow">
-          Powtórka materiału
-        </p>
+        <p className="mistakes-nautical-heading__eyebrow">Powtórka materiału</p>
 
         <h1>Błędne odpowiedzi</h1>
 
         <p>
-          Sprawdź pytania, które warto jeszcze raz
-          przeanalizować przed egzaminem.
+          Sprawdź pytania, które warto jeszcze raz przeanalizować przed
+          egzaminem.
         </p>
       </section>
 
-      {isLoading && (
-        <p className="home-message">
-          Ładowanie błędów…
-        </p>
+      {isLoading && <p className="home-message">Ładowanie błędów…</p>}
+
+      {error && <p className="home-message home-message--error">{error}</p>}
+
+      {!isLoading && !error && mistakes.length === 0 && (
+        <section className="mistakes-nautical-empty">
+          <div className="mistakes-nautical-empty__icon">
+            <CheckIcon />
+          </div>
+
+          <h2>Brak błędnych odpowiedzi</h2>
+
+          <p>Wszystkie zaznaczone odpowiedzi były poprawne.</p>
+
+          <Link
+            className="nautical-primary-button mistakes-nautical-empty__button"
+            to="/historia"
+          >
+            Historia wyników
+          </Link>
+        </section>
       )}
-
-      {error && (
-        <p className="home-message home-message--error">
-          {error}
-        </p>
-      )}
-
-      {!isLoading &&
-        !error &&
-        mistakes.length === 0 && (
-          <section className="mistakes-nautical-empty">
-            <div className="mistakes-nautical-empty__icon">
-              <CheckIcon />
-            </div>
-
-            <h2>Brak błędnych odpowiedzi</h2>
-
-            <p>
-              Wszystkie zaznaczone odpowiedzi były
-              poprawne.
-            </p>
-
-            <Link
-  className="nautical-primary-button mistakes-nautical-empty__button"
-  to="/historia"
->
-  Historia wyników
-</Link>
-          </section>
-        )}
 
       <section className="mistakes-nautical-list">
         {mistakes.map((mistake) => (
-          <article
-            className="mistakes-nautical-card"
-            key={mistake.externalId}
-          >
+          <article className="mistakes-nautical-card" key={mistake.externalId}>
             <p className="mistakes-nautical-card__number">
               Pytanie {mistake.number}
             </p>
@@ -213,18 +176,13 @@ export function AttemptMistakesPage() {
             <div className="mistakes-nautical-answer mistakes-nautical-answer--wrong">
               <strong>Twoja odpowiedź</strong>
 
-              <span>
-                {mistake.selectedAnswer?.text ??
-                  "Brak odpowiedzi"}
-              </span>
+              <span>{mistake.selectedAnswer?.text ?? "Brak odpowiedzi"}</span>
             </div>
 
             <div className="mistakes-nautical-answer mistakes-nautical-answer--correct">
               <strong>Poprawna odpowiedź</strong>
 
-              <span>
-                {mistake.correctAnswer.text}
-              </span>
+              <span>{mistake.correctAnswer.text}</span>
             </div>
           </article>
         ))}

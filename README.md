@@ -16,9 +16,9 @@ A dedicated demo participant account can be created for portfolio presentation.
 
 Bosman was created as an MVP for sailing schools offering courses such as:
 
-* sailing licence courses,
-* motorboat licence courses,
-* SRC radio certificate courses.
+- sailing licence courses,
+- motorboat licence courses,
+- SRC radio certificate courses.
 
 The application is designed to simplify the process of sharing mock exams with course participants.
 
@@ -28,73 +28,73 @@ Question databases are prepared externally and imported into the application as 
 
 ### Participant application
 
-* login using an individual access code,
-* list of assigned exams,
-* randomized questions and answers,
-* configurable exam duration,
-* configurable number of questions,
-* automatic score calculation,
-* configurable passing threshold,
-* review of incorrect answers,
-* exam attempt history,
-* resume unfinished attempts,
-* responsive interface for mobile devices.
+- login using an individual access code,
+- list of assigned exams,
+- randomized questions and answers,
+- configurable exam duration,
+- configurable number of questions,
+- automatic score calculation,
+- configurable passing threshold,
+- review of incorrect answers,
+- exam attempt history,
+- resume unfinished attempts,
+- responsive interface for mobile devices.
 
 ### School administrator panel
 
-* administrator authentication,
-* participant management,
-* generation of individual access codes,
-* assignment of exams to participants or courses,
-* access expiration management,
-* activation and deactivation of participants,
-* overview of available exams,
-* permanent removal of demonstration data.
+- administrator authentication,
+- participant management,
+- generation of individual access codes,
+- assignment of exams to participants or courses,
+- access expiration management,
+- activation and deactivation of participants,
+- overview of available exams,
+- permanent removal of demonstration data.
 
 ### System administrator panel
 
-* management of exams and question packages,
-* ZIP package validation,
-* importing new exam versions,
-* publishing and archiving exams,
-* management of system-level data,
-* separation between system and school administrator permissions.
+- management of exams and question packages,
+- ZIP package validation,
+- importing new exam versions,
+- publishing and archiving exams,
+- management of system-level data,
+- separation between system and school administrator permissions.
 
 ## Technology stack
 
 ### Frontend
 
-* React
-* TypeScript
-* Vite
-* React Router
-* React Icons
-* responsive CSS
+- React
+- TypeScript
+- Vite
+- React Router
+- React Icons
+- responsive CSS
 
 ### Backend
 
-* Node.js
-* Express
-* TypeScript
-* Zod
-* bcryptjs
-* cookie-based sessions
-* Multer
-* JSZip
+- Node.js
+- Express
+- TypeScript
+- Zod
+- bcryptjs
+- cookie-based sessions
+- Multer
+- JSZip
 
 ### Database
 
-* PostgreSQL
-* Drizzle ORM
-* Drizzle Kit migrations
+- PostgreSQL
+- Drizzle ORM
+- Drizzle Kit migrations
 
 ### Infrastructure
 
-* npm workspaces monorepo
-* Docker Compose for local PostgreSQL
-* Railway deployment
-* Railway PostgreSQL
-* persistent volume storage for imported assets
+- npm workspaces monorepo
+- Docker Compose for local PostgreSQL
+- Railway deployment
+- Railway PostgreSQL
+- persistent volume storage for imported assets
 
 ## Architecture
 
@@ -153,10 +153,10 @@ School mode enables participant access codes, administrator authentication and o
 
 ### Requirements
 
-* Node.js 22
-* npm 10 or newer
-* Docker
-* Docker Compose
+- Node.js 22
+- npm 10 or newer
+- Docker
+- Docker Compose
 
 ### 1. Clone the repository
 
@@ -281,30 +281,30 @@ assets/
 
 The import process validates:
 
-* package structure,
-* JSON syntax,
-* required exam settings,
-* questions and answers,
-* correct answer definitions,
-* archive paths,
-* referenced images,
-* duplicated or missing files.
+- package structure,
+- JSON syntax,
+- required exam settings,
+- questions and answers,
+- correct answer definitions,
+- archive paths,
+- referenced images,
+- duplicated or missing files.
 
 Imported exams can be stored as separate versions, allowing existing attempts to remain connected to the version used when the exam was started.
 
 ## Security features
 
-* passwords stored as bcrypt hashes,
-* HTTP-only session cookies,
-* role-based authorization,
-* separate system and school administrator permissions,
-* participant access codes stored securely,
-* login attempt rate limiting,
-* session expiration,
-* protected administrator API routes,
-* organization-level data separation,
-* validation of imported archive paths,
-* environment-based secret management.
+- passwords stored as bcrypt hashes,
+- HTTP-only session cookies,
+- role-based authorization,
+- separate system and school administrator permissions,
+- participant access codes stored securely,
+- login attempt rate limiting,
+- session expiration,
+- protected administrator API routes,
+- organization-level data separation,
+- validation of imported archive paths,
+- environment-based secret management.
 
 ## Key technical challenges
 
@@ -324,9 +324,9 @@ Images extracted from imported exam packages are stored on a persistent Railway 
 
 The application separates:
 
-* participants,
-* school administrators,
-* system administrators.
+- participants,
+- school administrators,
+- system administrators.
 
 Each role has a different authentication flow and access scope.
 
@@ -338,17 +338,17 @@ The participant interface was designed for mobile use because most course partic
 
 Potential future improvements include:
 
-* participant progress statistics,
-* average exam results,
-* last attempt date,
-* course group analytics,
-* difficult question analysis,
-* automatic email delivery of access codes,
-* DOCX question database import,
-* school logo upload,
-* custom domains,
-* multiple organizations within one deployment,
-* automated tests and CI/CD checks.
+- participant progress statistics,
+- average exam results,
+- last attempt date,
+- course group analytics,
+- difficult question analysis,
+- automatic email delivery of access codes,
+- DOCX question database import,
+- school logo upload,
+- custom domains,
+- multiple organizations within one deployment,
+- automated tests and CI/CD checks.
 
 ## Screenshots
 
@@ -375,16 +375,16 @@ Example:
 
 ## What this project demonstrates
 
-* designing an application around a real business problem,
-* building a complete frontend and backend,
-* relational database design,
-* authentication and authorization,
-* file upload and validation,
-* versioned data imports,
-* responsive user interface development,
-* production deployment,
-* persistent storage configuration,
-* debugging Linux build and dependency issues.
+- designing an application around a real business problem,
+- building a complete frontend and backend,
+- relational database design,
+- authentication and authorization,
+- file upload and validation,
+- versioned data imports,
+- responsive user interface development,
+- production deployment,
+- persistent storage configuration,
+- debugging Linux build and dependency issues.
 
 ## Project status
 

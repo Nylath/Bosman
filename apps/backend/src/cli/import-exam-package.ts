@@ -9,9 +9,7 @@ import { organizations } from "../db/schema.js";
 import { importExamPackage } from "../exams/import-package.js";
 import { printExamPackageReport } from "../exams/package.js";
 
-const repositoryRoot = fileURLToPath(
-  new URL("../../../../", import.meta.url),
-);
+const repositoryRoot = fileURLToPath(new URL("../../../../", import.meta.url));
 
 const LOCAL_ORGANIZATION_SLUG = "bosman-local";
 

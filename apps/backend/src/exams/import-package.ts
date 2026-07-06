@@ -46,12 +46,9 @@ function createStoredAssetPath(
   examVersionId: string,
   archiveAssetPath: string,
 ): string {
-  const normalizedArchivePath =
-    normalizeArchivePath(archiveAssetPath);
+  const normalizedArchivePath = normalizeArchivePath(archiveAssetPath);
 
-  const relativeAssetPath = normalizedArchivePath.slice(
-    "assets/".length,
-  );
+  const relativeAssetPath = normalizedArchivePath.slice("assets/".length);
 
   return path.posix.join(
     "exams",
@@ -62,13 +59,9 @@ function createStoredAssetPath(
   );
 }
 
-async function removeSavedAssets(
-  assetPaths: string[],
-): Promise<void> {
+async function removeSavedAssets(assetPaths: string[]): Promise<void> {
   const removalResults = await Promise.allSettled(
-    assetPaths.map((assetPath) =>
-      assetStorage.remove(assetPath),
-    ),
+    assetPaths.map((assetPath) => assetStorage.remove(assetPath)),
   );
 
   for (const result of removalResults) {
@@ -84,14 +77,9 @@ async function removeSavedAssets(
 export async function importExamPackage(
   input: ImportExamPackageInput,
 ): Promise<ImportExamPackageResult> {
-  const validation = await validateExamPackageBuffer(
-    input.zipBuffer,
-  );
+  const validation = await validateExamPackageBuffer(input.zipBuffer);
 
-  if (
-    !validation.canImportAsDraft ||
-    !validation.data
-  ) {
+  if (!validation.canImportAsDraft || !validation.data) {
     return {
       imported: false,
       validation,
@@ -103,340 +91,218 @@ export async function importExamPackage(
   const savedAssetPaths: string[] = [];
 
   try {
-    const importedData = await db.transaction(
-      async (transaction) => {
-        const [exam] = await transaction
-          .insert(exams)
-          .values({
-            organizationId: input.organizationId,
-            slug: data.exam.slug,
+    const importedData = await db.transaction(async (transaction) => {
+      const [exam] = await transaction
+        .insert(exams)
+        .values({
+          organizationId: input.organizationId,
+          slug: data.exam.slug,
+          name: data.exam.name,
+          description: data.exam.description,
+          isActive: true,
+        })
+        .onConflictDoUpdate({
+          target: [exams.organizationId, exams.slug],
+          set: {
             name: data.exam.name,
             description: data.exam.description,
             isActive: true,
-          })
-          .onConflictDoUpdate({
-            target: [
-              exams.organizationId,
-              exams.slug,
-            ],
-            set: {
-              name: data.exam.name,
-              description: data.exam.description,
-              isActive: true,
-              updatedAt: new Date(),
-            },
-          })
-          .returning({
-            id: exams.id,
-          });
+            updatedAt: new Date(),
+          },
+        })
+        .returning({
+          id: exams.id,
+        });
 
-        if (!exam) {
+      if (!exam) {
+        throw new Error("Nie udało się utworzyć egzaminu.");
+      }
+
+      const [latestVersion] = await transaction
+        .select({
+          value: max(examVersions.versionNumber),
+        })
+        .from(examVersions)
+        .where(eq(examVersions.examId, exam.id));
+
+      const versionNumber = (latestVersion?.value ?? 0) + 1;
+
+      const [examVersion] = await transaction
+        .insert(examVersions)
+        .values({
+          examId: exam.id,
+          versionNumber,
+          status: "draft",
+          durationMinutes: data.exam.durationMinutes,
+          questionsPerAttempt: data.exam.questionsPerAttempt,
+          passingScore: data.exam.passingScore,
+          answersPerQuestion: data.exam.answersPerQuestion,
+          randomQuestions: data.sampling.randomQuestions,
+        })
+        .returning({
+          id: examVersions.id,
+        });
+
+      if (!examVersion) {
+        throw new Error("Nie udało się utworzyć wersji egzaminu.");
+      }
+
+      const referencedAssets = new Set([
+        ...(data.exam.tileImage === null
+          ? []
+          : [normalizeArchivePath(data.exam.tileImage)]),
+
+        ...data.questions
+          .map((question) => question.image)
+          .filter((image): image is string => image !== null)
+          .map((image) => normalizeArchivePath(image)),
+      ]);
+
+      const storedAssetPathByArchivePath = new Map<string, string>();
+
+      for (const archiveAssetPath of referencedAssets) {
+        const assetFile = getArchiveFile(archive, archiveAssetPath);
+
+        if (!assetFile) {
           throw new Error(
-            "Nie udało się utworzyć egzaminu.",
+            `Brakuje grafiki "${archiveAssetPath}" w paczce ZIP.`,
           );
         }
 
-        const [latestVersion] = await transaction
-          .select({
-            value: max(
-              examVersions.versionNumber,
-            ),
-          })
-          .from(examVersions)
-          .where(
-            eq(examVersions.examId, exam.id),
-          );
-
-        const versionNumber =
-          (latestVersion?.value ?? 0) + 1;
-
-        const [examVersion] = await transaction
-          .insert(examVersions)
-          .values({
-            examId: exam.id,
-            versionNumber,
-            status: "draft",
-            durationMinutes:
-              data.exam.durationMinutes,
-            questionsPerAttempt:
-              data.exam.questionsPerAttempt,
-            passingScore:
-              data.exam.passingScore,
-            answersPerQuestion:
-              data.exam.answersPerQuestion,
-            randomQuestions:
-              data.sampling.randomQuestions,
-          })
-          .returning({
-            id: examVersions.id,
-          });
-
-        if (!examVersion) {
-          throw new Error(
-            "Nie udało się utworzyć wersji egzaminu.",
-          );
-        }
-
-        const referencedAssets = new Set([
-          ...(data.exam.tileImage === null
-            ? []
-            : [
-                normalizeArchivePath(
-                  data.exam.tileImage,
-                ),
-              ]),
-
-          ...data.questions
-            .map(
-              (question) => question.image,
-            )
-            .filter(
-              (image): image is string =>
-                image !== null,
-            )
-            .map((image) =>
-              normalizeArchivePath(image),
-            ),
-        ]);
-
-        const storedAssetPathByArchivePath =
-          new Map<string, string>();
-
-        for (
-          const archiveAssetPath of referencedAssets
-        ) {
-          const assetFile = getArchiveFile(
-            archive,
-            archiveAssetPath,
-          );
-
-          if (!assetFile) {
-            throw new Error(
-              `Brakuje grafiki "${archiveAssetPath}" w paczce ZIP.`,
-            );
-          }
-
-          const storedAssetPath =
-            createStoredAssetPath(
-              data.exam.slug,
-              examVersion.id,
-              archiveAssetPath,
-            );
-
-          const assetBuffer =
-            await assetFile.async("nodebuffer");
-
-          await assetStorage.save(
-            assetBuffer,
-            storedAssetPath,
-          );
-
-          savedAssetPaths.push(
-            storedAssetPath,
-          );
-
-          storedAssetPathByArchivePath.set(
-            archiveAssetPath,
-            storedAssetPath,
-          );
-        }
-
-        const normalizedTileImagePath =
-          data.exam.tileImage === null
-            ? null
-            : normalizeArchivePath(
-                data.exam.tileImage,
-              );
-
-        const storedTileImagePath =
-          normalizedTileImagePath === null
-            ? null
-            : storedAssetPathByArchivePath.get(
-                normalizedTileImagePath,
-              );
-
-        if (
-          normalizedTileImagePath !== null &&
-          !storedTileImagePath
-        ) {
-          throw new Error(
-            `Nie zapisano grafiki kafelka "${normalizedTileImagePath}".`,
-          );
-        }
-
-        await transaction
-          .update(examVersions)
-          .set({
-            tileImagePath:
-              storedTileImagePath,
-          })
-          .where(
-            eq(
-              examVersions.id,
-              examVersion.id,
-            ),
-          );
-
-        const insertedCategories =
-          await transaction
-            .insert(categories)
-            .values(
-              data.sampling.categories.map(
-                (category, position) => ({
-                  examVersionId:
-                    examVersion.id,
-                  slug: category.slug,
-                  name: category.name,
-                  position,
-                  minimumQuestions:
-                    category.minimumQuestions,
-                }),
-              ),
-            )
-            .returning({
-              id: categories.id,
-              slug: categories.slug,
-            });
-
-        const categoryIdBySlug = new Map(
-          insertedCategories.map(
-            (category) => [
-              category.slug,
-              category.id,
-            ],
-          ),
+        const storedAssetPath = createStoredAssetPath(
+          data.exam.slug,
+          examVersion.id,
+          archiveAssetPath,
         );
 
-        const questionPositionByCategory =
-          new Map<string, number>();
+        const assetBuffer = await assetFile.async("nodebuffer");
 
-        const questionRows =
-          data.questions.map((question) => {
-            const categoryId =
-              categoryIdBySlug.get(
-                question.categorySlug,
-              );
+        await assetStorage.save(assetBuffer, storedAssetPath);
 
-            if (!categoryId) {
-              throw new Error(
-                `Nie znaleziono działu "${question.categorySlug}".`,
-              );
-            }
+        savedAssetPaths.push(storedAssetPath);
 
-            const position =
-              questionPositionByCategory.get(
-                question.categorySlug,
-              ) ?? 0;
+        storedAssetPathByArchivePath.set(archiveAssetPath, storedAssetPath);
+      }
 
-            questionPositionByCategory.set(
-              question.categorySlug,
-              position + 1,
-            );
+      const normalizedTileImagePath =
+        data.exam.tileImage === null
+          ? null
+          : normalizeArchivePath(data.exam.tileImage);
 
-            const normalizedImagePath =
-              question.image === null
-                ? null
-                : normalizeArchivePath(
-                    question.image,
-                  );
+      const storedTileImagePath =
+        normalizedTileImagePath === null
+          ? null
+          : storedAssetPathByArchivePath.get(normalizedTileImagePath);
 
-            const imagePath =
-              normalizedImagePath === null
-                ? null
-                : storedAssetPathByArchivePath.get(
-                    normalizedImagePath,
-                  );
+      if (normalizedTileImagePath !== null && !storedTileImagePath) {
+        throw new Error(
+          `Nie zapisano grafiki kafelka "${normalizedTileImagePath}".`,
+        );
+      }
 
-            if (
-              normalizedImagePath !== null &&
-              !imagePath
-            ) {
-              throw new Error(
-                `Nie zapisano grafiki "${normalizedImagePath}".`,
-              );
-            }
+      await transaction
+        .update(examVersions)
+        .set({
+          tileImagePath: storedTileImagePath,
+        })
+        .where(eq(examVersions.id, examVersion.id));
 
-            return {
-              examVersionId:
-                examVersion.id,
-              categoryId,
-              externalId:
-                question.externalId,
-              text: question.text,
-              imagePath,
-              position,
-            };
-          });
+      const insertedCategories = await transaction
+        .insert(categories)
+        .values(
+          data.sampling.categories.map((category, position) => ({
+            examVersionId: examVersion.id,
+            slug: category.slug,
+            name: category.name,
+            position,
+            minimumQuestions: category.minimumQuestions,
+          })),
+        )
+        .returning({
+          id: categories.id,
+          slug: categories.slug,
+        });
 
-        const insertedQuestions =
-          await transaction
-            .insert(questions)
-            .values(questionRows)
-            .returning({
-              id: questions.id,
-              externalId:
-                questions.externalId,
-            });
+      const categoryIdBySlug = new Map(
+        insertedCategories.map((category) => [category.slug, category.id]),
+      );
 
-        const questionIdByExternalId =
-          new Map(
-            insertedQuestions.map(
-              (question) => [
-                question.externalId,
-                question.id,
-              ],
-            ),
-          );
+      const questionPositionByCategory = new Map<string, number>();
 
-        const answerRows =
-          data.questions.flatMap(
-            (question) => {
-              const questionId =
-                questionIdByExternalId.get(
-                  question.externalId,
-                );
+      const questionRows = data.questions.map((question) => {
+        const categoryId = categoryIdBySlug.get(question.categorySlug);
 
-              if (!questionId) {
-                throw new Error(
-                  `Nie zapisano pytania "${question.externalId}".`,
-                );
-              }
+        if (!categoryId) {
+          throw new Error(`Nie znaleziono działu "${question.categorySlug}".`);
+        }
 
-              return question.answers.map(
-                (answer, position) => ({
-                  questionId,
-                  text: answer.text,
-                  isCorrect:
-                    answer.isCorrect,
-                  sourceLabel:
-                    answer.sourceLabel ??
-                    null,
-                  position,
-                }),
-              );
-            },
-          );
+        const position =
+          questionPositionByCategory.get(question.categorySlug) ?? 0;
 
-        await transaction
-          .insert(answers)
-          .values(answerRows);
+        questionPositionByCategory.set(question.categorySlug, position + 1);
+
+        const normalizedImagePath =
+          question.image === null ? null : normalizeArchivePath(question.image);
+
+        const imagePath =
+          normalizedImagePath === null
+            ? null
+            : storedAssetPathByArchivePath.get(normalizedImagePath);
+
+        if (normalizedImagePath !== null && !imagePath) {
+          throw new Error(`Nie zapisano grafiki "${normalizedImagePath}".`);
+        }
 
         return {
-          examId: exam.id,
-          examVersionId:
-            examVersion.id,
-          versionNumber,
-          importedCategories:
-            insertedCategories.length,
-          importedQuestions:
-            insertedQuestions.length,
-          importedAnswers:
-            answerRows.length,
-          savedAssets:
-            savedAssetPaths.length,
+          examVersionId: examVersion.id,
+          categoryId,
+          externalId: question.externalId,
+          text: question.text,
+          imagePath,
+          position,
         };
-      },
-    );
+      });
+
+      const insertedQuestions = await transaction
+        .insert(questions)
+        .values(questionRows)
+        .returning({
+          id: questions.id,
+          externalId: questions.externalId,
+        });
+
+      const questionIdByExternalId = new Map(
+        insertedQuestions.map((question) => [question.externalId, question.id]),
+      );
+
+      const answerRows = data.questions.flatMap((question) => {
+        const questionId = questionIdByExternalId.get(question.externalId);
+
+        if (!questionId) {
+          throw new Error(`Nie zapisano pytania "${question.externalId}".`);
+        }
+
+        return question.answers.map((answer, position) => ({
+          questionId,
+          text: answer.text,
+          isCorrect: answer.isCorrect,
+          sourceLabel: answer.sourceLabel ?? null,
+          position,
+        }));
+      });
+
+      await transaction.insert(answers).values(answerRows);
+
+      return {
+        examId: exam.id,
+        examVersionId: examVersion.id,
+        versionNumber,
+        importedCategories: insertedCategories.length,
+        importedQuestions: insertedQuestions.length,
+        importedAnswers: answerRows.length,
+        savedAssets: savedAssetPaths.length,
+      };
+    });
 
     return {
       imported: true,
@@ -444,9 +310,7 @@ export async function importExamPackage(
       ...importedData,
     };
   } catch (error) {
-    await removeSavedAssets(
-      savedAssetPaths,
-    );
+    await removeSavedAssets(savedAssetPaths);
 
     throw error;
   }

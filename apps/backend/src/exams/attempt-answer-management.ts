@@ -2,10 +2,7 @@ import type { PoolClient } from "pg";
 
 import { pool } from "../db/client.js";
 
-import {
-  getLocalAttempt,
-  type AttemptView,
-} from "./attempt-management.js";
+import { getLocalAttempt, type AttemptView } from "./attempt-management.js";
 
 const LOCAL_ORGANIZATION_SLUG = "bosman-local";
 
@@ -16,11 +13,7 @@ type LocalContextRow = {
 
 type LockedAttemptRow = {
   id: string;
-  status:
-    | "in_progress"
-    | "completed"
-    | "expired"
-    | "cancelled";
+  status: "in_progress" | "completed" | "expired" | "cancelled";
   total_questions: number;
   current_question_position: number;
   expires_at: Date;
@@ -28,9 +21,7 @@ type LockedAttemptRow = {
 
 type ResultRow = {
   id: string;
-  status:
-    | "completed"
-    | "expired";
+  status: "completed" | "expired";
   exam_slug: string;
   exam_name: string;
   score: number;
@@ -83,9 +74,7 @@ export type SubmitAttemptAnswerResult =
       result: AttemptResultView;
     };
 
-async function getLocalContext(
-  client: PoolClient,
-): Promise<LocalContextRow> {
+async function getLocalContext(client: PoolClient): Promise<LocalContextRow> {
   const result = await client.query<LocalContextRow>(
     `
       SELECT
@@ -106,9 +95,7 @@ async function getLocalContext(
   const context = result.rows[0];
 
   if (!context) {
-    throw new Error(
-      "Nie znaleziono aktywnego lokalnego profilu użytkownika.",
-    );
+    throw new Error("Nie znaleziono aktywnego lokalnego profilu użytkownika.");
   }
 
   return context;
@@ -147,9 +134,7 @@ async function finalizeAttempt(
   const scoreData = scoreResult.rows[0];
 
   if (!scoreData) {
-    throw new Error(
-      "Nie udało się obliczyć wyniku próby.",
-    );
+    throw new Error("Nie udało się obliczyć wyniku próby.");
   }
 
   await client.query(
@@ -219,9 +204,7 @@ async function loadFinishedResult(
   const row = result.rows[0];
 
   if (!row) {
-    throw new Error(
-      "Nie udało się odczytać zakończonej próby.",
-    );
+    throw new Error("Nie udało się odczytać zakończonej próby.");
   }
 
   return {
@@ -256,9 +239,8 @@ export async function submitLocalAttemptAnswer(input: {
 
     const context = await getLocalContext(client);
 
-    const attemptResult =
-      await client.query<LockedAttemptRow>(
-        `
+    const attemptResult = await client.query<LockedAttemptRow>(
+      `
           SELECT
             id,
             status,
@@ -271,11 +253,8 @@ export async function submitLocalAttemptAnswer(input: {
           LIMIT 1
           FOR UPDATE;
         `,
-        [
-          input.attemptId,
-          context.participant_id,
-        ],
-      );
+      [input.attemptId, context.participant_id],
+    );
 
     const attempt = attemptResult.rows[0];
 
@@ -296,11 +275,7 @@ export async function submitLocalAttemptAnswer(input: {
     }
 
     if (attempt.expires_at.getTime() <= Date.now()) {
-      await finalizeAttempt(
-        client,
-        attempt.id,
-        "expired",
-      );
+      await finalizeAttempt(client, attempt.id, "expired");
 
       const result = await loadFinishedResult(
         client,
@@ -327,11 +302,7 @@ export async function submitLocalAttemptAnswer(input: {
           AND position = $3
         LIMIT 1;
       `,
-      [
-        input.attemptQuestionId,
-        attempt.id,
-        attempt.current_question_position,
-      ],
+      [input.attemptQuestionId, attempt.id, attempt.current_question_position],
     );
 
     if (!questionResult.rows[0]) {
@@ -353,10 +324,7 @@ export async function submitLocalAttemptAnswer(input: {
             AND answer_id = $2
         ) AS exists;
       `,
-      [
-        input.attemptQuestionId,
-        input.selectedAnswerId,
-      ],
+      [input.attemptQuestionId, input.selectedAnswerId],
     );
 
     if (!optionResult.rows[0]?.exists) {
@@ -380,10 +348,7 @@ export async function submitLocalAttemptAnswer(input: {
         DO NOTHING
         RETURNING id;
       `,
-      [
-        input.attemptQuestionId,
-        input.selectedAnswerId,
-      ],
+      [input.attemptQuestionId, input.selectedAnswerId],
     );
 
     if (!insertedResponse.rows[0]) {
@@ -394,17 +359,10 @@ export async function submitLocalAttemptAnswer(input: {
       };
     }
 
-    const nextQuestionPosition =
-      attempt.current_question_position + 1;
+    const nextQuestionPosition = attempt.current_question_position + 1;
 
-    if (
-      nextQuestionPosition >= attempt.total_questions
-    ) {
-      await finalizeAttempt(
-        client,
-        attempt.id,
-        "completed",
-      );
+    if (nextQuestionPosition >= attempt.total_questions) {
+      await finalizeAttempt(client, attempt.id, "completed");
 
       const result = await loadFinishedResult(
         client,
@@ -428,10 +386,7 @@ export async function submitLocalAttemptAnswer(input: {
           updated_at = NOW()
         WHERE id = $1;
       `,
-      [
-        attempt.id,
-        nextQuestionPosition,
-      ],
+      [attempt.id, nextQuestionPosition],
     );
 
     await client.query("COMMIT");
@@ -446,17 +401,13 @@ export async function submitLocalAttemptAnswer(input: {
   }
 
   if (!shouldLoadNextQuestion) {
-    throw new Error(
-      "Nie udało się ustalić kolejnego kroku próby.",
-    );
+    throw new Error("Nie udało się ustalić kolejnego kroku próby.");
   }
 
   const attempt = await getLocalAttempt(input.attemptId);
 
   if (!attempt) {
-    throw new Error(
-      "Nie udało się odczytać kolejnego pytania próby.",
-    );
+    throw new Error("Nie udało się odczytać kolejnego pytania próby.");
   }
 
   return {

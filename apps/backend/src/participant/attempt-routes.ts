@@ -18,9 +18,7 @@ import { requireParticipantSession } from "./middleware.js";
 import { submitParticipantAttemptAnswer } from "./attempt-answer-management.js";
 import { cancelParticipantAttempt } from "../exams/attempt-cancellation-management.js";
 
-const examSlugSchema = z
-  .string()
-  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+const examSlugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 
 const attemptIdSchema = z.string().uuid();
 
@@ -34,20 +32,15 @@ type ParticipantSessionContext = {
   organizationId: string;
 };
 
-function getParticipantSession(
-  response: Response,
-): ParticipantSessionContext {
-  const session =
-    response.locals.participantSession;
+function getParticipantSession(response: Response): ParticipantSessionContext {
+  const session = response.locals.participantSession;
 
   if (
     !session ||
     typeof session.participantId !== "string" ||
     typeof session.organizationId !== "string"
   ) {
-    throw new Error(
-      "Nie znaleziono sesji kursanta.",
-    );
+    throw new Error("Nie znaleziono sesji kursanta.");
   }
 
   return {
@@ -65,15 +58,13 @@ participantAttemptRouter.post(
     try {
       const session = getParticipantSession(response);
 
-      const parsedAttemptId =
-        attemptIdSchema.safeParse(
-          request.params.attemptId,
-        );
+      const parsedAttemptId = attemptIdSchema.safeParse(
+        request.params.attemptId,
+      );
 
       if (!parsedAttemptId.success) {
         response.status(400).json({
-          message:
-            "Nieprawidłowy identyfikator próby.",
+          message: "Nieprawidłowy identyfikator próby.",
         });
 
         return;
@@ -86,8 +77,7 @@ participantAttemptRouter.post(
 
       if (result.status === "not_found") {
         response.status(404).json({
-          message:
-            "Nie znaleziono próby egzaminacyjnej.",
+          message: "Nie znaleziono próby egzaminacyjnej.",
         });
 
         return;
@@ -95,8 +85,7 @@ participantAttemptRouter.post(
 
       if (result.status === "not_in_progress") {
         response.status(409).json({
-          message:
-            "Próba egzaminacyjna nie jest już aktywna.",
+          message: "Próba egzaminacyjna nie jest już aktywna.",
         });
 
         return;
@@ -116,9 +105,7 @@ participantAttemptRouter.post(
     try {
       const session = getParticipantSession(response);
 
-      const parsedSlug = examSlugSchema.safeParse(
-        request.params.slug,
-      );
+      const parsedSlug = examSlugSchema.safeParse(request.params.slug);
 
       if (!parsedSlug.success) {
         response.status(400).json({
@@ -128,12 +115,11 @@ participantAttemptRouter.post(
         return;
       }
 
-      const result =
-        await startOrResumeParticipantAttempt({
-          organizationId: session.organizationId,
-          participantId: session.participantId,
-          examSlug: parsedSlug.data,
-        });
+      const result = await startOrResumeParticipantAttempt({
+        organizationId: session.organizationId,
+        participantId: session.participantId,
+        examSlug: parsedSlug.data,
+      });
 
       if (result.status === "not_found") {
         response.status(404).json({
@@ -144,9 +130,7 @@ participantAttemptRouter.post(
         return;
       }
 
-      response
-        .status(result.created ? 201 : 200)
-        .json(result);
+      response.status(result.created ? 201 : 200).json(result);
     } catch (error) {
       next(error);
     }
@@ -160,9 +144,7 @@ participantAttemptRouter.get(
     try {
       const session = getParticipantSession(response);
 
-      const parsedSlug = examSlugSchema.safeParse(
-        request.params.slug,
-      );
+      const parsedSlug = examSlugSchema.safeParse(request.params.slug);
 
       if (!parsedSlug.success) {
         response.status(400).json({
@@ -172,12 +154,11 @@ participantAttemptRouter.get(
         return;
       }
 
-      const attempt =
-        await getActiveParticipantAttemptForExam({
-          organizationId: session.organizationId,
-          participantId: session.participantId,
-          examSlug: parsedSlug.data,
-        });
+      const attempt = await getActiveParticipantAttemptForExam({
+        organizationId: session.organizationId,
+        participantId: session.participantId,
+        examSlug: parsedSlug.data,
+      });
 
       response.json({
         attempt,
@@ -195,15 +176,13 @@ participantAttemptRouter.get(
     try {
       const session = getParticipantSession(response);
 
-      const parsedAttemptId =
-        attemptIdSchema.safeParse(
-          request.params.attemptId,
-        );
+      const parsedAttemptId = attemptIdSchema.safeParse(
+        request.params.attemptId,
+      );
 
       if (!parsedAttemptId.success) {
         response.status(400).json({
-          message:
-            "Nieprawidłowy identyfikator próby.",
+          message: "Nieprawidłowy identyfikator próby.",
         });
 
         return;
@@ -216,8 +195,7 @@ participantAttemptRouter.get(
 
       if (!attempt) {
         response.status(404).json({
-          message:
-            "Nie znaleziono próby egzaminacyjnej.",
+          message: "Nie znaleziono próby egzaminacyjnej.",
         });
 
         return;
@@ -239,23 +217,19 @@ participantAttemptRouter.post(
     try {
       const session = getParticipantSession(response);
 
-      const parsedAttemptId =
-        attemptIdSchema.safeParse(
-          request.params.attemptId,
-        );
+      const parsedAttemptId = attemptIdSchema.safeParse(
+        request.params.attemptId,
+      );
 
       if (!parsedAttemptId.success) {
         response.status(400).json({
-          message:
-            "Nieprawidłowy identyfikator próby.",
+          message: "Nieprawidłowy identyfikator próby.",
         });
 
         return;
       }
 
-      const parsedBody = submitAnswerSchema.safeParse(
-        request.body,
-      );
+      const parsedBody = submitAnswerSchema.safeParse(request.body);
 
       if (!parsedBody.success) {
         response.status(400).json({
@@ -266,20 +240,16 @@ participantAttemptRouter.post(
         return;
       }
 
-      const result =
-        await submitParticipantAttemptAnswer({
-          participantId: session.participantId,
-          attemptId: parsedAttemptId.data,
-          attemptQuestionId:
-            parsedBody.data.attemptQuestionId,
-          selectedAnswerId:
-            parsedBody.data.selectedAnswerId,
-        });
+      const result = await submitParticipantAttemptAnswer({
+        participantId: session.participantId,
+        attemptId: parsedAttemptId.data,
+        attemptQuestionId: parsedBody.data.attemptQuestionId,
+        selectedAnswerId: parsedBody.data.selectedAnswerId,
+      });
 
       if (result.status === "not_found") {
         response.status(404).json({
-          message:
-            "Nie znaleziono próby egzaminacyjnej.",
+          message: "Nie znaleziono próby egzaminacyjnej.",
         });
 
         return;
@@ -287,8 +257,7 @@ participantAttemptRouter.post(
 
       if (result.status === "not_in_progress") {
         response.status(409).json({
-          message:
-            "Próba egzaminacyjna nie jest już aktywna.",
+          message: "Próba egzaminacyjna nie jest już aktywna.",
         });
 
         return;
@@ -296,8 +265,7 @@ participantAttemptRouter.post(
 
       if (result.status === "invalid_question") {
         response.status(409).json({
-          message:
-            "Możesz odpowiedzieć wyłącznie na aktualne pytanie.",
+          message: "Możesz odpowiedzieć wyłącznie na aktualne pytanie.",
         });
 
         return;
@@ -305,8 +273,7 @@ participantAttemptRouter.post(
 
       if (result.status === "invalid_answer") {
         response.status(400).json({
-          message:
-            "Wybrana odpowiedź nie należy do aktualnego pytania.",
+          message: "Wybrana odpowiedź nie należy do aktualnego pytania.",
         });
 
         return;
@@ -314,8 +281,7 @@ participantAttemptRouter.post(
 
       if (result.status === "already_answered") {
         response.status(409).json({
-          message:
-            "Odpowiedź na to pytanie została już zapisana.",
+          message: "Odpowiedź na to pytanie została już zapisana.",
         });
 
         return;
@@ -335,15 +301,13 @@ participantAttemptRouter.get(
     try {
       const session = getParticipantSession(response);
 
-      const parsedAttemptId =
-        attemptIdSchema.safeParse(
-          request.params.attemptId,
-        );
+      const parsedAttemptId = attemptIdSchema.safeParse(
+        request.params.attemptId,
+      );
 
       if (!parsedAttemptId.success) {
         response.status(400).json({
-          message:
-            "Nieprawidłowy identyfikator próby.",
+          message: "Nieprawidłowy identyfikator próby.",
         });
 
         return;
@@ -356,8 +320,7 @@ participantAttemptRouter.get(
 
       if (result.status === "not_found") {
         response.status(404).json({
-          message:
-            "Nie znaleziono próby egzaminacyjnej.",
+          message: "Nie znaleziono próby egzaminacyjnej.",
         });
 
         return;
@@ -365,8 +328,7 @@ participantAttemptRouter.get(
 
       if (result.status === "not_finished") {
         response.status(409).json({
-          message:
-            "Próba egzaminacyjna nie została jeszcze zakończona.",
+          message: "Próba egzaminacyjna nie została jeszcze zakończona.",
         });
 
         return;
@@ -388,30 +350,26 @@ participantAttemptRouter.get(
     try {
       const session = getParticipantSession(response);
 
-      const parsedAttemptId =
-        attemptIdSchema.safeParse(
-          request.params.attemptId,
-        );
+      const parsedAttemptId = attemptIdSchema.safeParse(
+        request.params.attemptId,
+      );
 
       if (!parsedAttemptId.success) {
         response.status(400).json({
-          message:
-            "Nieprawidłowy identyfikator próby.",
+          message: "Nieprawidłowy identyfikator próby.",
         });
 
         return;
       }
 
-      const result =
-        await getParticipantAttemptMistakes({
-          participantId: session.participantId,
-          attemptId: parsedAttemptId.data,
-        });
+      const result = await getParticipantAttemptMistakes({
+        participantId: session.participantId,
+        attemptId: parsedAttemptId.data,
+      });
 
       if (result.status === "not_found") {
         response.status(404).json({
-          message:
-            "Nie znaleziono próby egzaminacyjnej.",
+          message: "Nie znaleziono próby egzaminacyjnej.",
         });
 
         return;
@@ -419,8 +377,7 @@ participantAttemptRouter.get(
 
       if (result.status === "not_finished") {
         response.status(409).json({
-          message:
-            "Próba egzaminacyjna nie została jeszcze zakończona.",
+          message: "Próba egzaminacyjna nie została jeszcze zakończona.",
         });
 
         return;
@@ -442,10 +399,9 @@ participantAttemptRouter.get(
     try {
       const session = getParticipantSession(response);
 
-      const attempts =
-        await getParticipantAttemptHistory({
-          participantId: session.participantId,
-        });
+      const attempts = await getParticipantAttemptHistory({
+        participantId: session.participantId,
+      });
 
       response.json({
         attempts,

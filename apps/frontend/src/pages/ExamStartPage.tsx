@@ -1,10 +1,6 @@
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
-import {
-  Link,
-  useNavigate,
-  useParams,
-} from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 
 import {
   cancelAttempt,
@@ -57,10 +53,7 @@ function ArrowRightIcon() {
 
 function NauticalPlaceholder() {
   return (
-    <div
-      aria-hidden="true"
-      className="exam-start-cover__placeholder"
-    >
+    <div aria-hidden="true" className="exam-start-cover__placeholder">
       <svg viewBox="0 0 640 560">
         <defs>
           <linearGradient
@@ -74,30 +67,15 @@ function NauticalPlaceholder() {
             <stop offset="100%" stopColor="#76bec7" />
           </linearGradient>
 
-          <linearGradient
-            id="start-cover-wave"
-            x1="0"
-            x2="1"
-            y1="0"
-            y2="0"
-          >
+          <linearGradient id="start-cover-wave" x1="0" x2="1" y1="0" y2="0">
             <stop offset="0%" stopColor="#208995" />
             <stop offset="100%" stopColor="#6cc0c7" />
           </linearGradient>
         </defs>
 
-        <rect
-          fill="url(#start-cover-background)"
-          height="560"
-          width="640"
-        />
+        <rect fill="url(#start-cover-background)" height="560" width="640" />
 
-        <g
-          fill="none"
-          opacity="0.46"
-          stroke="#ffffff"
-          strokeWidth="1.2"
-        >
+        <g fill="none" opacity="0.46" stroke="#ffffff" strokeWidth="1.2">
           <circle cx="320" cy="230" r="110" />
           <circle cx="320" cy="230" r="165" />
           <circle cx="320" cy="230" r="215" />
@@ -136,79 +114,56 @@ function NauticalPlaceholder() {
   );
 }
 
-function DetailIcon(props: {
-  children: ReactNode;
-}) {
-  return (
-    <span className="exam-start-detail__icon">
-      {props.children}
-    </span>
-  );
+function DetailIcon(props: { children: ReactNode }) {
+  return <span className="exam-start-detail__icon">{props.children}</span>;
 }
 
 export function ExamStartPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
 
-  const [exam, setExam] =
-    useState<PublicExam | null>(null);
+  const [exam, setExam] = useState<PublicExam | null>(null);
 
-  const [activeAttempt, setActiveAttempt] =
-    useState<Attempt | null>(null);
+  const [activeAttempt, setActiveAttempt] = useState<Attempt | null>(null);
 
-  const [isLoading, setIsLoading] =
-    useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [isStarting, setIsStarting] =
-    useState(false);
+  const [isStarting, setIsStarting] = useState(false);
 
-  const [isCancelling, setIsCancelling] =
-    useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
-  const [
-    isCancelModalOpen,
-    setIsCancelModalOpen,
-  ] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
-  const [error, setError] =
-    useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-  if (!slug) {
-    return;
-  }
+    if (!slug) {
+      return;
+    }
 
-  let requestIsActive = true;
+    let requestIsActive = true;
 
-    void Promise.all([
-      getPublishedExam(slug),
-      getActiveAttemptForExam(slug),
-    ])
-      .then(
-        ([
-          publishedExam,
-          loadedActiveAttempt,
-        ]) => {
-          if (!requestIsActive) {
-            return;
-          }
+    void Promise.all([getPublishedExam(slug), getActiveAttemptForExam(slug)])
+      .then(([publishedExam, loadedActiveAttempt]) => {
+        if (!requestIsActive) {
+          return;
+        }
 
-          setExam(publishedExam);
-          setActiveAttempt(loadedActiveAttempt);
-        },
-      )
+        setExam(publishedExam);
+        setActiveAttempt(loadedActiveAttempt);
+      })
       .catch((caughtError: unknown) => {
         if (!requestIsActive) {
           return;
         }
 
         if (shouldRedirectToParticipantLogin(caughtError)) {
-  void navigate("/dostep", {
-    replace: true,
-  });
+          void navigate("/dostep", {
+            replace: true,
+          });
 
-  return;
-}
+          return;
+        }
 
         setError(
           caughtError instanceof Error
@@ -236,8 +191,7 @@ export function ExamStartPage() {
     setError(null);
 
     try {
-      const result =
-        await startOrResumeAttempt(slug);
+      const result = await startOrResumeAttempt(slug);
 
       void navigate(`/proby/${result.attempt.id}`);
     } catch (caughtError) {
@@ -276,32 +230,27 @@ export function ExamStartPage() {
   }
 
   if (!slug) {
-  return (
-    <main className="nautical-page">
-      <p className="home-logo">Bosman</p>
+    return (
+      <main className="nautical-page">
+        <p className="home-logo">Bosman</p>
 
-      <Link
-        className="nautical-back-link"
-        to="/"
-      >
-        <ArrowLeftIcon />
+        <Link className="nautical-back-link" to="/">
+          <ArrowLeftIcon />
 
-        <span>Wróć do menu głównego</span>
-      </Link>
+          <span>Wróć do menu głównego</span>
+        </Link>
 
-      <p className="home-message home-message--error">
-        Brakuje adresu egzaminu.
-      </p>
-    </main>
-  );
-}
+        <p className="home-message home-message--error">
+          Brakuje adresu egzaminu.
+        </p>
+      </main>
+    );
+  }
 
   if (isLoading) {
     return (
       <main className="nautical-page">
-        <p className="home-message">
-          Ładowanie egzaminu…
-        </p>
+        <p className="home-message">Ładowanie egzaminu…</p>
       </main>
     );
   }
@@ -315,9 +264,7 @@ export function ExamStartPage() {
           <span>Wróć do menu głównego</span>
         </Link>
 
-        <p className="home-message home-message--error">
-          {error}
-        </p>
+        <p className="home-message home-message--error">{error}</p>
       </main>
     );
   }
@@ -338,9 +285,7 @@ export function ExamStartPage() {
 
       <section className="exam-start-layout">
         <article className="exam-start-content">
-          <p className="exam-start-content__eyebrow">
-            Próbny egzamin
-          </p>
+          <p className="exam-start-content__eyebrow">Próbny egzamin</p>
 
           <h1>{exam.name}</h1>
 
@@ -356,9 +301,7 @@ export function ExamStartPage() {
               <span>
                 <dt>Liczba pytań</dt>
 
-                <dd>
-                  {exam.version.questionsPerAttempt}
-                </dd>
+                <dd>{exam.version.questionsPerAttempt}</dd>
               </span>
             </div>
 
@@ -368,9 +311,7 @@ export function ExamStartPage() {
               <span>
                 <dt>Czas trwania</dt>
 
-                <dd>
-                  {exam.version.durationMinutes} min
-                </dd>
+                <dd>{exam.version.durationMinutes} min</dd>
               </span>
             </div>
 
@@ -381,8 +322,7 @@ export function ExamStartPage() {
                 <dt>Próg zaliczenia</dt>
 
                 <dd>
-                  {exam.version.passingScore}/
-                  {exam.version.questionsPerAttempt}
+                  {exam.version.passingScore}/{exam.version.questionsPerAttempt}
                 </dd>
               </span>
             </div>
@@ -390,17 +330,12 @@ export function ExamStartPage() {
 
           {activeAttempt && (
             <p className="exam-start-resume-message">
-              Masz rozpoczęte podejście. Możesz
-              kontynuować od ostatniego pytania albo
-              przerwać je i rozpocząć od nowa.
+              Masz rozpoczęte podejście. Możesz kontynuować od ostatniego
+              pytania albo przerwać je i rozpocząć od nowa.
             </p>
           )}
 
-          {error && (
-            <p className="home-message home-message--error">
-              {error}
-            </p>
-          )}
+          {error && <p className="home-message home-message--error">{error}</p>}
 
           <div className="exam-start-actions">
             <button

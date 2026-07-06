@@ -17,11 +17,14 @@
     "start": "npm run start --workspace=@bosman/backend",
     "test": "npm run test --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate"
   },
   "devDependencies": {
     "dotenv": "^17.4.2",
-    "drizzle-kit": "^0.31.10"
+    "drizzle-kit": "^0.31.10",
+    "prettier": "3.9.4"
   }
 }

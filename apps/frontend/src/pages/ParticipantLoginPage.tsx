@@ -1,15 +1,8 @@
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
-import {
-  Link,
-  useNavigate,
-} from "react-router";
+import { Link, useNavigate } from "react-router";
 
-import {
-  ApiError,
-  getParticipantSession,
-  loginParticipant,
-} from "../api";
+import { ApiError, getParticipantSession, loginParticipant } from "../api";
 
 import { organizationBranding } from "../organizationBranding";
 
@@ -24,13 +17,9 @@ export function ParticipantLoginPage() {
   const navigate = useNavigate();
 
   const [code, setCode] = useState("");
-  const [isCheckingSession, setIsCheckingSession] =
-    useState(true);
-  const [isSubmitting, setIsSubmitting] =
-    useState(false);
-  const [error, setError] = useState<string | null>(
-    null,
-  );
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let requestIsActive = true;
@@ -44,10 +33,7 @@ export function ParticipantLoginPage() {
         }
       })
       .catch((caughtError: unknown) => {
-        if (
-          caughtError instanceof ApiError &&
-          caughtError.status === 401
-        ) {
+        if (caughtError instanceof ApiError && caughtError.status === 401) {
           return;
         }
 
@@ -106,9 +92,7 @@ export function ParticipantLoginPage() {
   if (isCheckingSession) {
     return (
       <main className="nautical-page participant-login-page">
-        <p className="home-message">
-          Sprawdzanie dostępu…
-        </p>
+        <p className="home-message">Sprawdzanie dostępu…</p>
       </main>
     );
   }
@@ -116,17 +100,15 @@ export function ParticipantLoginPage() {
   return (
     <main className="nautical-page participant-login-page">
       <section className="participant-login-card">
-        <p className="home-logo">
-  {organizationBranding.appName}
-</p>
+        <p className="home-logo">{organizationBranding.appName}</p>
 
-<p className="participant-login-card__eyebrow">
-  {organizationBranding.organizationName}
-</p>
+        <p className="participant-login-card__eyebrow">
+          {organizationBranding.organizationName}
+        </p>
 
-<h1>{organizationBranding.loginTitle}</h1>
+        <h1>{organizationBranding.loginTitle}</h1>
 
-<p>{organizationBranding.loginDescription}</p>
+        <p>{organizationBranding.loginDescription}</p>
 
         <form
           className="participant-login-form"
@@ -145,27 +127,19 @@ export function ParticipantLoginPage() {
               placeholder="np. BOS-ABCD-1234"
               disabled={isSubmitting}
               onChange={(event) => {
-                setCode(
-                  normalizeCodeInput(event.target.value),
-                );
+                setCode(normalizeCodeInput(event.target.value));
               }}
             />
           </label>
 
-          {error && (
-            <p className="home-message home-message--error">
-              {error}
-            </p>
-          )}
+          {error && <p className="home-message home-message--error">{error}</p>}
 
           <button
             className="nautical-primary-button"
             type="submit"
             disabled={isSubmitting}
           >
-            {isSubmitting
-              ? "Logowanie…"
-              : "Wejdź do egzaminów"}
+            {isSubmitting ? "Logowanie…" : "Wejdź do egzaminów"}
           </button>
         </form>
 

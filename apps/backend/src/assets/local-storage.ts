@@ -20,10 +20,7 @@ function normalizeAssetPath(assetPath: string): string {
 
   const normalizedPath = path.posix.normalize(candidate);
 
-  if (
-    normalizedPath === "." ||
-    normalizedPath.startsWith("../")
-  ) {
+  if (normalizedPath === "." || normalizedPath.startsWith("../")) {
     throw new Error("Nieprawidłowa ścieżka grafiki.");
   }
 

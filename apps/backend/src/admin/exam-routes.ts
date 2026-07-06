@@ -1,15 +1,7 @@
 import path from "node:path";
 
-import {
-  and,
-  desc,
-  eq,
-} from "drizzle-orm";
-import type {
-  NextFunction,
-  Request,
-  Response,
-} from "express";
+import { and, desc, eq } from "drizzle-orm";
+import type { NextFunction, Request, Response } from "express";
 import { Router } from "express";
 import multer from "multer";
 import { z } from "zod";
@@ -18,17 +10,12 @@ import { assetStorage } from "../assets/index.js";
 import { config } from "../config.js";
 import { db, pool } from "../db/client.js";
 
-import {
-  exams,
-  examVersions,
-} from "../db/schema.js";
+import { exams, examVersions } from "../db/schema.js";
 import { importExamPackage } from "../exams/import-package.js";
 
 import { requireSystemAdminSession } from "./middleware.js";
 
-const packageExtensionError = new Error(
-  "PACKAGE_EXTENSION_NOT_ALLOWED",
-);
+const packageExtensionError = new Error("PACKAGE_EXTENSION_NOT_ALLOWED");
 
 const examIdSchema = z.string().uuid();
 
@@ -47,9 +34,7 @@ const upload = multer({
   },
 
   fileFilter: (_request, file, callback) => {
-    const extension = path
-      .extname(file.originalname)
-      .toLowerCase();
+    const extension = path.extname(file.originalname).toLowerCase();
 
     if (extension !== ".zip") {
       callback(packageExtensionError);
@@ -62,13 +47,10 @@ const upload = multer({
 });
 
 function getOrganizationId(response: Response): string {
-  const organizationId =
-    response.locals.adminSession?.organizationId;
+  const organizationId = response.locals.adminSession?.organizationId;
 
   if (typeof organizationId !== "string") {
-    throw new Error(
-      "Nie znaleziono organizacji w sesji administratora.",
-    );
+    throw new Error("Nie znaleziono organizacji w sesji administratora.");
   }
 
   return organizationId;
@@ -154,9 +136,7 @@ adminExamRouter.patch(
     try {
       const organizationId = getOrganizationId(response);
 
-      const parsedExamId = examIdSchema.safeParse(
-        request.params.examId,
-      );
+      const parsedExamId = examIdSchema.safeParse(request.params.examId);
 
       if (!parsedExamId.success) {
         response.status(400).json({
@@ -166,14 +146,11 @@ adminExamRouter.patch(
         return;
       }
 
-      const parsedBody = updateExamActiveSchema.safeParse(
-        request.body,
-      );
+      const parsedBody = updateExamActiveSchema.safeParse(request.body);
 
       if (!parsedBody.success) {
         response.status(400).json({
-          message:
-            'Prześlij pole "isActive" o wartości true albo false.',
+          message: 'Prześlij pole "isActive" o wartości true albo false.',
         });
 
         return;
@@ -226,9 +203,7 @@ adminExamRouter.get(
     try {
       const organizationId = getOrganizationId(response);
 
-      const parsedExamId = examIdSchema.safeParse(
-        request.params.examId,
-      );
+      const parsedExamId = examIdSchema.safeParse(request.params.examId);
 
       if (!parsedExamId.success) {
         response.status(400).json({
@@ -244,20 +219,15 @@ adminExamRouter.get(
           versionNumber: examVersions.versionNumber,
           status: examVersions.status,
           durationMinutes: examVersions.durationMinutes,
-          questionsPerAttempt:
-            examVersions.questionsPerAttempt,
+          questionsPerAttempt: examVersions.questionsPerAttempt,
           passingScore: examVersions.passingScore,
-          answersPerQuestion:
-            examVersions.answersPerQuestion,
+          answersPerQuestion: examVersions.answersPerQuestion,
           randomQuestions: examVersions.randomQuestions,
           createdAt: examVersions.createdAt,
           publishedAt: examVersions.publishedAt,
         })
         .from(examVersions)
-        .innerJoin(
-          exams,
-          eq(examVersions.examId, exams.id),
-        )
+        .innerJoin(exams, eq(examVersions.examId, exams.id))
         .where(
           and(
             eq(examVersions.examId, parsedExamId.data),
@@ -283,8 +253,7 @@ adminExamRouter.post(
     try {
       if (!request.file) {
         response.status(400).json({
-          message:
-            'Brakuje pliku ZIP w polu formularza "package".',
+          message: 'Brakuje pliku ZIP w polu formularza "package".',
         });
 
         return;
@@ -299,8 +268,7 @@ adminExamRouter.post(
 
       const responseBody = {
         imported: result.imported,
-        canImportAsDraft:
-          result.validation.canImportAsDraft,
+        canImportAsDraft: result.validation.canImportAsDraft,
         canPublish: result.validation.canPublish,
         report: result.validation.report,
       };
@@ -342,9 +310,7 @@ adminExamRouter.delete(
     try {
       const organizationId = getOrganizationId(response);
 
-      const parsedExamId = examIdSchema.safeParse(
-        request.params.examId,
-      );
+      const parsedExamId = examIdSchema.safeParse(request.params.examId);
 
       if (!parsedExamId.success) {
         response.status(400).json({
@@ -372,10 +338,7 @@ adminExamRouter.delete(
           LIMIT 1
           FOR UPDATE;
         `,
-        [
-          parsedExamId.data,
-          organizationId,
-        ],
+        [parsedExamId.data, organizationId],
       );
 
       const exam = examResult.rows[0];
@@ -419,9 +382,7 @@ adminExamRouter.delete(
         [exam.id],
       );
 
-      const assetPaths = assetResult.rows.map(
-        (row) => row.path,
-      );
+      const assetPaths = assetResult.rows.map((row) => row.path);
 
       await client.query(
         `
@@ -499,10 +460,7 @@ adminExamRouter.delete(
           WHERE id = $1
             AND organization_id = $2;
         `,
-        [
-          exam.id,
-          organizationId,
-        ],
+        [exam.id, organizationId],
       );
 
       await client.query("COMMIT");

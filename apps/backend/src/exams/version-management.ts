@@ -202,9 +202,7 @@ async function validateLoadedVersion(
   );
 
   if (version.status !== "draft") {
-    blockers.push(
-      "Publikować można wyłącznie wersję roboczą egzaminu.",
-    );
+    blockers.push("Publikować można wyłącznie wersję roboczą egzaminu.");
   }
 
   if (version.duration_minutes === null) {
@@ -251,9 +249,7 @@ async function validateLoadedVersion(
     version.passing_score !== null &&
     version.passing_score > version.questions_per_attempt
   ) {
-    blockers.push(
-      "Próg zaliczenia przekracza liczbę pytań w jednej próbie.",
-    );
+    blockers.push("Próg zaliczenia przekracza liczbę pytań w jednej próbie.");
   }
 
   for (const category of categories) {
@@ -277,8 +273,7 @@ async function validateLoadedVersion(
     version.random_questions !== null
   ) {
     const minimumQuestionsTotal = categories.reduce(
-      (sum, category) =>
-        sum + (category.minimum_questions ?? 0),
+      (sum, category) => sum + (category.minimum_questions ?? 0),
       0,
     );
 
@@ -291,8 +286,7 @@ async function validateLoadedVersion(
       );
     }
 
-    const remainingQuestions =
-      totalQuestions - minimumQuestionsTotal;
+    const remainingQuestions = totalQuestions - minimumQuestionsTotal;
 
     if (remainingQuestions < version.random_questions) {
       blockers.push(
@@ -367,18 +361,16 @@ export async function getExamVersionDetails(
   const client = await pool.connect();
 
   try {
-    const version = await loadVersion(
-      client,
-      organizationId,
-      versionId,
-    );
+    const version = await loadVersion(client, organizationId, versionId);
 
     if (!version) {
       return null;
     }
 
-    const { categories, publication } =
-      await validateLoadedVersion(client, version);
+    const { categories, publication } = await validateLoadedVersion(
+      client,
+      version,
+    );
 
     return mapDetails(version, categories, publication);
   } finally {
@@ -460,9 +452,7 @@ export async function updateExamVersionConfiguration(input: {
     );
 
     const submittedCategoryIds = new Set(
-      input.configuration.categories.map(
-        (category) => category.id,
-      ),
+      input.configuration.categories.map((category) => category.id),
     );
 
     const categorySetsMatch =
@@ -506,11 +496,7 @@ export async function updateExamVersionConfiguration(input: {
           WHERE id = $1
             AND exam_version_id = $3;
         `,
-        [
-          category.id,
-          category.minimumQuestions,
-          input.versionId,
-        ],
+        [category.id, category.minimumQuestions, input.versionId],
       );
     }
 
@@ -598,10 +584,7 @@ export async function publishExamVersion(input: {
       };
     }
 
-    const { publication } = await validateLoadedVersion(
-      client,
-      version,
-    );
+    const { publication } = await validateLoadedVersion(client, version);
 
     if (!publication.canPublish) {
       await client.query("ROLLBACK");
@@ -649,9 +632,7 @@ export async function publishExamVersion(input: {
   );
 
   if (!version) {
-    throw new Error(
-      "Nie znaleziono wersji egzaminu po publikacji.",
-    );
+    throw new Error("Nie znaleziono wersji egzaminu po publikacji.");
   }
 
   return {

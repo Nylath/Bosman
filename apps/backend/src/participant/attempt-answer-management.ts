@@ -14,11 +14,7 @@ import type {
 
 type LockedAttemptRow = {
   id: string;
-  status:
-    | "in_progress"
-    | "completed"
-    | "expired"
-    | "cancelled";
+  status: "in_progress" | "completed" | "expired" | "cancelled";
   total_questions: number;
   current_question_position: number;
   expires_at: Date;
@@ -70,9 +66,7 @@ async function finalizeAttempt(
   const scoreData = scoreResult.rows[0];
 
   if (!scoreData) {
-    throw new Error(
-      "Nie udało się obliczyć wyniku próby.",
-    );
+    throw new Error("Nie udało się obliczyć wyniku próby.");
   }
 
   await client.query(
@@ -142,9 +136,7 @@ async function loadFinishedResult(
   const row = result.rows[0];
 
   if (!row) {
-    throw new Error(
-      "Nie udało się odczytać zakończonej próby.",
-    );
+    throw new Error("Nie udało się odczytać zakończonej próby.");
   }
 
   return {
@@ -178,9 +170,8 @@ export async function submitParticipantAttemptAnswer(input: {
   try {
     await client.query("BEGIN");
 
-    const attemptResult =
-      await client.query<LockedAttemptRow>(
-        `
+    const attemptResult = await client.query<LockedAttemptRow>(
+      `
           SELECT
             id,
             status,
@@ -193,11 +184,8 @@ export async function submitParticipantAttemptAnswer(input: {
           LIMIT 1
           FOR UPDATE;
         `,
-        [
-          input.attemptId,
-          input.participantId,
-        ],
-      );
+      [input.attemptId, input.participantId],
+    );
 
     const attempt = attemptResult.rows[0];
 
@@ -218,11 +206,7 @@ export async function submitParticipantAttemptAnswer(input: {
     }
 
     if (attempt.expires_at.getTime() <= Date.now()) {
-      await finalizeAttempt(
-        client,
-        attempt.id,
-        "expired",
-      );
+      await finalizeAttempt(client, attempt.id, "expired");
 
       const result = await loadFinishedResult(
         client,
@@ -249,11 +233,7 @@ export async function submitParticipantAttemptAnswer(input: {
           AND position = $3
         LIMIT 1;
       `,
-      [
-        input.attemptQuestionId,
-        attempt.id,
-        attempt.current_question_position,
-      ],
+      [input.attemptQuestionId, attempt.id, attempt.current_question_position],
     );
 
     if (!questionResult.rows[0]) {
@@ -275,10 +255,7 @@ export async function submitParticipantAttemptAnswer(input: {
             AND answer_id = $2
         ) AS exists;
       `,
-      [
-        input.attemptQuestionId,
-        input.selectedAnswerId,
-      ],
+      [input.attemptQuestionId, input.selectedAnswerId],
     );
 
     if (!optionResult.rows[0]?.exists) {
@@ -302,10 +279,7 @@ export async function submitParticipantAttemptAnswer(input: {
         DO NOTHING
         RETURNING id;
       `,
-      [
-        input.attemptQuestionId,
-        input.selectedAnswerId,
-      ],
+      [input.attemptQuestionId, input.selectedAnswerId],
     );
 
     if (!insertedResponse.rows[0]) {
@@ -316,17 +290,10 @@ export async function submitParticipantAttemptAnswer(input: {
       };
     }
 
-    const nextQuestionPosition =
-      attempt.current_question_position + 1;
+    const nextQuestionPosition = attempt.current_question_position + 1;
 
-    if (
-      nextQuestionPosition >= attempt.total_questions
-    ) {
-      await finalizeAttempt(
-        client,
-        attempt.id,
-        "completed",
-      );
+    if (nextQuestionPosition >= attempt.total_questions) {
+      await finalizeAttempt(client, attempt.id, "completed");
 
       const result = await loadFinishedResult(
         client,
@@ -350,10 +317,7 @@ export async function submitParticipantAttemptAnswer(input: {
           updated_at = NOW()
         WHERE id = $1;
       `,
-      [
-        attempt.id,
-        nextQuestionPosition,
-      ],
+      [attempt.id, nextQuestionPosition],
     );
 
     await client.query("COMMIT");
@@ -368,9 +332,7 @@ export async function submitParticipantAttemptAnswer(input: {
   }
 
   if (!shouldLoadNextQuestion) {
-    throw new Error(
-      "Nie udało się ustalić kolejnego kroku próby.",
-    );
+    throw new Error("Nie udało się ustalić kolejnego kroku próby.");
   }
 
   const attempt = await getParticipantAttempt({
@@ -379,9 +341,7 @@ export async function submitParticipantAttemptAnswer(input: {
   });
 
   if (!attempt) {
-    throw new Error(
-      "Nie udało się odczytać kolejnego pytania próby.",
-    );
+    throw new Error("Nie udało się odczytać kolejnego pytania próby.");
   }
 
   return {

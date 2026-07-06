@@ -1,15 +1,8 @@
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
-import {
-  Link,
-  useNavigate,
-} from "react-router";
+import { Link, useNavigate } from "react-router";
 
-import {
-  ApiError,
-  getAdminSession,
-  loginAdmin,
-} from "../api";
+import { ApiError, getAdminSession, loginAdmin } from "../api";
 
 function ArrowLeftIcon() {
   return (
@@ -51,10 +44,7 @@ function ArrowRightIcon() {
 
 function LockIcon() {
   return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-    >
+    <svg aria-hidden="true" viewBox="0 0 24 24">
       <path
         d="M7 10V7a5 5 0 0 1 10 0v3m-9 0h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Zm4 4v3"
         fill="none"
@@ -72,11 +62,9 @@ export function AdminLoginPage() {
 
   const [password, setPassword] = useState("");
 
-  const [isSubmitting, setIsSubmitting] =
-    useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [error, setError] =
-    useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let requestIsActive = true;
@@ -90,10 +78,7 @@ export function AdminLoginPage() {
         }
       })
       .catch((caughtError: unknown) => {
-        if (
-          caughtError instanceof ApiError &&
-          caughtError.status === 401
-        ) {
+        if (caughtError instanceof ApiError && caughtError.status === 401) {
           return;
         }
 
@@ -148,15 +133,13 @@ export function AdminLoginPage() {
 
       <section className="admin-login-layout">
         <div className="admin-login-layout__intro">
-          <p className="admin-nautical-eyebrow">
-            Panel administratora
-          </p>
+          <p className="admin-nautical-eyebrow">Panel administratora</p>
 
           <h1>Zarządzaj egzaminami</h1>
 
           <p>
-            Importuj paczki ZIP, konfiguruj wersje
-            robocze i publikuj gotowe egzaminy.
+            Importuj paczki ZIP, konfiguruj wersje robocze i publikuj gotowe
+            egzaminy.
           </p>
         </div>
 
@@ -167,10 +150,7 @@ export function AdminLoginPage() {
 
           <h2>Zaloguj się</h2>
 
-          <p>
-            Podaj hasło administratora, aby przejść
-            do panelu zarządzania.
-          </p>
+          <p>Podaj hasło administratora, aby przejść do panelu zarządzania.</p>
 
           <form
             className="admin-nautical-form"
@@ -193,23 +173,15 @@ export function AdminLoginPage() {
             </label>
 
             {error && (
-              <p className="home-message home-message--error">
-                {error}
-              </p>
+              <p className="home-message home-message--error">{error}</p>
             )}
 
             <button
               className="admin-nautical-button"
               type="submit"
-              disabled={
-                isSubmitting || password.length === 0
-              }
+              disabled={isSubmitting || password.length === 0}
             >
-              <span>
-                {isSubmitting
-                  ? "Logowanie…"
-                  : "Zaloguj się"}
-              </span>
+              <span>{isSubmitting ? "Logowanie…" : "Zaloguj się"}</span>
 
               <ArrowRightIcon />
             </button>

@@ -1,9 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Link,
-  useNavigate,
-  useParams,
-} from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 
 import {
   getAttemptResult,
@@ -58,10 +54,7 @@ function ArrowRightIcon() {
 
 function CheckIcon() {
   return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-    >
+    <svg aria-hidden="true" viewBox="0 0 24 24">
       <path
         d="m5 12 4.5 4.5L19 7"
         fill="none"
@@ -76,10 +69,7 @@ function CheckIcon() {
 
 function CrossIcon() {
   return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-    >
+    <svg aria-hidden="true" viewBox="0 0 24 24">
       <path
         d="M7 7 17 17M17 7 7 17"
         fill="none"
@@ -95,21 +85,18 @@ export function AttemptResultPage() {
   const { attemptId } = useParams();
   const navigate = useNavigate();
 
-  const [result, setResult] =
-    useState<AttemptResult | null>(null);
+  const [result, setResult] = useState<AttemptResult | null>(null);
 
-  const [isLoading, setIsLoading] =
-    useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [error, setError] =
-    useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-  if (!attemptId) {
-    return;
-  }
+    if (!attemptId) {
+      return;
+    }
 
-  let requestIsActive = true;
+    let requestIsActive = true;
 
     void getAttemptResult(attemptId)
       .then((loadedResult) => {
@@ -148,32 +135,27 @@ export function AttemptResultPage() {
   }, [attemptId, navigate]);
 
   if (!attemptId) {
-  return (
-    <main className="nautical-page nautical-page--result">
-      <p className="home-logo">Bosman</p>
+    return (
+      <main className="nautical-page nautical-page--result">
+        <p className="home-logo">Bosman</p>
 
-      <Link
-        className="nautical-back-link"
-        to="/"
-      >
-        <ArrowLeftIcon />
+        <Link className="nautical-back-link" to="/">
+          <ArrowLeftIcon />
 
-        <span>Wróć do menu głównego</span>
-      </Link>
+          <span>Wróć do menu głównego</span>
+        </Link>
 
-      <p className="home-message home-message--error">
-        Brakuje identyfikatora próby.
-      </p>
-    </main>
-  );
-}
+        <p className="home-message home-message--error">
+          Brakuje identyfikatora próby.
+        </p>
+      </main>
+    );
+  }
 
   if (isLoading) {
     return (
       <main className="nautical-page nautical-page--result">
-        <p className="home-message">
-          Obliczanie wyniku…
-        </p>
+        <p className="home-message">Obliczanie wyniku…</p>
       </main>
     );
   }
@@ -194,9 +176,7 @@ export function AttemptResultPage() {
     );
   }
 
-  const percentage = Math.round(
-    (result.score / result.totalQuestions) * 100,
-  );
+  const percentage = Math.round((result.score / result.totalQuestions) * 100);
 
   return (
     <main className="nautical-page nautical-page--result">
@@ -216,39 +196,23 @@ export function AttemptResultPage() {
         }`}
       >
         <div className="nautical-result-card__icon">
-          {result.passed ? (
-            <CheckIcon />
-          ) : (
-            <CrossIcon />
-          )}
+          {result.passed ? <CheckIcon /> : <CrossIcon />}
         </div>
 
         <p className="nautical-result-card__eyebrow">
-          {result.status === "expired"
-            ? "Czas minął"
-            : "Egzamin zakończony"}
+          {result.status === "expired" ? "Czas minął" : "Egzamin zakończony"}
         </p>
 
-        <h1>
-          {result.passed
-            ? "Egzamin zaliczony"
-            : "Egzamin niezaliczony"}
-        </h1>
+        <h1>{result.passed ? "Egzamin zaliczony" : "Egzamin niezaliczony"}</h1>
 
-        <p className="nautical-result-card__exam">
-          {result.exam.name}
-        </p>
+        <p className="nautical-result-card__exam">{result.exam.name}</p>
 
         <div className="nautical-result-score">
           <strong>{result.score}</strong>
 
-          <span>
-            / {result.totalQuestions}
-          </span>
+          <span>/ {result.totalQuestions}</span>
 
-          <small>
-            poprawnych odpowiedzi
-          </small>
+          <small>poprawnych odpowiedzi</small>
         </div>
 
         <dl className="nautical-result-details">
@@ -261,11 +225,7 @@ export function AttemptResultPage() {
           <div>
             <dt>Czas rozwiązania</dt>
 
-            <dd>
-              {formatElapsedTime(
-                result.elapsedSeconds,
-              )}
-            </dd>
+            <dd>{formatElapsedTime(result.elapsedSeconds)}</dd>
           </div>
         </dl>
 
@@ -286,10 +246,7 @@ export function AttemptResultPage() {
             Rozwiąż ponownie
           </Link>
 
-          <Link
-            className="nautical-secondary-button"
-            to="/historia"
-          >
+          <Link className="nautical-secondary-button" to="/historia">
             Historia wyników
           </Link>
         </div>

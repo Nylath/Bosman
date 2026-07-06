@@ -16,9 +16,7 @@ import {
   getLocalAttemptResult,
 } from "../exams/attempt-review-management.js";
 
-const examSlugSchema = z
-  .string()
-  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+const examSlugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 
 const attemptIdSchema = z.string().uuid();
 
@@ -52,9 +50,7 @@ publicAttemptRouter.post(
         return;
       }
 
-      const parsedSlug = examSlugSchema.safeParse(
-        request.params.slug,
-      );
+      const parsedSlug = examSlugSchema.safeParse(request.params.slug);
 
       if (!parsedSlug.success) {
         response.status(400).json({
@@ -64,22 +60,17 @@ publicAttemptRouter.post(
         return;
       }
 
-      const result = await startOrResumeLocalAttempt(
-        parsedSlug.data,
-      );
+      const result = await startOrResumeLocalAttempt(parsedSlug.data);
 
       if (result.status === "not_found") {
         response.status(404).json({
-          message:
-            "Nie znaleziono opublikowanego egzaminu.",
+          message: "Nie znaleziono opublikowanego egzaminu.",
         });
 
         return;
       }
 
-      response
-        .status(result.created ? 201 : 200)
-        .json(result);
+      response.status(result.created ? 201 : 200).json(result);
     } catch (error) {
       next(error);
     }
@@ -94,24 +85,17 @@ publicAttemptRouter.get(
         return;
       }
 
-      const parsedSlug =
-        examSlugSchema.safeParse(
-          request.params.slug,
-        );
+      const parsedSlug = examSlugSchema.safeParse(request.params.slug);
 
       if (!parsedSlug.success) {
         response.status(400).json({
-          message:
-            "Nieprawidłowy adres egzaminu.",
+          message: "Nieprawidłowy adres egzaminu.",
         });
 
         return;
       }
 
-      const attempt =
-        await getActiveLocalAttemptForExam(
-          parsedSlug.data,
-        );
+      const attempt = await getActiveLocalAttemptForExam(parsedSlug.data);
 
       response.json({
         attempt,
@@ -130,28 +114,23 @@ publicAttemptRouter.post(
         return;
       }
 
-      const parsedAttemptId =
-        attemptIdSchema.safeParse(
-          request.params.attemptId,
-        );
+      const parsedAttemptId = attemptIdSchema.safeParse(
+        request.params.attemptId,
+      );
 
       if (!parsedAttemptId.success) {
         response.status(400).json({
-          message:
-            "Nieprawidłowy identyfikator próby.",
+          message: "Nieprawidłowy identyfikator próby.",
         });
 
         return;
       }
 
-      const result = await cancelLocalAttempt(
-        parsedAttemptId.data,
-      );
+      const result = await cancelLocalAttempt(parsedAttemptId.data);
 
       if (result.status === "not_found") {
         response.status(404).json({
-          message:
-            "Nie znaleziono próby egzaminacyjnej.",
+          message: "Nie znaleziono próby egzaminacyjnej.",
         });
 
         return;
@@ -159,8 +138,7 @@ publicAttemptRouter.post(
 
       if (result.status === "not_in_progress") {
         response.status(409).json({
-          message:
-            "Próba egzaminacyjna nie jest już aktywna.",
+          message: "Próba egzaminacyjna nie jest już aktywna.",
         });
 
         return;
@@ -193,14 +171,11 @@ publicAttemptRouter.get(
         return;
       }
 
-      const attempt = await getLocalAttempt(
-        parsedAttemptId.data,
-      );
+      const attempt = await getLocalAttempt(parsedAttemptId.data);
 
       if (!attempt) {
         response.status(404).json({
-          message:
-            "Nie znaleziono próby egzaminacyjnej.",
+          message: "Nie znaleziono próby egzaminacyjnej.",
         });
 
         return;
@@ -235,9 +210,7 @@ publicAttemptRouter.post(
         return;
       }
 
-      const parsedBody = submitAnswerSchema.safeParse(
-        request.body,
-      );
+      const parsedBody = submitAnswerSchema.safeParse(request.body);
 
       if (!parsedBody.success) {
         response.status(400).json({
@@ -250,16 +223,13 @@ publicAttemptRouter.post(
 
       const result = await submitLocalAttemptAnswer({
         attemptId: parsedAttemptId.data,
-        attemptQuestionId:
-          parsedBody.data.attemptQuestionId,
-        selectedAnswerId:
-          parsedBody.data.selectedAnswerId,
+        attemptQuestionId: parsedBody.data.attemptQuestionId,
+        selectedAnswerId: parsedBody.data.selectedAnswerId,
       });
 
       if (result.status === "not_found") {
         response.status(404).json({
-          message:
-            "Nie znaleziono próby egzaminacyjnej.",
+          message: "Nie znaleziono próby egzaminacyjnej.",
         });
 
         return;
@@ -267,8 +237,7 @@ publicAttemptRouter.post(
 
       if (result.status === "not_in_progress") {
         response.status(409).json({
-          message:
-            "Próba egzaminacyjna nie jest już aktywna.",
+          message: "Próba egzaminacyjna nie jest już aktywna.",
         });
 
         return;
@@ -276,8 +245,7 @@ publicAttemptRouter.post(
 
       if (result.status === "invalid_question") {
         response.status(409).json({
-          message:
-            "Możesz odpowiedzieć wyłącznie na aktualne pytanie.",
+          message: "Możesz odpowiedzieć wyłącznie na aktualne pytanie.",
         });
 
         return;
@@ -285,8 +253,7 @@ publicAttemptRouter.post(
 
       if (result.status === "invalid_answer") {
         response.status(400).json({
-          message:
-            "Wybrana odpowiedź nie należy do aktualnego pytania.",
+          message: "Wybrana odpowiedź nie należy do aktualnego pytania.",
         });
 
         return;
@@ -294,8 +261,7 @@ publicAttemptRouter.post(
 
       if (result.status === "already_answered") {
         response.status(409).json({
-          message:
-            "Odpowiedź na to pytanie została już zapisana.",
+          message: "Odpowiedź na to pytanie została już zapisana.",
         });
 
         return;
@@ -328,14 +294,11 @@ publicAttemptRouter.get(
         return;
       }
 
-      const result = await getLocalAttemptResult(
-        parsedAttemptId.data,
-      );
+      const result = await getLocalAttemptResult(parsedAttemptId.data);
 
       if (result.status === "not_found") {
         response.status(404).json({
-          message:
-            "Nie znaleziono próby egzaminacyjnej.",
+          message: "Nie znaleziono próby egzaminacyjnej.",
         });
 
         return;
@@ -343,8 +306,7 @@ publicAttemptRouter.get(
 
       if (result.status === "not_finished") {
         response.status(409).json({
-          message:
-            "Próba egzaminacyjna nie została jeszcze zakończona.",
+          message: "Próba egzaminacyjna nie została jeszcze zakończona.",
         });
 
         return;
@@ -379,14 +341,11 @@ publicAttemptRouter.get(
         return;
       }
 
-      const result = await getLocalAttemptMistakes(
-        parsedAttemptId.data,
-      );
+      const result = await getLocalAttemptMistakes(parsedAttemptId.data);
 
       if (result.status === "not_found") {
         response.status(404).json({
-          message:
-            "Nie znaleziono próby egzaminacyjnej.",
+          message: "Nie znaleziono próby egzaminacyjnej.",
         });
 
         return;
@@ -394,8 +353,7 @@ publicAttemptRouter.get(
 
       if (result.status === "not_finished") {
         response.status(409).json({
-          message:
-            "Próba egzaminacyjna nie została jeszcze zakończona.",
+          message: "Próba egzaminacyjna nie została jeszcze zakończona.",
         });
 
         return;
@@ -410,21 +368,18 @@ publicAttemptRouter.get(
   },
 );
 
-publicAttemptRouter.get(
-  "/history",
-  async (_request, response, next) => {
-    try {
-      if (!ensureLocalMode(response)) {
-        return;
-      }
-
-      const attempts = await getLocalAttemptHistory();
-
-      response.json({
-        attempts,
-      });
-    } catch (error) {
-      next(error);
+publicAttemptRouter.get("/history", async (_request, response, next) => {
+  try {
+    if (!ensureLocalMode(response)) {
+      return;
     }
-  },
-);
+
+    const attempts = await getLocalAttemptHistory();
+
+    response.json({
+      attempts,
+    });
+  } catch (error) {
+    next(error);
+  }
+});

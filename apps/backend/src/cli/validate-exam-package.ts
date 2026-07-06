@@ -7,9 +7,7 @@ import {
   validateExamPackageBuffer,
 } from "../exams/package.js";
 
-const repositoryRoot = fileURLToPath(
-  new URL("../../../../", import.meta.url),
-);
+const repositoryRoot = fileURLToPath(new URL("../../../../", import.meta.url));
 
 async function main(): Promise<void> {
   const zipPath = process.argv[2];

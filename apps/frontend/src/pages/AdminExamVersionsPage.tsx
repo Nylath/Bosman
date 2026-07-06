@@ -1,9 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Link,
-  useNavigate,
-  useParams,
-} from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 
 import {
   ApiError,
@@ -21,9 +17,7 @@ function formatDate(value: string): string {
   }).format(new Date(value));
 }
 
-function translateStatus(
-  status: AdminExamVersionStatus,
-): string {
+function translateStatus(status: AdminExamVersionStatus): string {
   switch (status) {
     case "draft":
       return "Szkic";
@@ -76,10 +70,7 @@ function ArrowRightIcon() {
 
 function VersionIcon() {
   return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-    >
+    <svg aria-hidden="true" viewBox="0 0 24 24">
       <path
         d="M8 4h8m-8 5h8m-8 5h5m-7-12h10a2 2 0 0 1 2 2v16H6V4a2 2 0 0 1 2-2Z"
         fill="none"
@@ -96,65 +87,52 @@ export function AdminExamVersionsPage() {
   const { examId } = useParams();
   const navigate = useNavigate();
 
-  const [exam, setExam] =
-    useState<AdminExam | null>(null);
+  const [exam, setExam] = useState<AdminExam | null>(null);
 
-  const [versions, setVersions] = useState<
-    AdminExamVersionSummary[]
-  >([]);
+  const [versions, setVersions] = useState<AdminExamVersionSummary[]>([]);
 
-  const [isLoading, setIsLoading] =
-    useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [error, setError] =
-    useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-  if (!examId) {
-    return;
-  }
+    if (!examId) {
+      return;
+    }
 
-  let requestIsActive = true;
+    let requestIsActive = true;
 
-    void Promise.all([
-      getAdminExams(),
-      getAdminExamVersions(examId),
-    ])
+    void Promise.all([getAdminExams(), getAdminExamVersions(examId)])
       .then(([loadedExams, loadedVersions]) => {
         if (!requestIsActive) {
           return;
         }
 
         const loadedExam =
-          loadedExams.find(
-            (candidate) => candidate.id === examId,
-          ) ?? null;
+          loadedExams.find((candidate) => candidate.id === examId) ?? null;
 
         setExam(loadedExam);
         setVersions(loadedVersions);
       })
       .catch((caughtError: unknown) => {
-  if (!requestIsActive) {
-    return;
-  }
+        if (!requestIsActive) {
+          return;
+        }
 
-  if (
-    caughtError instanceof ApiError &&
-    caughtError.status === 401
-  ) {
-    void navigate("/admin/logowanie", {
-      replace: true,
-    });
+        if (caughtError instanceof ApiError && caughtError.status === 401) {
+          void navigate("/admin/logowanie", {
+            replace: true,
+          });
 
-    return;
-  }
+          return;
+        }
 
-  setError(
-    caughtError instanceof Error
-      ? caughtError.message
-      : "Nie udało się pobrać wersji.",
-  );
-})
+        setError(
+          caughtError instanceof Error
+            ? caughtError.message
+            : "Nie udało się pobrać wersji.",
+        );
+      })
       .finally(() => {
         if (requestIsActive) {
           setIsLoading(false);
@@ -167,32 +145,27 @@ export function AdminExamVersionsPage() {
   }, [examId, navigate]);
 
   if (!examId) {
-  return (
-    <main className="nautical-page admin-nautical-page">
-      <p className="home-logo">Bosman</p>
+    return (
+      <main className="nautical-page admin-nautical-page">
+        <p className="home-logo">Bosman</p>
 
-      <Link
-        className="nautical-back-link"
-        to="/admin"
-      >
-        <ArrowLeftIcon />
+        <Link className="nautical-back-link" to="/admin">
+          <ArrowLeftIcon />
 
-        <span>Wróć do panelu administratora</span>
-      </Link>
+          <span>Wróć do panelu administratora</span>
+        </Link>
 
-      <p className="home-message home-message--error">
-        Brakuje identyfikatora egzaminu.
-      </p>
-    </main>
-  );
-}
+        <p className="home-message home-message--error">
+          Brakuje identyfikatora egzaminu.
+        </p>
+      </main>
+    );
+  }
 
   if (isLoading) {
     return (
       <main className="nautical-page admin-nautical-page">
-        <p className="home-message">
-          Ładowanie wersji egzaminu…
-        </p>
+        <p className="home-message">Ładowanie wersji egzaminu…</p>
       </main>
     );
   }
@@ -208,26 +181,17 @@ export function AdminExamVersionsPage() {
       </Link>
 
       <header className="admin-versions-header">
-        <p className="admin-nautical-eyebrow">
-          Wersjonowanie egzaminu
-        </p>
+        <p className="admin-nautical-eyebrow">Wersjonowanie egzaminu</p>
 
-        <h1>
-          {exam?.name ?? "Wersje egzaminu"}
-        </h1>
+        <h1>{exam?.name ?? "Wersje egzaminu"}</h1>
 
         <p>
-          Każdy import paczki ZIP tworzy nową wersję
-          roboczą. Użytkownicy widzą wyłącznie wersję
-          opublikowaną.
+          Każdy import paczki ZIP tworzy nową wersję roboczą. Użytkownicy widzą
+          wyłącznie wersję opublikowaną.
         </p>
       </header>
 
-      {error && (
-        <p className="home-message home-message--error">
-          {error}
-        </p>
-      )}
+      {error && <p className="home-message home-message--error">{error}</p>}
 
       {!error && versions.length === 0 && (
         <p className="home-message">
@@ -251,20 +215,12 @@ export function AdminExamVersionsPage() {
                   {translateStatus(version.status)}
                 </p>
 
-                <h2>
-                  Wersja {version.versionNumber}
-                </h2>
+                <h2>Wersja {version.versionNumber}</h2>
 
-                <p>
-                  Utworzono:{" "}
-                  {formatDate(version.createdAt)}
-                </p>
+                <p>Utworzono: {formatDate(version.createdAt)}</p>
 
                 {version.publishedAt && (
-                  <p>
-                    Opublikowano:{" "}
-                    {formatDate(version.publishedAt)}
-                  </p>
+                  <p>Opublikowano: {formatDate(version.publishedAt)}</p>
                 )}
               </div>
             </div>
@@ -273,9 +229,7 @@ export function AdminExamVersionsPage() {
               <div>
                 <dt>Pytania w próbie</dt>
 
-                <dd>
-                  {version.questionsPerAttempt ?? "—"}
-                </dd>
+                <dd>{version.questionsPerAttempt ?? "—"}</dd>
               </div>
 
               <div>

@@ -1,7 +1,11 @@
 :root {
   font-family:
-    Inter, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
   color: #172a3a;
   background: #f4f7f9;
   font-synthesis: none;
@@ -16,13 +20,12 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background:
-    radial-gradient(
-      circle at 42% -10%,
-      rgb(232 242 246 / 85%) 0,
-      rgb(246 249 251 / 92%) 38%,
-      #f8fafb 75%
-    );
+  background: radial-gradient(
+    circle at 42% -10%,
+    rgb(232 242 246 / 85%) 0,
+    rgb(246 249 251 / 92%) 38%,
+    #f8fafb 75%
+  );
 }
 
 button,
@@ -68,8 +71,7 @@ a {
 
 .exam-grid {
   display: grid;
-  grid-template-columns:
-    repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 20px;
 }
 
@@ -810,8 +812,7 @@ dd {
 
 .admin-fields-grid {
   display: grid;
-  grid-template-columns:
-    repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 14px;
 }
 
@@ -951,8 +952,7 @@ dd {
 
 .home-exam-grid {
   display: grid;
-  grid-template-columns:
-    repeat(auto-fit, minmax(min(100%, 470px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 470px), 1fr));
   gap: 28px;
 }
 
@@ -992,12 +992,11 @@ dd {
 .home-exam-card__overlay {
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(
-      180deg,
-      rgb(5 35 51 / 0%) 36%,
-      rgb(5 35 51 / 16%) 100%
-    );
+  background: linear-gradient(
+    180deg,
+    rgb(5 35 51 / 0%) 36%,
+    rgb(5 35 51 / 16%) 100%
+  );
 }
 
 .home-exam-card__panel {
@@ -1039,12 +1038,7 @@ dd {
   border-radius: 12px;
   padding: 15px 22px;
   color: #ffffff;
-  background:
-    linear-gradient(
-      90deg,
-      #137f8e 0%,
-      #1598a6 100%
-    );
+  background: linear-gradient(90deg, #137f8e 0%, #1598a6 100%);
   box-shadow: 0 10px 20px rgb(12 116 132 / 18%);
   font-weight: 900;
   text-decoration: none;
@@ -1162,12 +1156,7 @@ dd {
   border-radius: 12px;
   padding: 16px 22px;
   color: #ffffff;
-  background:
-    linear-gradient(
-      90deg,
-      #137f8e 0%,
-      #169baa 100%
-    );
+  background: linear-gradient(90deg, #137f8e 0%, #169baa 100%);
   box-shadow: 0 12px 22px rgb(13 116 132 / 20%);
   font: inherit;
   font-weight: 900;
@@ -1319,12 +1308,7 @@ dd {
   border-radius: 16px;
   padding: 14px 18px;
   color: #ffffff;
-  background:
-    linear-gradient(
-      135deg,
-      #0b3652 0%,
-      #0f5e70 100%
-    );
+  background: linear-gradient(135deg, #0b3652 0%, #0f5e70 100%);
   box-shadow: 0 12px 26px rgb(10 57 78 / 18%);
   text-align: center;
 }
@@ -1368,12 +1352,7 @@ dd {
 .attempt-nautical-progress-bar div {
   height: 100%;
   border-radius: inherit;
-  background:
-    linear-gradient(
-      90deg,
-      #168592 0%,
-      #3db1bb 100%
-    );
+  background: linear-gradient(90deg, #168592 0%, #3db1bb 100%);
   transition: width 180ms ease;
 }
 
@@ -1461,8 +1440,7 @@ dd {
   font-weight: 900;
 }
 
-.attempt-nautical-answer--selected
-  .attempt-nautical-answer__letter {
+.attempt-nautical-answer--selected .attempt-nautical-answer__letter {
   color: #ffffff;
   background: #168b99;
 }
@@ -1567,25 +1545,13 @@ dd {
   height: 40px;
 }
 
-.nautical-result-card--passed
-  .nautical-result-card__icon {
-  background:
-    linear-gradient(
-      135deg,
-      #16836b 0%,
-      #35ad8d 100%
-    );
+.nautical-result-card--passed .nautical-result-card__icon {
+  background: linear-gradient(135deg, #16836b 0%, #35ad8d 100%);
   box-shadow: 0 12px 24px rgb(22 131 107 / 22%);
 }
 
-.nautical-result-card--failed
-  .nautical-result-card__icon {
-  background:
-    linear-gradient(
-      135deg,
-      #a23846 0%,
-      #c75a67 100%
-    );
+.nautical-result-card--failed .nautical-result-card__icon {
+  background: linear-gradient(135deg, #a23846 0%, #c75a67 100%);
   box-shadow: 0 12px 24px rgb(162 56 70 / 22%);
 }
 
@@ -1779,13 +1745,11 @@ dd {
   height: 29px;
 }
 
-.history-nautical-card--passed
-  .history-nautical-card__icon {
+.history-nautical-card--passed .history-nautical-card__icon {
   background: #16836b;
 }
 
-.history-nautical-card--failed
-  .history-nautical-card__icon {
+.history-nautical-card--failed .history-nautical-card__icon {
   background: #a23846;
 }
 
@@ -1836,8 +1800,7 @@ dd {
   gap: 10px;
 }
 
-.history-nautical-card__actions
-  .nautical-primary-button {
+.history-nautical-card__actions .nautical-primary-button {
   min-width: 190px;
   padding: 13px 18px;
 }
@@ -2037,12 +2000,7 @@ dd {
   place-items: center;
   border-radius: 50%;
   color: #ffffff;
-  background:
-    linear-gradient(
-      135deg,
-      #137f8e 0%,
-      #1ba2af 100%
-    );
+  background: linear-gradient(135deg, #137f8e 0%, #1ba2af 100%);
 }
 
 .admin-login-card__icon svg,
@@ -2100,12 +2058,7 @@ dd {
   border-radius: 11px;
   padding: 14px 18px;
   color: #ffffff;
-  background:
-    linear-gradient(
-      90deg,
-      #137f8e 0%,
-      #169baa 100%
-    );
+  background: linear-gradient(90deg, #137f8e 0%, #169baa 100%);
   box-shadow: 0 10px 20px rgb(13 116 132 / 18%);
   font: inherit;
   font-weight: 900;
@@ -2403,13 +2356,11 @@ dd {
   background: #71838d;
 }
 
-.admin-nautical-version-card--draft
-  .admin-nautical-version-card__icon {
+.admin-nautical-version-card--draft .admin-nautical-version-card__icon {
   background: #d19400;
 }
 
-.admin-nautical-version-card--published
-  .admin-nautical-version-card__icon {
+.admin-nautical-version-card--published .admin-nautical-version-card__icon {
   background: #16836b;
 }
 
@@ -2467,8 +2418,7 @@ dd {
     grid-template-columns: 1fr;
   }
 
-  .admin-nautical-version-card
-    .admin-nautical-button {
+  .admin-nautical-version-card .admin-nautical-button {
     width: 100%;
   }
 }
@@ -2541,8 +2491,7 @@ dd {
 
 .admin-version-fields {
   display: grid;
-  grid-template-columns:
-    repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 14px;
   margin-top: 20px;
 }
@@ -2786,8 +2735,7 @@ dd {
   gap: 14px;
 }
 
-.attempt-nautical-navigation
-  .nautical-back-link {
+.attempt-nautical-navigation .nautical-back-link {
   margin-bottom: 0;
 }
 
@@ -2855,9 +2803,7 @@ dd {
   letter-spacing: -0.04em;
 }
 
-.attempt-cancel-modal p:not(
-    .attempt-cancel-modal__eyebrow
-  ) {
+.attempt-cancel-modal p:not(.attempt-cancel-modal__eyebrow) {
   margin: 16px 0 0;
   color: #557083;
   line-height: 1.65;
@@ -2892,9 +2838,7 @@ dd {
   background: #a23846;
 }
 
-.attempt-cancel-modal__danger-button:hover:not(
-    :disabled
-  ) {
+.attempt-cancel-modal__danger-button:hover:not(:disabled) {
   background: #8b2f3c;
 }
 
@@ -2963,7 +2907,9 @@ dd {
 }
 
 .admin-access-form {
-  grid-template-columns: minmax(180px, 1.2fr) minmax(180px, 1.2fr) minmax(160px, 0.8fr) auto;
+  grid-template-columns:
+    minmax(180px, 1.2fr) minmax(180px, 1.2fr) minmax(160px, 0.8fr)
+    auto;
   align-items: end;
 }
 
@@ -3165,9 +3111,7 @@ dd {
   letter-spacing: -0.07em;
 }
 
-.participant-login-card p:not(
-    .participant-login-card__eyebrow
-  ) {
+.participant-login-card p:not(.participant-login-card__eyebrow) {
   color: #557083;
   line-height: 1.65;
 }

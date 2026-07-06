@@ -1,8 +1,4 @@
-import {
-  describe,
-  expect,
-  it,
-} from "vitest";
+import { describe, expect, it } from "vitest";
 
 import {
   pickRandom,
@@ -10,9 +6,7 @@ import {
   shuffle,
 } from "./question-selection.js";
 
-const deterministicRandom = (
-  maximumExclusive: number,
-): number => {
+const deterministicRandom = (maximumExclusive: number): number => {
   return maximumExclusive - 1;
 };
 
@@ -20,10 +14,7 @@ describe("shuffle", () => {
   it("nie modyfikuje oryginalnej tablicy", () => {
     const source = [1, 2, 3, 4];
 
-    const result = shuffle(
-      source,
-      deterministicRandom,
-    );
+    const result = shuffle(source, deterministicRandom);
 
     expect(source).toEqual([1, 2, 3, 4]);
     expect(result).not.toBe(source);
@@ -32,24 +23,14 @@ describe("shuffle", () => {
 
 describe("pickRandom", () => {
   it("zwraca wskazaną liczbę elementów bez duplikatów", () => {
-    const result = pickRandom(
-      ["a", "b", "c", "d"],
-      3,
-      deterministicRandom,
-    );
+    const result = pickRandom(["a", "b", "c", "d"], 3, deterministicRandom);
 
     expect(result).toHaveLength(3);
     expect(new Set(result).size).toBe(3);
   });
 
   it("zgłasza błąd, gdy pula jest za mała", () => {
-    expect(() =>
-      pickRandom(
-        ["a"],
-        2,
-        deterministicRandom,
-      ),
-    ).toThrow(
+    expect(() => pickRandom(["a"], 2, deterministicRandom)).toThrow(
       "Nie można wylosować 2 elementów",
     );
   });
@@ -101,11 +82,7 @@ describe("selectAttemptQuestions", () => {
 
     expect(result).toHaveLength(4);
 
-    expect(
-      new Set(
-        result.map((question) => question.id),
-      ).size,
-    ).toBe(4);
+    expect(new Set(result.map((question) => question.id)).size).toBe(4);
   });
 
   it("respektuje minima pytań dla działów", () => {
@@ -118,22 +95,16 @@ describe("selectAttemptQuestions", () => {
     });
 
     const categoryACount = result.filter(
-      (question) =>
-        question.category_id === "category-a",
+      (question) => question.category_id === "category-a",
     ).length;
 
     const categoryBCount = result.filter(
-      (question) =>
-        question.category_id === "category-b",
+      (question) => question.category_id === "category-b",
     ).length;
 
-    expect(categoryACount).toBeGreaterThanOrEqual(
-      2,
-    );
+    expect(categoryACount).toBeGreaterThanOrEqual(2);
 
-    expect(categoryBCount).toBeGreaterThanOrEqual(
-      1,
-    );
+    expect(categoryBCount).toBeGreaterThanOrEqual(1);
   });
 
   it("zgłasza błąd przy niezgodnej konfiguracji liczby pytań", () => {
@@ -145,9 +116,7 @@ describe("selectAttemptQuestions", () => {
         questionsPerAttempt: 5,
         randomIndex: deterministicRandom,
       }),
-    ).toThrow(
-      "Wylosowana liczba pytań nie odpowiada konfiguracji egzaminu.",
-    );
+    ).toThrow("Wylosowana liczba pytań nie odpowiada konfiguracji egzaminu.");
   });
 
   it("zgłasza błąd, gdy dział ma za mało pytań", () => {
@@ -160,16 +129,12 @@ describe("selectAttemptQuestions", () => {
           },
         ],
         questions: questions.filter(
-          (question) =>
-            question.category_id ===
-            "category-a",
+          (question) => question.category_id === "category-a",
         ),
         randomQuestions: 0,
         questionsPerAttempt: 4,
         randomIndex: deterministicRandom,
       }),
-    ).toThrow(
-      "Nie można wylosować 4 elementów",
-    );
+    ).toThrow("Nie można wylosować 4 elementów");
   });
 });

@@ -17,99 +17,78 @@ const loginRequestSchema = z
 
 export const participantAuthRouter = Router();
 
-participantAuthRouter.post(
-  "/login",
-  async (request, response, next) => {
-    try {
-      const parsedBody = loginRequestSchema.safeParse(
-        request.body,
-      );
+participantAuthRouter.post("/login", async (request, response, next) => {
+  try {
+    const parsedBody = loginRequestSchema.safeParse(request.body);
 
-      if (!parsedBody.success) {
-        response.status(400).json({
-          message: "Podaj kod dostępu.",
-        });
-
-        return;
-      }
-
-      const result = await loginParticipant(
-        parsedBody.data.code,
-      );
-
-      if (result.status === "invalid_code") {
-        response.status(401).json({
-          message:
-            "Nieprawidłowy albo nieaktywny kod dostępu.",
-        });
-
-        return;
-      }
-
-      response.setHeader(
-        "Set-Cookie",
-        createParticipantSessionCookie(
-          result.token,
-          result.expiresAt,
-        ),
-      );
-
-      response.json({
-        authenticated: true,
-        expiresAt: result.expiresAt,
-        participant: result.participant,
+    if (!parsedBody.success) {
+      response.status(400).json({
+        message: "Podaj kod dostępu.",
       });
-    } catch (error) {
-      next(error);
+
+      return;
     }
-  },
-);
 
-participantAuthRouter.get(
-  "/session",
-  async (request, response, next) => {
-    try {
-      const session =
-        await getActiveParticipantSession(request);
+    const result = await loginParticipant(parsedBody.data.code);
 
-      if (!session) {
-        response.status(401).json({
-          authenticated: false,
-        });
-
-        return;
-      }
-
-      response.json({
-        authenticated: true,
-        expiresAt: session.expiresAt,
-        participant: {
-          id: session.participantId,
-          label: session.label,
-        },
+    if (result.status === "invalid_code") {
+      response.status(401).json({
+        message: "Nieprawidłowy albo nieaktywny kod dostępu.",
       });
-    } catch (error) {
-      next(error);
+
+      return;
     }
-  },
-);
 
-participantAuthRouter.post(
-  "/logout",
-  async (request, response, next) => {
-    try {
-      await logoutParticipant(request);
+    response.setHeader(
+      "Set-Cookie",
+      createParticipantSessionCookie(result.token, result.expiresAt),
+    );
 
-      response.setHeader(
-        "Set-Cookie",
-        createClearedParticipantSessionCookie(),
-      );
+    response.json({
+      authenticated: true,
+      expiresAt: result.expiresAt,
+      participant: result.participant,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
-      response.json({
+participantAuthRouter.get("/session", async (request, response, next) => {
+  try {
+    const session = await getActiveParticipantSession(request);
+
+    if (!session) {
+      response.status(401).json({
         authenticated: false,
       });
-    } catch (error) {
-      next(error);
+
+      return;
     }
-  },
-);
+
+    response.json({
+      authenticated: true,
+      expiresAt: session.expiresAt,
+      participant: {
+        id: session.participantId,
+        label: session.label,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+participantAuthRouter.post("/logout", async (request, response, next) => {
+  try {
+    await logoutParticipant(request);
+
+    response.setHeader("Set-Cookie", createClearedParticipantSessionCookie());
+
+    response.json({
+      authenticated: false,
+    });
+  } catch (error) {
+    next(error);
+  }
+});

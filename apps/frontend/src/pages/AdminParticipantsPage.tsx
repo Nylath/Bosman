@@ -1,14 +1,6 @@
 import type { FormEvent } from "react";
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import {
-  Link,
-  useNavigate,
-} from "react-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router";
 
 import {
   ApiError,
@@ -45,10 +37,7 @@ function formatDateOnly(value: string | null): string {
 function getTodayDateInputValue(): string {
   const today = new Date();
   const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(
-    2,
-    "0",
-  );
+  const month = String(today.getMonth() + 1).padStart(2, "0");
   const day = String(today.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
@@ -60,10 +49,7 @@ function getDateInputValue(daysFromToday: number): string {
   date.setDate(date.getDate() + daysFromToday);
 
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(
-    2,
-    "0",
-  );
+  const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
@@ -73,16 +59,11 @@ function toEndOfDayDateTime(value: string): string {
   return `${value}T23:59:59.999`;
 }
 
-async function copyTextToClipboard(
-  value: string,
-): Promise<void> {
+async function copyTextToClipboard(value: string): Promise<void> {
   await navigator.clipboard.writeText(value);
 }
 
-
-function getAccessStatusLabel(
-  access: AdminParticipantExamAccess,
-): string {
+function getAccessStatusLabel(access: AdminParticipantExamAccess): string {
   if (!access.isActive || access.revokedAt) {
     return "Dostęp cofnięty";
   }
@@ -90,23 +71,14 @@ function getAccessStatusLabel(
   const now = Date.now();
 
   if (new Date(access.validFrom).getTime() > now) {
-    return `Dostęp zaplanowany od ${formatDateOnly(
-      access.validFrom,
-    )}`;
+    return `Dostęp zaplanowany od ${formatDateOnly(access.validFrom)}`;
   }
 
-  if (
-    access.validUntil &&
-    new Date(access.validUntil).getTime() < now
-  ) {
-    return `Dostęp wygasł ${formatDateOnly(
-      access.validUntil,
-    )}`;
+  if (access.validUntil && new Date(access.validUntil).getTime() < now) {
+    return `Dostęp wygasł ${formatDateOnly(access.validUntil)}`;
   }
 
-  return `Dostęp aktywny · ważny do ${formatDateOnly(
-    access.validUntil,
-  )}`;
+  return `Dostęp aktywny · ważny do ${formatDateOnly(access.validUntil)}`;
 }
 
 function findParticipantAccess(
@@ -114,163 +86,134 @@ function findParticipantAccess(
   exam: AdminAvailableExam,
 ): AdminParticipantExamAccess | null {
   return (
-    participant.examAccesses.find(
-      (access) => access.examId === exam.id,
-    ) ?? null
+    participant.examAccesses.find((access) => access.examId === exam.id) ?? null
   );
 }
 
 export function AdminParticipantsPage() {
   const navigate = useNavigate();
 
-  const [participants, setParticipants] = useState<
-    AdminParticipant[]
-  >([]);
+  const [participants, setParticipants] = useState<AdminParticipant[]>([]);
 
-  const [adminRole, setAdminRole] =
-  useState<AdminRole | null>(null);
+  const [adminRole, setAdminRole] = useState<AdminRole | null>(null);
 
-  const [availableExams, setAvailableExams] = useState<
-    AdminAvailableExam[]
-  >([]);
+  const [availableExams, setAvailableExams] = useState<AdminAvailableExam[]>(
+    [],
+  );
 
-  const [newParticipantLabel, setNewParticipantLabel] =
-    useState("");
+  const [newParticipantLabel, setNewParticipantLabel] = useState("");
 
-  const [generatedAccessCode, setGeneratedAccessCode] =
-    useState<string | null>(null);
+  const [generatedAccessCode, setGeneratedAccessCode] = useState<string | null>(
+    null,
+  );
 
-    const [copiedAccessCode, setCopiedAccessCode] =
-  useState(false);
+  const [copiedAccessCode, setCopiedAccessCode] = useState(false);
 
-  const [selectedParticipantId, setSelectedParticipantId] =
-    useState("");
+  const [selectedParticipantId, setSelectedParticipantId] = useState("");
 
   const [selectedExamId, setSelectedExamId] = useState("");
 
-  const [validUntil, setValidUntil] = useState(
-    getDateInputValue(60),
-  );
+  const [validUntil, setValidUntil] = useState(getDateInputValue(60));
 
   const [isLoading, setIsLoading] = useState(true);
 
   const [isCreating, setIsCreating] = useState(false);
 
-  const [isUpdatingAccess, setIsUpdatingAccess] =
-    useState(false);
+  const [isUpdatingAccess, setIsUpdatingAccess] = useState(false);
 
   const [participantToDelete, setParticipantToDelete] =
-  useState<AdminParticipant | null>(null);
+    useState<AdminParticipant | null>(null);
 
-const [isDeletingParticipant, setIsDeletingParticipant] =
-  useState(false);
+  const [isDeletingParticipant, setIsDeletingParticipant] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
 
   const selectedParticipant = useMemo(
     () =>
       participants.find(
-        (participant) =>
-          participant.id === selectedParticipantId,
+        (participant) => participant.id === selectedParticipantId,
       ) ?? null,
     [participants, selectedParticipantId],
   );
 
   const selectedExam = useMemo(
-    () =>
-      availableExams.find(
-        (exam) => exam.id === selectedExamId,
-      ) ?? null,
+    () => availableExams.find((exam) => exam.id === selectedExamId) ?? null,
     [availableExams, selectedExamId],
   );
 
   const isSystemAdmin = adminRole === "system";
 
- const handleUnauthorized = useCallback(
-  (caughtError: unknown): boolean => {
-    if (
-      caughtError instanceof ApiError &&
-      caughtError.status === 401
-    ) {
-      void navigate("/admin/logowanie", {
-        replace: true,
-      });
+  const handleUnauthorized = useCallback(
+    (caughtError: unknown): boolean => {
+      if (caughtError instanceof ApiError && caughtError.status === 401) {
+        void navigate("/admin/logowanie", {
+          replace: true,
+        });
 
-      return true;
-    }
+        return true;
+      }
 
-    return false;
-  },
-  [navigate],
-);
+      return false;
+    },
+    [navigate],
+  );
 
   const loadData = useCallback(async (): Promise<void> => {
-  const [
-    loadedParticipants,
-    loadedAvailableExams,
-  ] = await Promise.all([
-    getAdminParticipants(),
-    getAdminAvailableExams(),
-  ]);
+    const [loadedParticipants, loadedAvailableExams] = await Promise.all([
+      getAdminParticipants(),
+      getAdminAvailableExams(),
+    ]);
 
-  setParticipants(loadedParticipants);
-  setAvailableExams(loadedAvailableExams);
+    setParticipants(loadedParticipants);
+    setAvailableExams(loadedAvailableExams);
 
-  setSelectedParticipantId((currentId) => {
-    return (
-      currentId ??
-      loadedParticipants[0]?.id ??
-      ""
-    );
-  });
-
-  setSelectedExamId((currentId) => {
-    return (
-      currentId ??
-      loadedAvailableExams[0]?.id ??
-      ""
-    );
-  });
-}, []);
-
-  useEffect(() => {
-  let requestIsActive = true;
-
-  void getAdminSession()
-    .then(async (session) => {
-      if (!requestIsActive) {
-        return;
-      }
-
-      setAdminRole(session.role);
-
-      await loadData();
-    })
-    .catch((caughtError: unknown) => {
-      if (!requestIsActive) {
-        return;
-      }
-
-      if (handleUnauthorized(caughtError)) {
-        return;
-      }
-
-      setError(
-        caughtError instanceof Error
-          ? caughtError.message
-          : "Nie udało się załadować uczestników.",
-      );
-    })
-    .finally(() => {
-      if (requestIsActive) {
-        setIsLoading(false);
-      }
+    setSelectedParticipantId((currentId) => {
+      return currentId ?? loadedParticipants[0]?.id ?? "";
     });
 
-  return () => {
-    requestIsActive = false;
-  };
-}, [handleUnauthorized, loadData]);
+    setSelectedExamId((currentId) => {
+      return currentId ?? loadedAvailableExams[0]?.id ?? "";
+    });
+  }, []);
+
+  useEffect(() => {
+    let requestIsActive = true;
+
+    void getAdminSession()
+      .then(async (session) => {
+        if (!requestIsActive) {
+          return;
+        }
+
+        setAdminRole(session.role);
+
+        await loadData();
+      })
+      .catch((caughtError: unknown) => {
+        if (!requestIsActive) {
+          return;
+        }
+
+        if (handleUnauthorized(caughtError)) {
+          return;
+        }
+
+        setError(
+          caughtError instanceof Error
+            ? caughtError.message
+            : "Nie udało się załadować uczestników.",
+        );
+      })
+      .finally(() => {
+        if (requestIsActive) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      requestIsActive = false;
+    };
+  }, [handleUnauthorized, loadData]);
 
   async function handleCreateParticipant(
     event: FormEvent<HTMLFormElement>,
@@ -291,8 +234,7 @@ const [isDeletingParticipant, setIsDeletingParticipant] =
     setIsCreating(true);
 
     try {
-      const result =
-        await createAdminParticipant(label);
+      const result = await createAdminParticipant(label);
 
       setParticipants((currentParticipants) => [
         result.participant,
@@ -323,9 +265,7 @@ const [isDeletingParticipant, setIsDeletingParticipant] =
     event.preventDefault();
 
     if (!selectedParticipant || !selectedExam) {
-      setError(
-        "Wybierz uczestnika i egzamin próbny.",
-      );
+      setError("Wybierz uczestnika i egzamin próbny.");
 
       return;
     }
@@ -339,9 +279,7 @@ const [isDeletingParticipant, setIsDeletingParticipant] =
         examId: selectedExam.id,
         isActive: true,
         validFrom: `${getTodayDateInputValue()}T00:00:00.000`,
-        validUntil: validUntil
-          ? toEndOfDayDateTime(validUntil)
-          : null,
+        validUntil: validUntil ? toEndOfDayDateTime(validUntil) : null,
       });
 
       await loadData();
@@ -393,46 +331,43 @@ const [isDeletingParticipant, setIsDeletingParticipant] =
   }
 
   async function handleDeleteParticipant(): Promise<void> {
-  if (!participantToDelete || !isSystemAdmin) {
-  return;
-}
-
-  const deletedParticipantId = participantToDelete.id;
-
-  setError(null);
-  setIsDeletingParticipant(true);
-
-  try {
-    await deleteAdminParticipant(deletedParticipantId);
-
-    const remainingParticipants = participants.filter(
-      (participant) =>
-        participant.id !== deletedParticipantId,
-    );
-
-    setParticipants(remainingParticipants);
-
-    if (selectedParticipantId === deletedParticipantId) {
-      setSelectedParticipantId(
-        remainingParticipants[0]?.id ?? "",
-      );
-    }
-
-    setParticipantToDelete(null);
-  } catch (caughtError) {
-    if (handleUnauthorized(caughtError)) {
+    if (!participantToDelete || !isSystemAdmin) {
       return;
     }
 
-    setError(
-      caughtError instanceof Error
-        ? caughtError.message
-        : "Nie udało się trwale usunąć uczestnika.",
-    );
-  } finally {
-    setIsDeletingParticipant(false);
+    const deletedParticipantId = participantToDelete.id;
+
+    setError(null);
+    setIsDeletingParticipant(true);
+
+    try {
+      await deleteAdminParticipant(deletedParticipantId);
+
+      const remainingParticipants = participants.filter(
+        (participant) => participant.id !== deletedParticipantId,
+      );
+
+      setParticipants(remainingParticipants);
+
+      if (selectedParticipantId === deletedParticipantId) {
+        setSelectedParticipantId(remainingParticipants[0]?.id ?? "");
+      }
+
+      setParticipantToDelete(null);
+    } catch (caughtError) {
+      if (handleUnauthorized(caughtError)) {
+        return;
+      }
+
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Nie udało się trwale usunąć uczestnika.",
+      );
+    } finally {
+      setIsDeletingParticipant(false);
+    }
   }
-}
 
   async function handleLogout(): Promise<void> {
     await logoutAdmin();
@@ -445,9 +380,7 @@ const [isDeletingParticipant, setIsDeletingParticipant] =
   if (isLoading) {
     return (
       <main className="nautical-page">
-        <p className="home-message">
-          Ładowanie uczestników…
-        </p>
+        <p className="home-message">Ładowanie uczestników…</p>
       </main>
     );
   }
@@ -459,33 +392,24 @@ const [isDeletingParticipant, setIsDeletingParticipant] =
           <p className="home-logo">Bosman</p>
 
           <p className="admin-nautical-eyebrow">
-  {isSystemAdmin
-    ? "Panel administratora"
-    : "Panel szkółki"}
-</p>
+            {isSystemAdmin ? "Panel administratora" : "Panel szkółki"}
+          </p>
 
-<h1>
-  {isSystemAdmin
-    ? "Uczestnicy"
-    : "Kursanci i dostępy"}
-</h1>
+          <h1>{isSystemAdmin ? "Uczestnicy" : "Kursanci i dostępy"}</h1>
 
-<p>
-  {isSystemAdmin
-    ? "Dodawaj kursantów, generuj kody dostępu i przypisuj egzaminy próbne z osobną datą ważności."
-    : "Zarządzaj kodami dostępu dla kursantów i przypisuj im egzaminy próbne dostępne w aplikacji."}
-</p>
+          <p>
+            {isSystemAdmin
+              ? "Dodawaj kursantów, generuj kody dostępu i przypisuj egzaminy próbne z osobną datą ważności."
+              : "Zarządzaj kodami dostępu dla kursantów i przypisuj im egzaminy próbne dostępne w aplikacji."}
+          </p>
         </div>
 
         <div className="admin-dashboard-header__actions">
           {isSystemAdmin && (
-  <Link
-    className="nautical-secondary-button"
-    to="/admin"
-  >
-    Wróć do panelu
-  </Link>
-)}
+            <Link className="nautical-secondary-button" to="/admin">
+              Wróć do panelu
+            </Link>
+          )}
 
           <button
             className="nautical-secondary-button"
@@ -499,16 +423,10 @@ const [isDeletingParticipant, setIsDeletingParticipant] =
         </div>
       </header>
 
-      {error && (
-        <p className="home-message home-message--error">
-          {error}
-        </p>
-      )}
+      {error && <p className="home-message home-message--error">{error}</p>}
 
       <section className="admin-nautical-card">
-        <p className="admin-nautical-eyebrow">
-          Nowy uczestnik
-        </p>
+        <p className="admin-nautical-eyebrow">Nowy uczestnik</p>
 
         <h2>Dodaj uczestnika</h2>
 
@@ -527,9 +445,7 @@ const [isDeletingParticipant, setIsDeletingParticipant] =
               placeholder="np. Jan Kowalski"
               disabled={isCreating}
               onChange={(event) => {
-                setNewParticipantLabel(
-                  event.target.value,
-                );
+                setNewParticipantLabel(event.target.value);
               }}
             />
           </label>
@@ -539,56 +455,46 @@ const [isDeletingParticipant, setIsDeletingParticipant] =
             type="submit"
             disabled={isCreating}
           >
-            {isCreating
-              ? "Dodawanie…"
-              : "Dodaj i wygeneruj kod"}
+            {isCreating ? "Dodawanie…" : "Dodaj i wygeneruj kod"}
           </button>
         </form>
 
         {generatedAccessCode && (
-  <button
-    className="admin-access-code-box"
-    type="button"
-    onClick={() => {
-      void copyTextToClipboard(generatedAccessCode).then(
-        () => {
-          setCopiedAccessCode(true);
-        },
-      );
-    }}
-  >
-    <p>
-      {copiedAccessCode
-        ? "Skopiowano kod dostępu"
-        : "Kliknij, aby skopiować kod dostępu"}
-    </p>
+          <button
+            className="admin-access-code-box"
+            type="button"
+            onClick={() => {
+              void copyTextToClipboard(generatedAccessCode).then(() => {
+                setCopiedAccessCode(true);
+              });
+            }}
+          >
+            <p>
+              {copiedAccessCode
+                ? "Skopiowano kod dostępu"
+                : "Kliknij, aby skopiować kod dostępu"}
+            </p>
 
-    <strong>{generatedAccessCode}</strong>
+            <strong>{generatedAccessCode}</strong>
 
-    <span>
-      Skopiuj ten kod teraz. Ze względów
-      bezpieczeństwa nie będzie później
-      wyświetlany w takiej postaci.
-    </span>
-  </button>
-)}
+            <span>
+              Skopiuj ten kod teraz. Ze względów bezpieczeństwa nie będzie
+              później wyświetlany w takiej postaci.
+            </span>
+          </button>
+        )}
       </section>
 
       <section className="admin-nautical-card">
-        <p className="admin-nautical-eyebrow">
-          Dostępy do egzaminów
-        </p>
+        <p className="admin-nautical-eyebrow">Dostępy do egzaminów</p>
 
         <h2>Nadaj dostęp</h2>
 
         {participants.length === 0 ? (
-          <p className="home-message">
-            Najpierw dodaj uczestnika.
-          </p>
+          <p className="home-message">Najpierw dodaj uczestnika.</p>
         ) : availableExams.length === 0 ? (
           <p className="home-message">
-            Brakuje aktywnych opublikowanych
-            egzaminów do przypisania.
+            Brakuje aktywnych opublikowanych egzaminów do przypisania.
           </p>
         ) : (
           <form
@@ -604,16 +510,11 @@ const [isDeletingParticipant, setIsDeletingParticipant] =
                 value={selectedParticipantId}
                 disabled={isUpdatingAccess}
                 onChange={(event) => {
-                  setSelectedParticipantId(
-                    event.target.value,
-                  );
+                  setSelectedParticipantId(event.target.value);
                 }}
               >
                 {participants.map((participant) => (
-                  <option
-                    key={participant.id}
-                    value={participant.id}
-                  >
+                  <option key={participant.id} value={participant.id}>
                     {participant.label}
                   </option>
                 ))}
@@ -656,18 +557,14 @@ const [isDeletingParticipant, setIsDeletingParticipant] =
               type="submit"
               disabled={isUpdatingAccess}
             >
-              {isUpdatingAccess
-                ? "Zapisywanie…"
-                : "Nadaj / zmień dostęp"}
+              {isUpdatingAccess ? "Zapisywanie…" : "Nadaj / zmień dostęp"}
             </button>
           </form>
         )}
       </section>
 
       <section className="admin-nautical-card">
-        <p className="admin-nautical-eyebrow">
-          Lista uczestników
-        </p>
+        <p className="admin-nautical-eyebrow">Lista uczestników</p>
 
         <h2>Uczestnicy i dostępy</h2>
 
@@ -678,57 +575,43 @@ const [isDeletingParticipant, setIsDeletingParticipant] =
         ) : (
           <div className="admin-participants-list">
             {participants.map((participant) => (
-              <article
-                className="admin-participant-card"
-                key={participant.id}
-              >
+              <article className="admin-participant-card" key={participant.id}>
                 <header>
                   <div>
                     <h3>{participant.label}</h3>
 
-                    <p>
-                      Dodano:{" "}
-                      {formatDateTime(participant.createdAt)}
-                    </p>
+                    <p>Dodano: {formatDateTime(participant.createdAt)}</p>
                   </div>
 
                   <div className="admin-participant-card__header-actions">
-  <span
-    className={
-      participant.isActive
-        ? "admin-status-pill admin-status-pill--active"
-        : "admin-status-pill admin-status-pill--inactive"
-    }
-  >
-    {participant.isActive
-      ? "aktywny"
-      : "nieaktywny"}
-  </span>
+                    <span
+                      className={
+                        participant.isActive
+                          ? "admin-status-pill admin-status-pill--active"
+                          : "admin-status-pill admin-status-pill--inactive"
+                      }
+                    >
+                      {participant.isActive ? "aktywny" : "nieaktywny"}
+                    </span>
 
-  {isSystemAdmin && (
-  <button
-    className="admin-danger-outline-button"
-    type="button"
-    disabled={isDeletingParticipant}
-    onClick={() => {
-      setParticipantToDelete(participant);
-    }}
-  >
-    Usuń trwale
-  </button>
-)}
-</div>
+                    {isSystemAdmin && (
+                      <button
+                        className="admin-danger-outline-button"
+                        type="button"
+                        disabled={isDeletingParticipant}
+                        onClick={() => {
+                          setParticipantToDelete(participant);
+                        }}
+                      >
+                        Usuń trwale
+                      </button>
+                    )}
+                  </div>
                 </header>
 
                 <div className="admin-participant-access-grid">
                   {availableExams.map((exam) => {
-                    const access =
-                      findParticipantAccess(
-                        participant,
-                        exam,
-                      );
-
-                    
+                    const access = findParticipantAccess(participant, exam);
 
                     return (
                       <div
@@ -748,15 +631,9 @@ const [isDeletingParticipant, setIsDeletingParticipant] =
                             <button
                               type="button"
                               className="admin-small-danger-button"
-                              disabled={
-                                isUpdatingAccess ||
-                                !access.isActive
-                              }
+                              disabled={isUpdatingAccess || !access.isActive}
                               onClick={() => {
-                                void handleRevokeAccess(
-                                  participant,
-                                  access,
-                                );
+                                void handleRevokeAccess(participant, access);
                               }}
                             >
                               Cofnij dostęp
@@ -775,58 +652,50 @@ const [isDeletingParticipant, setIsDeletingParticipant] =
         )}
       </section>
       {participantToDelete && (
-  <div className="admin-delete-modal-backdrop">
-    <section
-      aria-modal="true"
-      className="admin-delete-modal"
-      role="dialog"
-    >
-      <p className="admin-nautical-eyebrow">
-        Trwałe usunięcie
-      </p>
+        <div className="admin-delete-modal-backdrop">
+          <section
+            aria-modal="true"
+            className="admin-delete-modal"
+            role="dialog"
+          >
+            <p className="admin-nautical-eyebrow">Trwałe usunięcie</p>
 
-      <h2>Usunąć uczestnika?</h2>
+            <h2>Usunąć uczestnika?</h2>
 
-      <p>
-        Usuniesz uczestnika{" "}
-        <strong>{participantToDelete.label}</strong>{" "}
-        razem z jego kodami dostępu, sesjami,
-        dostępami do egzaminów, podejściami i historią
-        wyników.
-      </p>
+            <p>
+              Usuniesz uczestnika <strong>{participantToDelete.label}</strong>{" "}
+              razem z jego kodami dostępu, sesjami, dostępami do egzaminów,
+              podejściami i historią wyników.
+            </p>
 
-      <p>
-        Tej operacji nie można cofnąć.
-      </p>
+            <p>Tej operacji nie można cofnąć.</p>
 
-      <div className="admin-delete-modal__actions">
-        <button
-          className="nautical-secondary-button"
-          type="button"
-          disabled={isDeletingParticipant}
-          onClick={() => {
-            setParticipantToDelete(null);
-          }}
-        >
-          Anuluj
-        </button>
+            <div className="admin-delete-modal__actions">
+              <button
+                className="nautical-secondary-button"
+                type="button"
+                disabled={isDeletingParticipant}
+                onClick={() => {
+                  setParticipantToDelete(null);
+                }}
+              >
+                Anuluj
+              </button>
 
-        <button
-          className="admin-danger-button"
-          type="button"
-          disabled={isDeletingParticipant}
-          onClick={() => {
-            void handleDeleteParticipant();
-          }}
-        >
-          {isDeletingParticipant
-            ? "Usuwanie…"
-            : "Usuń trwale"}
-        </button>
-      </div>
-    </section>
-  </div>
-)}
+              <button
+                className="admin-danger-button"
+                type="button"
+                disabled={isDeletingParticipant}
+                onClick={() => {
+                  void handleDeleteParticipant();
+                }}
+              >
+                {isDeletingParticipant ? "Usuwanie…" : "Usuń trwale"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </main>
   );
 }

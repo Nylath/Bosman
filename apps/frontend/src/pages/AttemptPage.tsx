@@ -1,13 +1,5 @@
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import {
-  Link,
-  useNavigate,
-  useParams,
-} from "react-router";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router";
 
 import {
   cancelAttempt,
@@ -24,11 +16,7 @@ function calculateRemainingSeconds(
 ): number {
   return Math.max(
     0,
-    Math.ceil(
-      (new Date(expiresAt).getTime() -
-        currentTimestamp) /
-        1000,
-    ),
+    Math.ceil((new Date(expiresAt).getTime() - currentTimestamp) / 1000),
   );
 }
 
@@ -84,49 +72,36 @@ export function AttemptPage() {
   const { attemptId } = useParams();
   const navigate = useNavigate();
 
-  const [attempt, setAttempt] =
-    useState<Attempt | null>(null);
+  const [attempt, setAttempt] = useState<Attempt | null>(null);
 
-  const [selectedAnswerId, setSelectedAnswerId] =
-    useState<string | null>(null);
+  const [selectedAnswerId, setSelectedAnswerId] = useState<string | null>(null);
 
-  const [isLoading, setIsLoading] =
-    useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [isSubmitting, setIsSubmitting] =
-    useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [isCancelling, setIsCancelling] =
-    useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
-  const [
-    isCancelModalOpen,
-    setIsCancelModalOpen,
-  ] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
-  const [error, setError] =
-    useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const [currentTimestamp, setCurrentTimestamp] =
-  useState(() => Date.now());
+  const [currentTimestamp, setCurrentTimestamp] = useState(() => Date.now());
 
   const remainingSeconds = useMemo(() => {
     if (!attempt) {
       return 0;
     }
 
-    return calculateRemainingSeconds(
-      attempt.expiresAt,
-      currentTimestamp,
-    );
+    return calculateRemainingSeconds(attempt.expiresAt, currentTimestamp);
   }, [attempt, currentTimestamp]);
 
   useEffect(() => {
-  if (!attemptId) {
-    return;
-  }
+    if (!attemptId) {
+      return;
+    }
 
-  let requestIsActive = true;
+    let requestIsActive = true;
 
     void getAttempt(attemptId)
       .then((loadedAttempt) => {
@@ -135,12 +110,9 @@ export function AttemptPage() {
         }
 
         if (loadedAttempt.status !== "in_progress") {
-          void navigate(
-            `/proby/${loadedAttempt.id}/wynik`,
-            {
-              replace: true,
-            },
-          );
+          void navigate(`/proby/${loadedAttempt.id}/wynik`, {
+            replace: true,
+          });
 
           return;
         }
@@ -153,12 +125,12 @@ export function AttemptPage() {
         }
 
         if (shouldRedirectToParticipantLogin(caughtError)) {
-  void navigate("/dostep", {
-    replace: true,
-  });
+          void navigate("/dostep", {
+            replace: true,
+          });
 
-  return;
-}
+          return;
+        }
 
         setError(
           caughtError instanceof Error
@@ -187,14 +159,8 @@ export function AttemptPage() {
     };
   }, []);
 
-  
-
   useEffect(() => {
-    if (
-      attempt &&
-      attempt.status === "in_progress" &&
-      remainingSeconds === 0
-    ) {
+    if (attempt && attempt.status === "in_progress" && remainingSeconds === 0) {
       void navigate(`/proby/${attempt.id}/wynik`, {
         replace: true,
       });
@@ -202,11 +168,7 @@ export function AttemptPage() {
   }, [attempt, navigate, remainingSeconds]);
 
   async function handleNext(): Promise<void> {
-    if (
-      !attempt ||
-      !attempt.currentQuestion ||
-      !selectedAnswerId
-    ) {
+    if (!attempt || !attempt.currentQuestion || !selectedAnswerId) {
       return;
     }
 
@@ -216,8 +178,7 @@ export function AttemptPage() {
     try {
       const result = await submitAttemptAnswer({
         attemptId: attempt.id,
-        attemptQuestionId:
-          attempt.currentQuestion.attemptQuestionId,
+        attemptQuestionId: attempt.currentQuestion.attemptQuestionId,
         selectedAnswerId,
       });
 
@@ -230,16 +191,15 @@ export function AttemptPage() {
       }
 
       setSelectedAnswerId(null);
-setAttempt(result.attempt);
+      setAttempt(result.attempt);
     } catch (caughtError) {
-
       if (shouldRedirectToParticipantLogin(caughtError)) {
-  void navigate("/dostep", {
-    replace: true,
-  });
+        void navigate("/dostep", {
+          replace: true,
+        });
 
-  return;
-}
+        return;
+      }
       setError(
         caughtError instanceof Error
           ? caughtError.message
@@ -261,20 +221,17 @@ setAttempt(result.attempt);
     try {
       await cancelAttempt(attempt.id);
 
-      void navigate(
-        `/egzaminy/${attempt.exam.slug}`,
-        {
-          replace: true,
-        },
-      );
+      void navigate(`/egzaminy/${attempt.exam.slug}`, {
+        replace: true,
+      });
     } catch (caughtError) {
       if (shouldRedirectToParticipantLogin(caughtError)) {
-  void navigate("/dostep", {
-    replace: true,
-  });
+        void navigate("/dostep", {
+          replace: true,
+        });
 
-  return;
-}
+        return;
+      }
 
       setError(
         caughtError instanceof Error
@@ -289,27 +246,25 @@ setAttempt(result.attempt);
   }
 
   if (!attemptId) {
-  return (
-    <main className="nautical-page nautical-page--exam">
-      <Link className="nautical-back-link" to="/">
-        <ArrowLeftIcon />
+    return (
+      <main className="nautical-page nautical-page--exam">
+        <Link className="nautical-back-link" to="/">
+          <ArrowLeftIcon />
 
-        <span>Wróć do menu głównego</span>
-      </Link>
+          <span>Wróć do menu głównego</span>
+        </Link>
 
-      <p className="home-message home-message--error">
-        Brakuje identyfikatora próby.
-      </p>
-    </main>
-  );
-}
+        <p className="home-message home-message--error">
+          Brakuje identyfikatora próby.
+        </p>
+      </main>
+    );
+  }
 
   if (isLoading) {
     return (
       <main className="nautical-page nautical-page--exam">
-        <p className="home-message">
-          Ładowanie próby…
-        </p>
+        <p className="home-message">Ładowanie próby…</p>
       </main>
     );
   }
@@ -323,9 +278,7 @@ setAttempt(result.attempt);
           <span>Wróć do menu głównego</span>
         </Link>
 
-        <p className="home-message home-message--error">
-          {error}
-        </p>
+        <p className="home-message home-message--error">{error}</p>
       </main>
     );
   }
@@ -348,8 +301,7 @@ setAttempt(result.attempt);
 
   const question = attempt.currentQuestion;
 
-  const progress =
-    (question.number / attempt.totalQuestions) * 100;
+  const progress = (question.number / attempt.totalQuestions) * 100;
 
   return (
     <main className="nautical-page nautical-page--exam">
@@ -380,21 +332,15 @@ setAttempt(result.attempt);
         <div className="attempt-nautical-timer">
           <span>Pozostały czas</span>
 
-          <strong>
-            {formatRemainingTime(remainingSeconds)}
-          </strong>
+          <strong>{formatRemainingTime(remainingSeconds)}</strong>
         </div>
       </header>
 
       <section className="attempt-nautical-progress">
         <div>
-          <strong>
-            Pytanie {question.number}
-          </strong>
+          <strong>Pytanie {question.number}</strong>
 
-          <span>
-            z {attempt.totalQuestions}
-          </span>
+          <span>z {attempt.totalQuestions}</span>
         </div>
 
         <span>{Math.round(progress)}%</span>
@@ -409,9 +355,7 @@ setAttempt(result.attempt);
       </div>
 
       <section className="attempt-nautical-card">
-        <p className="attempt-nautical-card__exam">
-          {attempt.exam.name}
-        </p>
+        <p className="attempt-nautical-card__exam">{attempt.exam.name}</p>
 
         {question.imageUrl && (
           <img
@@ -425,15 +369,12 @@ setAttempt(result.attempt);
 
         <div className="attempt-nautical-answers">
           {question.answers.map((answer, index) => {
-            const isSelected =
-              selectedAnswerId === answer.id;
+            const isSelected = selectedAnswerId === answer.id;
 
             return (
               <button
                 className={`attempt-nautical-answer ${
-                  isSelected
-                    ? "attempt-nautical-answer--selected"
-                    : ""
+                  isSelected ? "attempt-nautical-answer--selected" : ""
                 }`}
                 key={answer.id}
                 type="button"
@@ -453,11 +394,7 @@ setAttempt(result.attempt);
           })}
         </div>
 
-        {error && (
-          <p className="home-message home-message--error">
-            {error}
-          </p>
-        )}
+        {error && <p className="home-message home-message--error">{error}</p>}
 
         <footer className="attempt-nautical-card__footer">
           <button
@@ -476,8 +413,7 @@ setAttempt(result.attempt);
             <span>
               {isSubmitting
                 ? "Zapisywanie…"
-                : question.number ===
-                    attempt.totalQuestions
+                : question.number === attempt.totalQuestions
                   ? "Zakończ egzamin"
                   : "Następne pytanie"}
             </span>

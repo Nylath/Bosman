@@ -12,17 +12,9 @@ import { requireSystemAdminSession } from "./middleware.js";
 
 const versionIdSchema = z.string().uuid();
 
-const nullablePositiveInteger = z
-  .number()
-  .int()
-  .positive()
-  .nullable();
+const nullablePositiveInteger = z.number().int().positive().nullable();
 
-const nullableNonNegativeInteger = z
-  .number()
-  .int()
-  .nonnegative()
-  .nullable();
+const nullableNonNegativeInteger = z.number().int().nonnegative().nullable();
 
 const configurationSchema = z
   .object({
@@ -44,9 +36,7 @@ const configurationSchema = z
   })
   .strict()
   .superRefine((configuration, context) => {
-    const categoryIds = configuration.categories.map(
-      (category) => category.id,
-    );
+    const categoryIds = configuration.categories.map((category) => category.id);
 
     if (new Set(categoryIds).size !== categoryIds.length) {
       context.addIssue({
@@ -58,13 +48,10 @@ const configurationSchema = z
   });
 
 function getOrganizationId(response: Response): string {
-  const organizationId =
-    response.locals.adminSession?.organizationId;
+  const organizationId = response.locals.adminSession?.organizationId;
 
   if (typeof organizationId !== "string") {
-    throw new Error(
-      "Nie znaleziono organizacji w sesji administratora.",
-    );
+    throw new Error("Nie znaleziono organizacji w sesji administratora.");
   }
 
   return organizationId;
@@ -128,9 +115,7 @@ adminExamVersionRouter.put(
         return;
       }
 
-      const parsedBody = configurationSchema.safeParse(
-        request.body,
-      );
+      const parsedBody = configurationSchema.safeParse(request.body);
 
       if (!parsedBody.success) {
         response.status(400).json({
@@ -157,8 +142,7 @@ adminExamVersionRouter.put(
 
       if (result.status === "not_editable") {
         response.status(409).json({
-          message:
-            "Konfigurację można zmieniać wyłącznie w wersji roboczej.",
+          message: "Konfigurację można zmieniać wyłącznie w wersji roboczej.",
         });
 
         return;
@@ -214,8 +198,7 @@ adminExamVersionRouter.post(
 
       if (result.status === "blocked") {
         response.status(422).json({
-          message:
-            "Wersja egzaminu nie spełnia warunków publikacji.",
+          message: "Wersja egzaminu nie spełnia warunków publikacji.",
           publication: result.publication,
         });
 

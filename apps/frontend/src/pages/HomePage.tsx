@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Link,
-  useNavigate,
-} from "react-router";
+import { Link, useNavigate } from "react-router";
 
 import { PiChartBar } from "react-icons/pi";
 
@@ -26,8 +23,6 @@ type ParticipantInfo = {
   label: string;
 };
 
-
-
 function ArrowIcon() {
   return (
     <svg
@@ -49,10 +44,7 @@ function ArrowIcon() {
 
 function ExamPlaceholder() {
   return (
-    <div
-      aria-hidden="true"
-      className="home-exam-placeholder"
-    >
+    <div aria-hidden="true" className="home-exam-placeholder">
       <svg
         className="home-exam-placeholder__art"
         viewBox="0 0 800 650"
@@ -70,35 +62,17 @@ function ExamPlaceholder() {
             <stop offset="100%" stopColor="#8acbd2" />
           </linearGradient>
 
-          <linearGradient
-            id="wave-one"
-            x1="0"
-            x2="1"
-            y1="0"
-            y2="0"
-          >
+          <linearGradient id="wave-one" x1="0" x2="1" y1="0" y2="0">
             <stop offset="0%" stopColor="#68b9c2" />
             <stop offset="100%" stopColor="#a6d9dc" />
           </linearGradient>
 
-          <linearGradient
-            id="wave-two"
-            x1="0"
-            x2="1"
-            y1="0"
-            y2="0"
-          >
+          <linearGradient id="wave-two" x1="0" x2="1" y1="0" y2="0">
             <stop offset="0%" stopColor="#2d96a2" />
             <stop offset="100%" stopColor="#76c2c9" />
           </linearGradient>
 
-          <linearGradient
-            id="wave-three"
-            x1="0"
-            x2="1"
-            y1="0"
-            y2="0"
-          >
+          <linearGradient id="wave-three" x1="0" x2="1" y1="0" y2="0">
             <stop offset="0%" stopColor="#197b89" />
             <stop offset="100%" stopColor="#54aeb7" />
           </linearGradient>
@@ -114,18 +88,9 @@ function ExamPlaceholder() {
           </filter>
         </defs>
 
-        <rect
-          fill="url(#placeholder-background)"
-          height="650"
-          width="800"
-        />
+        <rect fill="url(#placeholder-background)" height="650" width="800" />
 
-        <g
-          fill="none"
-          opacity="0.6"
-          stroke="#ffffff"
-          strokeWidth="1.2"
-        >
+        <g fill="none" opacity="0.6" stroke="#ffffff" strokeWidth="1.2">
           <circle cx="400" cy="260" r="118" />
           <circle cx="400" cy="260" r="165" />
           <circle cx="400" cy="260" r="213" />
@@ -208,11 +173,7 @@ function ExamCard({ exam }: { exam: PublicExam }) {
   return (
     <article className="home-exam-card">
       {exam.tileImageUrl ? (
-        <img
-          alt=""
-          className="home-exam-card__image"
-          src={exam.tileImageUrl}
-        />
+        <img alt="" className="home-exam-card__image" src={exam.tileImageUrl} />
       ) : (
         <ExamPlaceholder />
       )}
@@ -222,15 +183,9 @@ function ExamCard({ exam }: { exam: PublicExam }) {
       <div className="home-exam-card__panel">
         <h2>{exam.name}</h2>
 
-        <p>
-          {exam.description ??
-            "Próbny egzamin żeglarski."}
-        </p>
+        <p>{exam.description ?? "Próbny egzamin żeglarski."}</p>
 
-        <Link
-          className="home-exam-card__button"
-          to={`/egzaminy/${exam.slug}`}
-        >
+        <Link className="home-exam-card__button" to={`/egzaminy/${exam.slug}`}>
           <span>Przejdź do egzaminu</span>
 
           <ArrowIcon />
@@ -243,21 +198,15 @@ function ExamCard({ exam }: { exam: PublicExam }) {
 export function HomePage() {
   const navigate = useNavigate();
 
-  const [exams, setExams] = useState<PublicExam[]>(
-    [],
-  );
+  const [exams, setExams] = useState<PublicExam[]>([]);
 
-  const [participant, setParticipant] =
-    useState<ParticipantInfo | null>(null);
+  const [participant, setParticipant] = useState<ParticipantInfo | null>(null);
 
   const [isLoading, setIsLoading] = useState(true);
 
-  const [isLoggingOut, setIsLoggingOut] =
-    useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const [error, setError] = useState<string | null>(
-    null,
-  );
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let requestIsActive = true;
@@ -272,8 +221,7 @@ export function HomePage() {
 
         setParticipant(session.participant);
 
-        const participantExams =
-          await getParticipantExams();
+        const participantExams = await getParticipantExams();
 
         if (requestIsActive) {
           setExams(participantExams);
@@ -342,75 +290,54 @@ export function HomePage() {
     <main className="home-page">
       <section className="home-hero">
         <div className="home-topbar">
-  <p className="home-logo">
-  {organizationBranding.appName}
-</p>
+          <p className="home-logo">{organizationBranding.appName}</p>
 
-{participant && (
-  <div className="home-participant-panel">
-    <p className="home-participant-greeting">
-      <span>Witaj,</span>
+          {participant && (
+            <div className="home-participant-panel">
+              <p className="home-participant-greeting">
+                <span>Witaj,</span>
 
-      <strong title={participant.label}>
-        {participant.label}
-      </strong>
-    </p>
+                <strong title={participant.label}>{participant.label}</strong>
+              </p>
 
-    <button
-      className="home-participant-action"
-      type="button"
-      disabled={isLoggingOut}
-      onClick={() => {
-        void handleParticipantLogout();
-      }}
-    >
-      {isLoggingOut
-        ? "Wylogowywanie…"
-        : "Wyloguj się"}
-    </button>
-  </div>
-)}
-
-</div>
+              <button
+                className="home-participant-action"
+                type="button"
+                disabled={isLoggingOut}
+                onClick={() => {
+                  void handleParticipantLogout();
+                }}
+              >
+                {isLoggingOut ? "Wylogowywanie…" : "Wyloguj się"}
+              </button>
+            </div>
+          )}
+        </div>
 
         <p className="home-hero__organization">
-  {organizationBranding.organizationName}
-</p>
+          {organizationBranding.organizationName}
+        </p>
 
-<h1>{organizationBranding.homeTitle}</h1>
+        <h1>{organizationBranding.homeTitle}</h1>
 
-<p className="home-hero__description">
-  {organizationBranding.homeDescription}
-</p>
+        <p className="home-hero__description">
+          {organizationBranding.homeDescription}
+        </p>
 
         <div className="home-hero-actions">
-  <Link
-    className="home-history-button"
-    to="/historia"
-  >
-    <span
-  aria-hidden="true"
-  className="home-history-button__icon"
->
-  <PiChartBar />
-</span>
+          <Link className="home-history-button" to="/historia">
+            <span aria-hidden="true" className="home-history-button__icon">
+              <PiChartBar />
+            </span>
 
-<span>Historia wyników</span>
-  </Link>
-</div>
+            <span>Historia wyników</span>
+          </Link>
+        </div>
       </section>
 
-      {isLoading && (
-        <p className="home-message">
-          Ładowanie egzaminów…
-        </p>
-      )}
+      {isLoading && <p className="home-message">Ładowanie egzaminów…</p>}
 
-      {error && (
-        <p className="home-message home-message--error">
-          {error}
-        </p>
-      )}
+      {error && <p className="home-message home-message--error">{error}</p>}
 
       {!isLoading && !error && exams.length === 0 && (
         <p className="home-message">

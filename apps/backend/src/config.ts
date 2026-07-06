@@ -4,9 +4,7 @@ import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 import { z } from "zod";
 
-const repositoryRoot = fileURLToPath(
-  new URL("../../../", import.meta.url),
-);
+const repositoryRoot = fileURLToPath(new URL("../../../", import.meta.url));
 
 dotenv.config({
   path: fileURLToPath(new URL("../../../.env", import.meta.url)),
@@ -18,12 +16,7 @@ const environmentSchema = z
       .enum(["development", "test", "production"])
       .default("development"),
 
-    PORT: z.coerce
-      .number()
-      .int()
-      .min(1)
-      .max(65535)
-      .default(3001),
+    PORT: z.coerce.number().int().min(1).max(65535).default(3001),
 
     APP_MODE: z.enum(["LOCAL", "SCHOOL"]),
 
@@ -31,35 +24,19 @@ const environmentSchema = z
 
     ASSET_STORAGE: z.literal("local"),
 
-    ASSET_DIRECTORY: z
-      .string()
-      .trim()
-      .min(1)
-      .default("data/assets"),
+    ASSET_DIRECTORY: z.string().trim().min(1).default("data/assets"),
 
     ADMIN_PASSWORD: z.string().min(8).optional(),
 
     ADMIN_PASSWORD_HASH: z.string().min(1).optional(),
 
     SCHOOL_ADMIN_PASSWORD_HASH: z.string().min(1).optional(),
-    
-    ADMIN_SESSION_TTL_HOURS: z.coerce
-    .number()
-    .int()
-    .positive()
-    .default(8),
 
-    ADMIN_LOGIN_MAX_FAILURES: z.coerce
-      .number()
-      .int()
-      .positive()
-      .default(5),
+    ADMIN_SESSION_TTL_HOURS: z.coerce.number().int().positive().default(8),
 
-    ADMIN_LOGIN_WINDOW_MINUTES: z.coerce
-      .number()
-      .int()
-      .positive()
-      .default(15),
+    ADMIN_LOGIN_MAX_FAILURES: z.coerce.number().int().positive().default(5),
+
+    ADMIN_LOGIN_WINDOW_MINUTES: z.coerce.number().int().positive().default(15),
 
     EXAM_PACKAGE_MAX_MB: z.coerce
       .number()
@@ -67,7 +44,6 @@ const environmentSchema = z
       .positive()
       .max(250)
       .default(50),
-
   })
 
   .superRefine((environment, context) => {
@@ -79,10 +55,7 @@ const environmentSchema = z
       });
     }
 
-    if (
-      environment.APP_MODE === "SCHOOL" &&
-      !environment.ADMIN_PASSWORD_HASH
-    ) {
+    if (environment.APP_MODE === "SCHOOL" && !environment.ADMIN_PASSWORD_HASH) {
       context.addIssue({
         code: "custom",
         path: ["ADMIN_PASSWORD_HASH"],
@@ -113,14 +86,10 @@ export const config = {
   appMode: environment.APP_MODE,
   databaseUrl: environment.DATABASE_URL,
   assetStorage: environment.ASSET_STORAGE,
-  assetDirectory: path.resolve(
-    repositoryRoot,
-    environment.ASSET_DIRECTORY,
-  ),
+  assetDirectory: path.resolve(repositoryRoot, environment.ASSET_DIRECTORY),
   adminPassword: environment.ADMIN_PASSWORD,
   adminPasswordHash: environment.ADMIN_PASSWORD_HASH,
-  schoolAdminPasswordHash:
-  environment.SCHOOL_ADMIN_PASSWORD_HASH,
+  schoolAdminPasswordHash: environment.SCHOOL_ADMIN_PASSWORD_HASH,
   adminSessionTtlHours: environment.ADMIN_SESSION_TTL_HOURS,
   adminLoginMaxFailures: environment.ADMIN_LOGIN_MAX_FAILURES,
   adminLoginWindowMinutes: environment.ADMIN_LOGIN_WINDOW_MINUTES,

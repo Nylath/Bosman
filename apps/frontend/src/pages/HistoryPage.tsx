@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Link,
-  useNavigate,
-} from "react-router";
+import { Link, useNavigate } from "react-router";
 
 import {
   getAttemptHistory,
@@ -50,10 +47,7 @@ function ArrowRightIcon() {
 
 function CheckIcon() {
   return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-    >
+    <svg aria-hidden="true" viewBox="0 0 24 24">
       <path
         d="m5 12 4.5 4.5L19 7"
         fill="none"
@@ -68,10 +62,7 @@ function CheckIcon() {
 
 function CrossIcon() {
   return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-    >
+    <svg aria-hidden="true" viewBox="0 0 24 24">
       <path
         d="M7 7 17 17M17 7 7 17"
         fill="none"
@@ -97,10 +88,7 @@ function formatElapsedTime(seconds: number): string {
   return `${minutes} min ${remainingSeconds} s`;
 }
 
-function calculatePercentage(
-  score: number,
-  totalQuestions: number,
-): number {
+function calculatePercentage(score: number, totalQuestions: number): number {
   if (totalQuestions === 0) {
     return 0;
   }
@@ -110,15 +98,11 @@ function calculatePercentage(
 
 export function HistoryPage() {
   const navigate = useNavigate();
-  const [attempts, setAttempts] = useState<
-    AttemptResult[]
-  >([]);
+  const [attempts, setAttempts] = useState<AttemptResult[]>([]);
 
-  const [isLoading, setIsLoading] =
-    useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [error, setError] =
-    useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let requestIsActive = true;
@@ -135,12 +119,12 @@ export function HistoryPage() {
         }
 
         if (shouldRedirectToParticipantLogin(caughtError)) {
-  void navigate("/dostep", {
-    replace: true,
-  });
+          void navigate("/dostep", {
+            replace: true,
+          });
 
-  return;
-}
+          return;
+        }
 
         setError(
           caughtError instanceof Error
@@ -170,51 +154,33 @@ export function HistoryPage() {
       </Link>
 
       <section className="history-nautical-heading">
-        <p className="history-nautical-heading__eyebrow">
-          Twoje postępy
-        </p>
+        <p className="history-nautical-heading__eyebrow">Twoje postępy</p>
 
         <h1>Historia wyników</h1>
 
         <p>
-          Zobacz zakończone próby i wróć do pytań,
-          które wymagają jeszcze powtórki.
+          Zobacz zakończone próby i wróć do pytań, które wymagają jeszcze
+          powtórki.
         </p>
       </section>
 
-      {isLoading && (
-        <p className="home-message">
-          Ładowanie historii…
-        </p>
+      {isLoading && <p className="home-message">Ładowanie historii…</p>}
+
+      {error && <p className="home-message home-message--error">{error}</p>}
+
+      {!isLoading && !error && attempts.length === 0 && (
+        <section className="history-nautical-empty">
+          <h2>Brak zakończonych prób</h2>
+
+          <p>Rozwiąż pierwszy egzamin, aby zobaczyć tutaj swój wynik.</p>
+
+          <Link className="nautical-primary-button" to="/">
+            <span>Przejdź do egzaminów</span>
+
+            <ArrowRightIcon />
+          </Link>
+        </section>
       )}
-
-      {error && (
-        <p className="home-message home-message--error">
-          {error}
-        </p>
-      )}
-
-      {!isLoading &&
-        !error &&
-        attempts.length === 0 && (
-          <section className="history-nautical-empty">
-            <h2>Brak zakończonych prób</h2>
-
-            <p>
-              Rozwiąż pierwszy egzamin, aby zobaczyć
-              tutaj swój wynik.
-            </p>
-
-            <Link
-              className="nautical-primary-button"
-              to="/"
-            >
-              <span>Przejdź do egzaminów</span>
-
-              <ArrowRightIcon />
-            </Link>
-          </section>
-        )}
 
       <section className="history-nautical-list">
         {attempts.map((attempt) => {
@@ -233,14 +199,8 @@ export function HistoryPage() {
               key={attempt.id}
             >
               <div className="history-nautical-card__top">
-                <div
-                  className="history-nautical-card__icon"
-                >
-                  {attempt.passed ? (
-                    <CheckIcon />
-                  ) : (
-                    <CrossIcon />
-                  )}
+                <div className="history-nautical-card__icon">
+                  {attempt.passed ? <CheckIcon /> : <CrossIcon />}
                 </div>
 
                 <div>
@@ -265,8 +225,7 @@ export function HistoryPage() {
                   <dt>Wynik</dt>
 
                   <dd>
-                    {attempt.score}/
-                    {attempt.totalQuestions}
+                    {attempt.score}/{attempt.totalQuestions}
                   </dd>
                 </div>
 
@@ -279,24 +238,20 @@ export function HistoryPage() {
                 <div>
                   <dt>Czas</dt>
 
-                  <dd>
-                    {formatElapsedTime(
-                      attempt.elapsedSeconds,
-                    )}
-                  </dd>
+                  <dd>{formatElapsedTime(attempt.elapsedSeconds)}</dd>
                 </div>
               </dl>
 
               <div className="history-nautical-card__actions">
-  <Link
-    className="nautical-primary-button"
-    to={`/proby/${attempt.id}/bledy`}
-  >
-    <span>Sprawdź błędy</span>
+                <Link
+                  className="nautical-primary-button"
+                  to={`/proby/${attempt.id}/bledy`}
+                >
+                  <span>Sprawdź błędy</span>
 
-    <ArrowRightIcon />
-  </Link>
-</div>
+                  <ArrowRightIcon />
+                </Link>
+              </div>
             </article>
           );
         })}

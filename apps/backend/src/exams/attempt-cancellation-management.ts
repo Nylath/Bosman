@@ -11,11 +11,7 @@ type LocalContextRow = {
 type LockedAttemptRow = {
   id: string;
 
-  status:
-    | "in_progress"
-    | "completed"
-    | "expired"
-    | "cancelled";
+  status: "in_progress" | "completed" | "expired" | "cancelled";
 };
 
 export type CancelLocalAttemptResult =
@@ -29,9 +25,7 @@ export type CancelLocalAttemptResult =
       status: "not_in_progress";
     };
 
-async function getLocalParticipantId(
-  client: PoolClient,
-): Promise<string> {
+async function getLocalParticipantId(client: PoolClient): Promise<string> {
   const result = await client.query<LocalContextRow>(
     `
       SELECT
@@ -51,9 +45,7 @@ async function getLocalParticipantId(
   const context = result.rows[0];
 
   if (!context) {
-    throw new Error(
-      "Nie znaleziono aktywnego lokalnego profilu użytkownika.",
-    );
+    throw new Error("Nie znaleziono aktywnego lokalnego profilu użytkownika.");
   }
 
   return context.participant_id;
@@ -67,12 +59,10 @@ export async function cancelLocalAttempt(
   try {
     await client.query("BEGIN");
 
-    const participantId =
-      await getLocalParticipantId(client);
+    const participantId = await getLocalParticipantId(client);
 
-    const attemptResult =
-      await client.query<LockedAttemptRow>(
-        `
+    const attemptResult = await client.query<LockedAttemptRow>(
+      `
           SELECT
             id,
             status
@@ -82,11 +72,8 @@ export async function cancelLocalAttempt(
           LIMIT 1
           FOR UPDATE;
         `,
-        [
-          attemptId,
-          participantId,
-        ],
-      );
+      [attemptId, participantId],
+    );
 
     const attempt = attemptResult.rows[0];
 
@@ -143,8 +130,7 @@ export async function cancelLocalAttempt(
   }
 }
 
-export type CancelParticipantAttemptResult =
-  CancelLocalAttemptResult;
+export type CancelParticipantAttemptResult = CancelLocalAttemptResult;
 
 export async function cancelParticipantAttempt(input: {
   participantId: string;
@@ -155,9 +141,8 @@ export async function cancelParticipantAttempt(input: {
   try {
     await client.query("BEGIN");
 
-    const attemptResult =
-      await client.query<LockedAttemptRow>(
-        `
+    const attemptResult = await client.query<LockedAttemptRow>(
+      `
           SELECT
             id,
             status
@@ -167,11 +152,8 @@ export async function cancelParticipantAttempt(input: {
           LIMIT 1
           FOR UPDATE;
         `,
-        [
-          input.attemptId,
-          input.participantId,
-        ],
-      );
+      [input.attemptId, input.participantId],
+    );
 
     const attempt = attemptResult.rows[0];
 

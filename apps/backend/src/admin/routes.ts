@@ -29,10 +29,7 @@ adminAuthRouter.post("/login", async (request, response, next) => {
       return;
     }
 
-    const result = await loginAdmin(
-      parsedBody.data.password,
-      request,
-    );
+    const result = await loginAdmin(parsedBody.data.password, request);
 
     if (result.status === "blocked") {
       response.status(429).json({
@@ -53,10 +50,7 @@ adminAuthRouter.post("/login", async (request, response, next) => {
 
     response.setHeader(
       "Set-Cookie",
-      createAdminSessionCookie(
-        result.token,
-        result.expiresAt,
-      ),
+      createAdminSessionCookie(result.token, result.expiresAt),
     );
 
     response.json({
@@ -81,10 +75,10 @@ adminAuthRouter.get("/session", async (request, response, next) => {
     }
 
     response.json({
-  authenticated: true,
-  role: session.role,
-  expiresAt: session.expiresAt,
-});
+      authenticated: true,
+      role: session.role,
+      expiresAt: session.expiresAt,
+    });
   } catch (error) {
     next(error);
   }
@@ -94,10 +88,7 @@ adminAuthRouter.post("/logout", async (request, response, next) => {
   try {
     await logoutAdmin(request);
 
-    response.setHeader(
-      "Set-Cookie",
-      createClearedAdminSessionCookie(),
-    );
+    response.setHeader("Set-Cookie", createClearedAdminSessionCookie());
 
     response.json({
       authenticated: false,

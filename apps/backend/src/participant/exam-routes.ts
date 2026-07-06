@@ -6,9 +6,7 @@ import { pool } from "../db/client.js";
 
 import { requireParticipantSession } from "./middleware.js";
 
-const examSlugSchema = z
-  .string()
-  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+const examSlugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 
 type ParticipantSessionContext = {
   participantId: string;
@@ -30,20 +28,15 @@ type ParticipantExamRow = {
   answersPerQuestion: number;
 };
 
-function getParticipantSession(
-  response: Response,
-): ParticipantSessionContext {
-  const session =
-    response.locals.participantSession;
+function getParticipantSession(response: Response): ParticipantSessionContext {
+  const session = response.locals.participantSession;
 
   if (
     !session ||
     typeof session.participantId !== "string" ||
     typeof session.organizationId !== "string"
   ) {
-    throw new Error(
-      "Nie znaleziono sesji kursanta.",
-    );
+    throw new Error("Nie znaleziono sesji kursanta.");
   }
 
   return {
@@ -88,9 +81,8 @@ participantExamRouter.get(
     try {
       const session = getParticipantSession(response);
 
-      const result =
-        await pool.query<ParticipantExamRow>(
-          `
+      const result = await pool.query<ParticipantExamRow>(
+        `
             SELECT
               e.id,
               e.slug,
@@ -134,11 +126,8 @@ participantExamRouter.get(
               )
             ORDER BY e.name;
           `,
-          [
-            session.participantId,
-            session.organizationId,
-          ],
-        );
+        [session.participantId, session.organizationId],
+      );
 
       response.json({
         exams: result.rows.map(mapExam),
@@ -156,9 +145,7 @@ participantExamRouter.get(
     try {
       const session = getParticipantSession(response);
 
-      const parsedSlug = examSlugSchema.safeParse(
-        request.params.slug,
-      );
+      const parsedSlug = examSlugSchema.safeParse(request.params.slug);
 
       if (!parsedSlug.success) {
         response.status(400).json({
@@ -168,9 +155,8 @@ participantExamRouter.get(
         return;
       }
 
-      const result =
-        await pool.query<ParticipantExamRow>(
-          `
+      const result = await pool.query<ParticipantExamRow>(
+        `
             SELECT
               e.id,
               e.slug,
@@ -215,19 +201,14 @@ participantExamRouter.get(
               )
             LIMIT 1;
           `,
-          [
-            session.participantId,
-            session.organizationId,
-            parsedSlug.data,
-          ],
-        );
+        [session.participantId, session.organizationId, parsedSlug.data],
+      );
 
       const exam = result.rows[0];
 
       if (!exam) {
         response.status(404).json({
-          message:
-            "Nie znaleziono egzaminu albo nie masz do niego dostępu.",
+          message: "Nie znaleziono egzaminu albo nie masz do niego dostępu.",
         });
 
         return;

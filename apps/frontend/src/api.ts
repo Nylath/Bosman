@@ -4,10 +4,7 @@ const isSchoolMode = appMode === "SCHOOL";
 export class ApiError extends Error {
   public readonly status: number;
 
-  public constructor(
-    status: number,
-    message: string,
-  ) {
+  public constructor(status: number, message: string) {
     super(message);
 
     this.name = "ApiError";
@@ -15,14 +12,8 @@ export class ApiError extends Error {
   }
 }
 
-export function shouldRedirectToParticipantLogin(
-  error: unknown,
-): boolean {
-  return (
-    isSchoolMode &&
-    error instanceof ApiError &&
-    error.status === 401
-  );
+export function shouldRedirectToParticipantLogin(error: unknown): boolean {
+  return isSchoolMode && error instanceof ApiError && error.status === 401;
 }
 
 export type PublicExam = {
@@ -60,11 +51,7 @@ export type AttemptQuestion = {
 export type Attempt = {
   id: string;
 
-  status:
-    | "in_progress"
-    | "completed"
-    | "expired"
-    | "cancelled";
+  status: "in_progress" | "completed" | "expired" | "cancelled";
 
   exam: {
     slug: string;
@@ -130,7 +117,6 @@ export type AdminExam = {
   createdAt: string;
   updatedAt: string;
 };
-
 
 export type AdminImportReport = {
   errors: string[];
@@ -218,18 +204,14 @@ type DeleteAdminExamResponse = {
   };
 };
 
-async function requestJson<T>(
-  url: string,
-  options?: RequestInit,
-): Promise<T> {
+async function requestJson<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, {
     credentials: "include",
     ...options,
   });
 
   if (!response.ok) {
-    let message =
-      "Nie udało się pobrać danych z serwera.";
+    let message = "Nie udało się pobrać danych z serwera.";
 
     try {
       const body = (await response.json()) as {
@@ -249,26 +231,18 @@ async function requestJson<T>(
   return (await response.json()) as T;
 }
 
-export async function getPublishedExams(): Promise<
-  PublicExam[]
-> {
-  const response =
-    await requestJson<PublishedExamsResponse>(
-      "/api/exams",
-    );
+export async function getPublishedExams(): Promise<PublicExam[]> {
+  const response = await requestJson<PublishedExamsResponse>("/api/exams");
 
   return response.exams;
 }
 
-export async function getPublishedExam(
-  slug: string,
-): Promise<PublicExam> {
+export async function getPublishedExam(slug: string): Promise<PublicExam> {
   const url = isSchoolMode
     ? `/api/participant/exams/${encodeURIComponent(slug)}`
     : `/api/exams/${encodeURIComponent(slug)}`;
 
-  const response =
-    await requestJson<PublishedExamResponse>(url);
+  const response = await requestJson<PublishedExamResponse>(url);
 
   return response.exam;
 }
@@ -285,16 +259,12 @@ export async function startOrResumeAttempt(
   });
 }
 
-
-export async function getAttempt(
-  attemptId: string,
-): Promise<Attempt> {
+export async function getAttempt(attemptId: string): Promise<Attempt> {
   const url = isSchoolMode
     ? `/api/participant/attempts/${encodeURIComponent(attemptId)}`
     : `/api/attempts/${encodeURIComponent(attemptId)}`;
 
-  const response =
-    await requestJson<GetAttemptResponse>(url);
+  const response = await requestJson<GetAttemptResponse>(url);
 
   return response.attempt;
 }
@@ -308,21 +278,18 @@ export async function submitAttemptAnswer(input: {
     ? `/api/participant/attempts/${encodeURIComponent(input.attemptId)}/answers`
     : `/api/attempts/${encodeURIComponent(input.attemptId)}/answers`;
 
-  return requestJson<SubmitAttemptAnswerResponse>(
-    url,
-    {
-      method: "POST",
+  return requestJson<SubmitAttemptAnswerResponse>(url, {
+    method: "POST",
 
-      headers: {
-        "Content-Type": "application/json",
-      },
-
-      body: JSON.stringify({
-        attemptQuestionId: input.attemptQuestionId,
-        selectedAnswerId: input.selectedAnswerId,
-      }),
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+
+    body: JSON.stringify({
+      attemptQuestionId: input.attemptQuestionId,
+      selectedAnswerId: input.selectedAnswerId,
+    }),
+  });
 }
 
 export async function getAttemptResult(
@@ -332,8 +299,7 @@ export async function getAttemptResult(
     ? `/api/participant/attempts/${encodeURIComponent(attemptId)}/result`
     : `/api/attempts/${encodeURIComponent(attemptId)}/result`;
 
-  const response =
-    await requestJson<GetAttemptResultResponse>(url);
+  const response = await requestJson<GetAttemptResultResponse>(url);
 
   return response.result;
 }
@@ -345,50 +311,35 @@ export async function getAttemptMistakes(
     ? `/api/participant/attempts/${encodeURIComponent(attemptId)}/mistakes`
     : `/api/attempts/${encodeURIComponent(attemptId)}/mistakes`;
 
-  const response =
-    await requestJson<GetAttemptMistakesResponse>(url);
+  const response = await requestJson<GetAttemptMistakesResponse>(url);
 
   return response.mistakes;
 }
 
-export async function getAttemptHistory(): Promise<
-  AttemptResult[]
-> {
-  const url = isSchoolMode
-    ? "/api/participant/history"
-    : "/api/history";
+export async function getAttemptHistory(): Promise<AttemptResult[]> {
+  const url = isSchoolMode ? "/api/participant/history" : "/api/history";
 
-  const response =
-    await requestJson<GetAttemptHistoryResponse>(url);
+  const response = await requestJson<GetAttemptHistoryResponse>(url);
 
   return response.attempts;
 }
 
-export async function loginAdmin(
-  password: string,
-): Promise<AdminSession> {
-  return requestJson<AdminSession>(
-    "/api/admin/auth/login",
-    {
-      method: "POST",
+export async function loginAdmin(password: string): Promise<AdminSession> {
+  return requestJson<AdminSession>("/api/admin/auth/login", {
+    method: "POST",
 
-      headers: {
-        "Content-Type": "application/json",
-      },
-
-      body: JSON.stringify({
-        password,
-      }),
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+
+    body: JSON.stringify({
+      password,
+    }),
+  });
 }
 
-export async function getAdminSession(): Promise<
-  AdminSession
-> {
-  return requestJson<AdminSession>(
-    "/api/admin/auth/session",
-  );
+export async function getAdminSession(): Promise<AdminSession> {
+  return requestJson<AdminSession>("/api/admin/auth/session");
 }
 
 export async function logoutAdmin(): Promise<void> {
@@ -399,13 +350,8 @@ export async function logoutAdmin(): Promise<void> {
   });
 }
 
-export async function getAdminExams(): Promise<
-  AdminExam[]
-> {
-  const response =
-    await requestJson<GetAdminExamsResponse>(
-      "/api/admin/exams",
-    );
+export async function getAdminExams(): Promise<AdminExam[]> {
+  const response = await requestJson<GetAdminExamsResponse>("/api/admin/exams");
 
   return response.exams;
 }
@@ -417,19 +363,13 @@ export async function importAdminExamPackage(
 
   formData.append("package", file);
 
-  return requestJson<AdminImportResult>(
-    "/api/admin/exams/import",
-    {
-      method: "POST",
-      body: formData,
-    },
-  );
+  return requestJson<AdminImportResult>("/api/admin/exams/import", {
+    method: "POST",
+    body: formData,
+  });
 }
 
-export type AdminExamVersionStatus =
-  | "draft"
-  | "published"
-  | "archived";
+export type AdminExamVersionStatus = "draft" | "published" | "archived";
 
 export type AdminExamVersionSummary = {
   id: string;
@@ -509,10 +449,9 @@ type GetAdminExamVersionResponse = {
 export async function getAdminExamVersions(
   examId: string,
 ): Promise<AdminExamVersionSummary[]> {
-  const response =
-    await requestJson<GetAdminExamVersionsResponse>(
-      `/api/admin/exams/${encodeURIComponent(examId)}/versions`,
-    );
+  const response = await requestJson<GetAdminExamVersionsResponse>(
+    `/api/admin/exams/${encodeURIComponent(examId)}/versions`,
+  );
 
   return response.versions;
 }
@@ -520,10 +459,9 @@ export async function getAdminExamVersions(
 export async function getAdminExamVersion(
   versionId: string,
 ): Promise<AdminExamVersionDetails> {
-  const response =
-    await requestJson<GetAdminExamVersionResponse>(
-      `/api/admin/exam-versions/${encodeURIComponent(versionId)}`,
-    );
+  const response = await requestJson<GetAdminExamVersionResponse>(
+    `/api/admin/exam-versions/${encodeURIComponent(versionId)}`,
+  );
 
   return response.version;
 }
@@ -532,19 +470,18 @@ export async function updateAdminExamVersionConfiguration(
   versionId: string,
   configuration: AdminExamVersionConfiguration,
 ): Promise<AdminExamVersionDetails> {
-  const response =
-    await requestJson<GetAdminExamVersionResponse>(
-      `/api/admin/exam-versions/${encodeURIComponent(versionId)}/configuration`,
-      {
-        method: "PUT",
+  const response = await requestJson<GetAdminExamVersionResponse>(
+    `/api/admin/exam-versions/${encodeURIComponent(versionId)}/configuration`,
+    {
+      method: "PUT",
 
-        headers: {
-          "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify(configuration),
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+
+      body: JSON.stringify(configuration),
+    },
+  );
 
   return response.version;
 }
@@ -552,13 +489,12 @@ export async function updateAdminExamVersionConfiguration(
 export async function publishAdminExamVersion(
   versionId: string,
 ): Promise<AdminExamVersionDetails> {
-  const response =
-    await requestJson<GetAdminExamVersionResponse>(
-      `/api/admin/exam-versions/${encodeURIComponent(versionId)}/publish`,
-      {
-        method: "POST",
-      },
-    );
+  const response = await requestJson<GetAdminExamVersionResponse>(
+    `/api/admin/exam-versions/${encodeURIComponent(versionId)}/publish`,
+    {
+      method: "POST",
+    },
+  );
 
   return response.version;
 }
@@ -571,21 +507,20 @@ export async function updateAdminExamActive(
   examId: string,
   isActive: boolean,
 ): Promise<AdminExam> {
-  const response =
-    await requestJson<UpdateAdminExamActiveResponse>(
-      `/api/admin/exams/${encodeURIComponent(examId)}/active`,
-      {
-        method: "PATCH",
+  const response = await requestJson<UpdateAdminExamActiveResponse>(
+    `/api/admin/exams/${encodeURIComponent(examId)}/active`,
+    {
+      method: "PATCH",
 
-        headers: {
-          "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify({
-          isActive,
-        }),
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+
+      body: JSON.stringify({
+        isActive,
+      }),
+    },
+  );
 
   return response.exam;
 }
@@ -616,8 +551,7 @@ export async function getActiveAttemptForExam(
     ? `/api/participant/exams/${encodeURIComponent(slug)}/attempts/active`
     : `/api/exams/${encodeURIComponent(slug)}/attempts/active`;
 
-  const response =
-    await requestJson<GetActiveAttemptResponse>(url);
+  const response = await requestJson<GetActiveAttemptResponse>(url);
 
   return response.attempt;
 }
@@ -690,13 +624,10 @@ type UpdateAdminParticipantExamAccessResponse = {
   access: AdminParticipantExamAccess;
 };
 
-export async function getAdminParticipants(): Promise<
-  AdminParticipant[]
-> {
-  const response =
-    await requestJson<GetAdminParticipantsResponse>(
-      "/api/admin/participants",
-    );
+export async function getAdminParticipants(): Promise<AdminParticipant[]> {
+  const response = await requestJson<GetAdminParticipantsResponse>(
+    "/api/admin/participants",
+  );
 
   return response.participants;
 }
@@ -718,13 +649,10 @@ export async function createAdminParticipant(
   );
 }
 
-export async function getAdminAvailableExams(): Promise<
-  AdminAvailableExam[]
-> {
-  const response =
-    await requestJson<GetAdminAvailableExamsResponse>(
-      "/api/admin/participants/available-exams",
-    );
+export async function getAdminAvailableExams(): Promise<AdminAvailableExam[]> {
+  const response = await requestJson<GetAdminAvailableExamsResponse>(
+    "/api/admin/participants/available-exams",
+  );
 
   return response.exams;
 }
@@ -736,23 +664,22 @@ export async function updateAdminParticipantExamAccess(input: {
   validFrom?: string | null;
   validUntil?: string | null;
 }): Promise<AdminParticipantExamAccess> {
-  const response =
-    await requestJson<UpdateAdminParticipantExamAccessResponse>(
-      `/api/admin/participants/${encodeURIComponent(
-        input.participantId,
-      )}/exam-access/${encodeURIComponent(input.examId)}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          isActive: input.isActive,
-          validFrom: input.validFrom,
-          validUntil: input.validUntil,
-        }),
+  const response = await requestJson<UpdateAdminParticipantExamAccessResponse>(
+    `/api/admin/participants/${encodeURIComponent(
+      input.participantId,
+    )}/exam-access/${encodeURIComponent(input.examId)}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({
+        isActive: input.isActive,
+        validFrom: input.validFrom,
+        validUntil: input.validUntil,
+      }),
+    },
+  );
 
   return response.access;
 }
@@ -784,31 +711,22 @@ type ParticipantLoggedOutSession = {
 export async function loginParticipant(
   code: string,
 ): Promise<ParticipantSession> {
-  return requestJson<ParticipantSession>(
-    "/api/participant/auth/login",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        code,
-      }),
+  return requestJson<ParticipantSession>("/api/participant/auth/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+    body: JSON.stringify({
+      code,
+    }),
+  });
 }
 
-export async function getParticipantSession(): Promise<
-  ParticipantSession
-> {
-  return requestJson<ParticipantSession>(
-    "/api/participant/auth/session",
-  );
+export async function getParticipantSession(): Promise<ParticipantSession> {
+  return requestJson<ParticipantSession>("/api/participant/auth/session");
 }
 
-export async function logoutParticipant(): Promise<
-  ParticipantLoggedOutSession
-> {
+export async function logoutParticipant(): Promise<ParticipantLoggedOutSession> {
   return requestJson<ParticipantLoggedOutSession>(
     "/api/participant/auth/logout",
     {
@@ -821,13 +739,10 @@ type GetParticipantExamsResponse = {
   exams: PublicExam[];
 };
 
-export async function getParticipantExams(): Promise<
-  PublicExam[]
-> {
-  const response =
-    await requestJson<GetParticipantExamsResponse>(
-      "/api/participant/exams",
-    );
+export async function getParticipantExams(): Promise<PublicExam[]> {
+  const response = await requestJson<GetParticipantExamsResponse>(
+    "/api/participant/exams",
+  );
 
   return response.exams;
 }

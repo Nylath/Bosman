@@ -1,13 +1,6 @@
 import type { FormEvent } from "react";
-import {
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
-import {
-  Link,
-  useNavigate,
-} from "react-router";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router";
 
 import {
   ApiError,
@@ -49,10 +42,7 @@ function ArrowRightIcon() {
 
 function UploadIcon() {
   return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-    >
+    <svg aria-hidden="true" viewBox="0 0 24 24">
       <path
         d="M12 15V4m0 0L8 8m4-4 4 4M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"
         fill="none"
@@ -67,10 +57,7 @@ function UploadIcon() {
 
 function EyeIcon() {
   return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-    >
+    <svg aria-hidden="true" viewBox="0 0 24 24">
       <path
         d="M3 12s3.4-5 9-5 9 5 9 5-3.4 5-9 5-9-5-9-5Z"
         fill="none"
@@ -94,10 +81,7 @@ function EyeIcon() {
 
 function EyeOffIcon() {
   return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-    >
+    <svg aria-hidden="true" viewBox="0 0 24 24">
       <path
         d="M3 3 21 21M10.4 7.2A10.6 10.6 0 0 1 12 7c5.6 0 9 5 9 5a15 15 0 0 1-3 3.2M14.2 14.2A3 3 0 0 1 9.8 9.8M6.3 8.3A15.6 15.6 0 0 0 3 12s3.4 5 9 5c1 0 1.9-.2 2.7-.4"
         fill="none"
@@ -137,51 +121,40 @@ function ReportList(props: {
 export function AdminDashboardPage() {
   const navigate = useNavigate();
 
-  const [exams, setExams] = useState<AdminExam[]>(
-    [],
+  const [exams, setExams] = useState<AdminExam[]>([]);
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const [importResult, setImportResult] = useState<AdminImportResult | null>(
+    null,
   );
 
-  const [selectedFile, setSelectedFile] =
-    useState<File | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [importResult, setImportResult] =
-    useState<AdminImportResult | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
 
-  const [isLoading, setIsLoading] =
-    useState(true);
+  const [updatedExamId, setUpdatedExamId] = useState<string | null>(null);
 
-  const [isImporting, setIsImporting] =
-    useState(false);
+  const [examToDelete, setExamToDelete] = useState<AdminExam | null>(null);
 
-  const [updatedExamId, setUpdatedExamId] =
-    useState<string | null>(null);
+  const [isDeletingExam, setIsDeletingExam] = useState(false);
 
-  const [examToDelete, setExamToDelete] =
-  useState<AdminExam | null>(null);
-
-const [isDeletingExam, setIsDeletingExam] =
-  useState(false);
-
-  const [error, setError] =
-    useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleUnauthorized = useCallback(
-  (caughtError: unknown): boolean => {
-    if (
-      caughtError instanceof ApiError &&
-      caughtError.status === 401
-    ) {
-      void navigate("/admin/logowanie", {
-        replace: true,
-      });
+    (caughtError: unknown): boolean => {
+      if (caughtError instanceof ApiError && caughtError.status === 401) {
+        void navigate("/admin/logowanie", {
+          replace: true,
+        });
 
-      return true;
-    }
+        return true;
+      }
 
-    return false;
-  },
-  [navigate],
-);
+      return false;
+    },
+    [navigate],
+  );
 
   async function loadExams(): Promise<void> {
     const loadedExams = await getAdminExams();
@@ -193,16 +166,16 @@ const [isDeletingExam, setIsDeletingExam] =
     let requestIsActive = true;
 
     void getAdminSession()
-  .then(async (session) => {
-    if (session.role === "school") {
-      void navigate("/admin/uczestnicy", {
-        replace: true,
-      });
+      .then(async (session) => {
+        if (session.role === "school") {
+          void navigate("/admin/uczestnicy", {
+            replace: true,
+          });
 
-      return;
-    }
+          return;
+        }
 
-    const loadedExams = await getAdminExams();
+        const loadedExams = await getAdminExams();
 
         if (requestIsActive) {
           setExams(loadedExams);
@@ -248,8 +221,7 @@ const [isDeletingExam, setIsDeletingExam] =
     setIsImporting(true);
 
     try {
-      const result =
-        await importAdminExamPackage(selectedFile);
+      const result = await importAdminExamPackage(selectedFile);
 
       setImportResult(result);
 
@@ -269,24 +241,16 @@ const [isDeletingExam, setIsDeletingExam] =
     }
   }
 
-  async function handleToggleExamActive(
-    exam: AdminExam,
-  ): Promise<void> {
+  async function handleToggleExamActive(exam: AdminExam): Promise<void> {
     setError(null);
     setUpdatedExamId(exam.id);
 
     try {
-      const updatedExam =
-        await updateAdminExamActive(
-          exam.id,
-          !exam.isActive,
-        );
+      const updatedExam = await updateAdminExamActive(exam.id, !exam.isActive);
 
       setExams((currentExams) =>
         currentExams.map((currentExam) =>
-          currentExam.id === updatedExam.id
-            ? updatedExam
-            : currentExam,
+          currentExam.id === updatedExam.id ? updatedExam : currentExam,
         ),
       );
     } catch (caughtError) {
@@ -305,39 +269,37 @@ const [isDeletingExam, setIsDeletingExam] =
   }
 
   async function handleDeleteExam(): Promise<void> {
-  if (!examToDelete) {
-    return;
-  }
-
-  const deletedExamId = examToDelete.id;
-
-  setError(null);
-  setIsDeletingExam(true);
-
-  try {
-    await deleteAdminExam(deletedExamId);
-
-    setExams((currentExams) =>
-      currentExams.filter(
-        (exam) => exam.id !== deletedExamId,
-      ),
-    );
-
-    setExamToDelete(null);
-  } catch (caughtError) {
-    if (handleUnauthorized(caughtError)) {
+    if (!examToDelete) {
       return;
     }
 
-    setError(
-      caughtError instanceof Error
-        ? caughtError.message
-        : "Nie udało się trwale usunąć egzaminu.",
-    );
-  } finally {
-    setIsDeletingExam(false);
+    const deletedExamId = examToDelete.id;
+
+    setError(null);
+    setIsDeletingExam(true);
+
+    try {
+      await deleteAdminExam(deletedExamId);
+
+      setExams((currentExams) =>
+        currentExams.filter((exam) => exam.id !== deletedExamId),
+      );
+
+      setExamToDelete(null);
+    } catch (caughtError) {
+      if (handleUnauthorized(caughtError)) {
+        return;
+      }
+
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Nie udało się trwale usunąć egzaminu.",
+      );
+    } finally {
+      setIsDeletingExam(false);
+    }
   }
-}
 
   async function handleLogout(): Promise<void> {
     try {
@@ -352,9 +314,7 @@ const [isDeletingExam, setIsDeletingExam] =
   if (isLoading) {
     return (
       <main className="nautical-page admin-nautical-page">
-        <p className="home-message">
-          Ładowanie panelu administratora…
-        </p>
+        <p className="home-message">Ładowanie panelu administratora…</p>
       </main>
     );
   }
@@ -365,29 +325,21 @@ const [isDeletingExam, setIsDeletingExam] =
         <div>
           <p className="home-logo">Bosman</p>
 
-          <p className="admin-nautical-eyebrow">
-            Panel administratora
-          </p>
+          <p className="admin-nautical-eyebrow">Panel administratora</p>
 
           <h1>Zarządzanie egzaminami</h1>
 
           <p>
-            Importuj pytania, przeglądaj egzaminy
-            i zarządzaj wersjami publikowanymi.
+            Importuj pytania, przeglądaj egzaminy i zarządzaj wersjami
+            publikowanymi.
           </p>
         </div>
 
         <div className="admin-dashboard-header__actions">
-          <Link
-  className="nautical-secondary-button"
-  to="/admin/uczestnicy"
->
-  Uczestnicy
-</Link>
-          <Link
-            className="nautical-secondary-button"
-            to="/"
-          >
+          <Link className="nautical-secondary-button" to="/admin/uczestnicy">
+            Uczestnicy
+          </Link>
+          <Link className="nautical-secondary-button" to="/">
             Menu główne
           </Link>
 
@@ -403,11 +355,7 @@ const [isDeletingExam, setIsDeletingExam] =
         </div>
       </header>
 
-      {error && (
-        <p className="home-message home-message--error">
-          {error}
-        </p>
-      )}
+      {error && <p className="home-message home-message--error">{error}</p>}
 
       <section className="admin-nautical-card">
         <div className="admin-nautical-card__heading">
@@ -416,9 +364,7 @@ const [isDeletingExam, setIsDeletingExam] =
           </div>
 
           <div>
-            <p className="admin-nautical-eyebrow">
-              Import danych
-            </p>
+            <p className="admin-nautical-eyebrow">Import danych</p>
 
             <h2>Import paczki ZIP</h2>
           </div>
@@ -439,9 +385,7 @@ const [isDeletingExam, setIsDeletingExam] =
         >
           <label className="admin-file-input">
             <span>
-              {selectedFile
-                ? selectedFile.name
-                : "Wybierz paczkę ZIP"}
+              {selectedFile ? selectedFile.name : "Wybierz paczkę ZIP"}
             </span>
 
             <input
@@ -449,9 +393,7 @@ const [isDeletingExam, setIsDeletingExam] =
               accept=".zip,application/zip"
               disabled={isImporting}
               onChange={(event) => {
-                setSelectedFile(
-                  event.target.files?.[0] ?? null,
-                );
+                setSelectedFile(event.target.files?.[0] ?? null);
               }}
             />
           </label>
@@ -459,14 +401,10 @@ const [isDeletingExam, setIsDeletingExam] =
           <button
             className="admin-nautical-button"
             type="submit"
-            disabled={
-              isImporting || !selectedFile
-            }
+            disabled={isImporting || !selectedFile}
           >
             <span>
-              {isImporting
-                ? "Importowanie…"
-                : "Zaimportuj jako szkic"}
+              {isImporting ? "Importowanie…" : "Zaimportuj jako szkic"}
             </span>
 
             <ArrowRightIcon />
@@ -476,9 +414,7 @@ const [isDeletingExam, setIsDeletingExam] =
 
       {importResult && (
         <section className="admin-nautical-card">
-          <p className="admin-nautical-eyebrow">
-            Walidacja paczki
-          </p>
+          <p className="admin-nautical-eyebrow">Walidacja paczki</p>
 
           <h2>Raport ostatniego importu</h2>
 
@@ -486,30 +422,19 @@ const [isDeletingExam, setIsDeletingExam] =
             <div>
               <dt>Import jako szkic</dt>
 
-              <dd>
-                {importResult.canImportAsDraft
-                  ? "TAK"
-                  : "NIE"}
-              </dd>
+              <dd>{importResult.canImportAsDraft ? "TAK" : "NIE"}</dd>
             </div>
 
             <div>
               <dt>Publikacja bez zmian</dt>
 
-              <dd>
-                {importResult.canPublish
-                  ? "TAK"
-                  : "NIE"}
-              </dd>
+              <dd>{importResult.canPublish ? "TAK" : "NIE"}</dd>
             </div>
 
             <div>
               <dt>Numer wersji</dt>
 
-              <dd>
-                {importResult.exam?.versionNumber ??
-                  "—"}
-              </dd>
+              <dd>{importResult.exam?.versionNumber ?? "—"}</dd>
             </div>
           </dl>
 
@@ -521,9 +446,7 @@ const [isDeletingExam, setIsDeletingExam] =
 
           <ReportList
             title="Blokady publikacji"
-            items={
-              importResult.report.publicationBlockers
-            }
+            items={importResult.report.publicationBlockers}
             variant="warning"
           />
 
@@ -542,39 +465,29 @@ const [isDeletingExam, setIsDeletingExam] =
       )}
 
       <section className="admin-nautical-card">
-        <p className="admin-nautical-eyebrow">
-          Baza egzaminów
-        </p>
+        <p className="admin-nautical-eyebrow">Baza egzaminów</p>
 
         <h2>Egzaminy</h2>
 
         {exams.length === 0 ? (
           <p className="home-message">
-            Nie zaimportowano jeszcze żadnego
-            egzaminu.
+            Nie zaimportowano jeszcze żadnego egzaminu.
           </p>
         ) : (
           <div className="admin-nautical-exam-list">
             {exams.map((exam) => (
               <article
                 className={`admin-nautical-exam-card ${
-                  exam.isActive
-                    ? ""
-                    : "admin-nautical-exam-card--inactive"
+                  exam.isActive ? "" : "admin-nautical-exam-card--inactive"
                 }`}
                 key={exam.id}
               >
                 <div>
-                  <p className="admin-nautical-exam-card__slug">
-                    {exam.slug}
-                  </p>
+                  <p className="admin-nautical-exam-card__slug">{exam.slug}</p>
 
                   <h3>{exam.name}</h3>
 
-                  <p>
-                    {exam.description ??
-                      "Brak opisu egzaminu."}
-                  </p>
+                  <p>{exam.description ?? "Brak opisu egzaminu."}</p>
                 </div>
 
                 <div className="admin-nautical-exam-card__aside">
@@ -582,19 +495,13 @@ const [isDeletingExam, setIsDeletingExam] =
                     <div>
                       <dt>Status</dt>
 
-                      <dd>
-                        {exam.isActive
-                          ? "Aktywny"
-                          : "Ukryty"}
-                      </dd>
+                      <dd>{exam.isActive ? "Aktywny" : "Ukryty"}</dd>
                     </div>
 
                     <div>
                       <dt>Aktualizacja</dt>
 
-                      <dd>
-                        {formatDate(exam.updatedAt)}
-                      </dd>
+                      <dd>{formatDate(exam.updatedAt)}</dd>
                     </div>
                   </dl>
 
@@ -620,11 +527,7 @@ const [isDeletingExam, setIsDeletingExam] =
                         void handleToggleExamActive(exam);
                       }}
                     >
-                      {exam.isActive ? (
-                        <EyeOffIcon />
-                      ) : (
-                        <EyeIcon />
-                      )}
+                      {exam.isActive ? <EyeOffIcon /> : <EyeIcon />}
 
                       <span>
                         {updatedExamId === exam.id
@@ -635,18 +538,15 @@ const [isDeletingExam, setIsDeletingExam] =
                       </span>
                     </button>
                     <button
-  className="admin-danger-outline-button"
-  type="button"
-  disabled={
-    updatedExamId === exam.id ||
-    isDeletingExam
-  }
-  onClick={() => {
-    setExamToDelete(exam);
-  }}
->
-  Usuń trwale
-</button>
+                      className="admin-danger-outline-button"
+                      type="button"
+                      disabled={updatedExamId === exam.id || isDeletingExam}
+                      onClick={() => {
+                        setExamToDelete(exam);
+                      }}
+                    >
+                      Usuń trwale
+                    </button>
                   </div>
                 </div>
               </article>
@@ -655,58 +555,50 @@ const [isDeletingExam, setIsDeletingExam] =
         )}
       </section>
       {examToDelete && (
-  <div className="admin-delete-modal-backdrop">
-    <section
-      aria-modal="true"
-      className="admin-delete-modal"
-      role="dialog"
-    >
-      <p className="admin-nautical-eyebrow">
-        Trwałe usunięcie
-      </p>
+        <div className="admin-delete-modal-backdrop">
+          <section
+            aria-modal="true"
+            className="admin-delete-modal"
+            role="dialog"
+          >
+            <p className="admin-nautical-eyebrow">Trwałe usunięcie</p>
 
-      <h2>Usunąć egzamin?</h2>
+            <h2>Usunąć egzamin?</h2>
 
-      <p>
-        Usuniesz egzamin{" "}
-        <strong>{examToDelete.name}</strong>{" "}
-        razem z jego wersjami, pytaniami,
-        odpowiedziami, dostępami kursantów,
-        podejściami, wynikami i grafikami.
-      </p>
+            <p>
+              Usuniesz egzamin <strong>{examToDelete.name}</strong> razem z jego
+              wersjami, pytaniami, odpowiedziami, dostępami kursantów,
+              podejściami, wynikami i grafikami.
+            </p>
 
-      <p>
-        Tej operacji nie można cofnąć.
-      </p>
+            <p>Tej operacji nie można cofnąć.</p>
 
-      <div className="admin-delete-modal__actions">
-        <button
-          className="nautical-secondary-button"
-          type="button"
-          disabled={isDeletingExam}
-          onClick={() => {
-            setExamToDelete(null);
-          }}
-        >
-          Anuluj
-        </button>
+            <div className="admin-delete-modal__actions">
+              <button
+                className="nautical-secondary-button"
+                type="button"
+                disabled={isDeletingExam}
+                onClick={() => {
+                  setExamToDelete(null);
+                }}
+              >
+                Anuluj
+              </button>
 
-        <button
-          className="admin-danger-button"
-          type="button"
-          disabled={isDeletingExam}
-          onClick={() => {
-            void handleDeleteExam();
-          }}
-        >
-          {isDeletingExam
-            ? "Usuwanie…"
-            : "Usuń trwale"}
-        </button>
-      </div>
-    </section>
-  </div>
-)}
+              <button
+                className="admin-danger-button"
+                type="button"
+                disabled={isDeletingExam}
+                onClick={() => {
+                  void handleDeleteExam();
+                }}
+              >
+                {isDeletingExam ? "Usuwanie…" : "Usuń trwale"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </main>
   );
 }

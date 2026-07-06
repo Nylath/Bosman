@@ -17,10 +17,7 @@ export function ConfirmCancelAttemptModal(
       className="attempt-cancel-modal__backdrop"
       role="presentation"
       onMouseDown={(event) => {
-        if (
-          event.target === event.currentTarget &&
-          !props.isCancelling
-        ) {
+        if (event.target === event.currentTarget && !props.isCancelling) {
           props.onClose();
         }
       }}
@@ -31,18 +28,13 @@ export function ConfirmCancelAttemptModal(
         className="attempt-cancel-modal"
         role="dialog"
       >
-        <p className="attempt-cancel-modal__eyebrow">
-          Potwierdź decyzję
-        </p>
+        <p className="attempt-cancel-modal__eyebrow">Potwierdź decyzję</p>
 
-        <h2 id="attempt-cancel-modal-title">
-          Przerwać egzamin?
-        </h2>
+        <h2 id="attempt-cancel-modal-title">Przerwać egzamin?</h2>
 
         <p>
-          Obecne podejście zostanie zakończone. Nie
-          będzie można do niego wrócić i nie pojawi
-          się ono w historii wyników.
+          Obecne podejście zostanie zakończone. Nie będzie można do niego wrócić
+          i nie pojawi się ono w historii wyników.
         </p>
 
         <div className="attempt-cancel-modal__actions">
@@ -61,9 +53,7 @@ export function ConfirmCancelAttemptModal(
             disabled={props.isCancelling}
             onClick={props.onConfirm}
           >
-            {props.isCancelling
-              ? "Przerywanie…"
-              : "Tak, przerwij egzamin"}
+            {props.isCancelling ? "Przerywanie…" : "Tak, przerwij egzamin"}
           </button>
         </div>
       </section>

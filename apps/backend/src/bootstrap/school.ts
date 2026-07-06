@@ -3,11 +3,9 @@ import { eq } from "drizzle-orm";
 import { db } from "../db/client.js";
 import { organizations } from "../db/schema.js";
 
-const SCHOOL_ORGANIZATION_SLUG =
-  "akademia-zeglarstwa-demo";
+const SCHOOL_ORGANIZATION_SLUG = "akademia-zeglarstwa-demo";
 
-const SCHOOL_ORGANIZATION_NAME =
-  "Akademia Żeglarstwa Demo";
+const SCHOOL_ORGANIZATION_NAME = "Akademia Żeglarstwa Demo";
 
 export async function ensureSchoolOrganization(): Promise<string> {
   await db
@@ -33,18 +31,11 @@ export async function ensureSchoolOrganization(): Promise<string> {
       slug: organizations.slug,
     })
     .from(organizations)
-    .where(
-      eq(
-        organizations.slug,
-        SCHOOL_ORGANIZATION_SLUG,
-      ),
-    )
+    .where(eq(organizations.slug, SCHOOL_ORGANIZATION_SLUG))
     .limit(1);
 
   if (!organization) {
-    throw new Error(
-      "Nie udało się utworzyć organizacji szkółki.",
-    );
+    throw new Error("Nie udało się utworzyć organizacji szkółki.");
   }
 
   console.log(

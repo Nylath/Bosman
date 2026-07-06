@@ -1,18 +1,8 @@
 ﻿import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 
 import bcrypt from "bcryptjs";
-import {
-  and,
-  desc,
-  eq,
-  gt,
-  gte,
-  isNull,
-} from "drizzle-orm";
-import {
-  parseCookie,
-  stringifySetCookie,
-} from "cookie";
+import { and, desc, eq, gt, gte, isNull } from "drizzle-orm";
+import { parseCookie, stringifySetCookie } from "cookie";
 import type { Request } from "express";
 
 import { config } from "../config.js";
@@ -50,15 +40,10 @@ export type AdminLoginResult =
     };
 
 function hashValue(value: string): string {
-  return createHash("sha256")
-    .update(value, "utf8")
-    .digest("hex");
+  return createHash("sha256").update(value, "utf8").digest("hex");
 }
 
-function comparePlainSecrets(
-  firstValue: string,
-  secondValue: string,
-): boolean {
+function comparePlainSecrets(firstValue: string, secondValue: string): boolean {
   const firstHash = Buffer.from(hashValue(firstValue), "hex");
   const secondHash = Buffer.from(hashValue(secondValue), "hex");
 
@@ -87,9 +72,7 @@ async function getAdminOrganizationId(): Promise<string> {
       .limit(1);
 
     if (!organization) {
-      throw new Error(
-        'Nie znaleziono aktywnej organizacji "bosman-local".',
-      );
+      throw new Error('Nie znaleziono aktywnej organizacji "bosman-local".');
     }
 
     return organization.id;
@@ -117,15 +100,10 @@ async function verifyAdminPassword(
 ): Promise<AdminRole | null> {
   if (config.appMode === "LOCAL") {
     if (!config.adminPassword) {
-      throw new Error(
-        "W trybie LOCAL brakuje konfiguracji ADMIN_PASSWORD.",
-      );
+      throw new Error("W trybie LOCAL brakuje konfiguracji ADMIN_PASSWORD.");
     }
 
-    return comparePlainSecrets(
-      password,
-      config.adminPassword,
-    )
+    return comparePlainSecrets(password, config.adminPassword)
       ? "system"
       : null;
   }
@@ -140,21 +118,13 @@ async function verifyAdminPassword(
     return null;
   }
 
-  if (
-    await bcrypt.compare(
-      password,
-      config.adminPasswordHash,
-    )
-  ) {
+  if (await bcrypt.compare(password, config.adminPasswordHash)) {
     return "system";
   }
 
   if (
     config.schoolAdminPasswordHash &&
-    (await bcrypt.compare(
-      password,
-      config.schoolAdminPasswordHash,
-    ))
+    (await bcrypt.compare(password, config.schoolAdminPasswordHash))
   ) {
     return "school";
   }
@@ -175,8 +145,7 @@ async function isClientBlocked(input: {
   clientKeyHash: string;
 }): Promise<boolean> {
   const cutoff = new Date(
-    Date.now() -
-      config.adminLoginWindowMinutes * 60 * 1000,
+    Date.now() - config.adminLoginWindowMinutes * 60 * 1000,
   );
 
   const recentAttempts = await db
@@ -186,14 +155,8 @@ async function isClientBlocked(input: {
     .from(adminLoginAttempts)
     .where(
       and(
-        eq(
-          adminLoginAttempts.organizationId,
-          input.organizationId,
-        ),
-        eq(
-          adminLoginAttempts.clientKeyHash,
-          input.clientKeyHash,
-        ),
+        eq(adminLoginAttempts.organizationId, input.organizationId),
+        eq(adminLoginAttempts.clientKeyHash, input.clientKeyHash),
         gte(adminLoginAttempts.attemptedAt, cutoff),
       ),
     )
@@ -232,7 +195,7 @@ export async function loginAdmin(
   }
 
   const adminRole = await verifyAdminPassword(password);
-const passwordIsValid = adminRole !== null;
+  const passwordIsValid = adminRole !== null;
 
   await recordLoginAttempt({
     organizationId,
@@ -246,9 +209,7 @@ const passwordIsValid = adminRole !== null;
     };
   }
 
-  const token = `${adminRole}.${randomBytes(32).toString(
-  "base64url",
-)}`;
+  const token = `${adminRole}.${randomBytes(32).toString("base64url")}`;
 
   const expiresAt = new Date(
     Date.now() + config.adminSessionTtlHours * 60 * 60 * 1000,
@@ -278,9 +239,7 @@ function getAdminRoleFromToken(token: string): AdminRole {
   return "system";
 }
 
-function getAdminTokenFromRequest(
-  request: Request,
-): string | null {
+function getAdminTokenFromRequest(request: Request): string | null {
   const cookies = parseCookie(request.headers.cookie ?? "");
 
   return cookies[ADMIN_COOKIE_NAME] ?? null;
@@ -323,14 +282,12 @@ export async function getActiveAdminSession(
     .where(eq(adminSessions.id, session.id));
 
   return {
-  ...session,
-  role: getAdminRoleFromToken(token),
-};
+    ...session,
+    role: getAdminRoleFromToken(token),
+  };
 }
 
-export async function logoutAdmin(
-  request: Request,
-): Promise<void> {
+export async function logoutAdmin(request: Request): Promise<void> {
   const token = getAdminTokenFromRequest(request);
 
   if (!token) {
@@ -358,10 +315,7 @@ export function createAdminSessionCookie(
     sameSite: "lax",
     path: "/",
     expires: expiresAt,
-    maxAge: Math.max(
-      0,
-      Math.floor((expiresAt.getTime() - Date.now()) / 1000),
-    ),
+    maxAge: Math.max(0, Math.floor((expiresAt.getTime() - Date.now()) / 1000)),
   });
 }
 

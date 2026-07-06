@@ -57,18 +57,8 @@ export const examPackageSchema = z
       .object({
         slug: slugSchema,
         name: z.string().trim().min(1),
-        description: z
-          .string()
-          .trim()
-          .min(1)
-          .nullable()
-          .default(null),
-        tileImage: z
-          .string()
-          .trim()
-          .min(1)
-          .nullable()
-          .default(null),
+        description: z.string().trim().min(1).nullable().default(null),
+        tileImage: z.string().trim().min(1).nullable().default(null),
         durationMinutes: positiveIntegerOrNullSchema,
         questionsPerAttempt: positiveIntegerOrNullSchema,
         passingScore: positiveIntegerOrNullSchema,
@@ -104,12 +94,7 @@ export type ExamPackageValidationResult = {
   canPublish: boolean;
 };
 
-const allowedImageExtensions = new Set([
-  ".png",
-  ".jpg",
-  ".jpeg",
-  ".webp",
-]);
+const allowedImageExtensions = new Set([".png", ".jpg", ".jpeg", ".webp"]);
 
 function createReport(): ExamPackageValidationReport {
   return {
@@ -121,10 +106,7 @@ function createReport(): ExamPackageValidationReport {
 }
 
 export function normalizeArchivePath(filePath: string): string {
-  return filePath
-    .trim()
-    .replaceAll("\\", "/")
-    .replace(/\/+/g, "/");
+  return filePath.trim().replaceAll("\\", "/").replace(/\/+/g, "/");
 }
 
 function isSafeArchivePath(filePath: string): boolean {
@@ -134,20 +116,14 @@ function isSafeArchivePath(filePath: string): boolean {
     return false;
   }
 
-  if (
-    normalizedPath.startsWith("/") ||
-    /^[a-zA-Z]:\//.test(normalizedPath)
-  ) {
+  if (normalizedPath.startsWith("/") || /^[a-zA-Z]:\//.test(normalizedPath)) {
     return false;
   }
 
   return !normalizedPath.split("/").includes("..");
 }
 
-export function getArchiveFile(
-  archive: JSZip,
-  archivePath: string,
-) {
+export function getArchiveFile(archive: JSZip, archivePath: string) {
   const normalizedRequestedPath = normalizeArchivePath(archivePath);
 
   return (
@@ -175,9 +151,7 @@ function validateReferencedImage(input: {
   archive: JSZip;
   report: ExamPackageValidationReport;
 }): void {
-  const normalizedImagePath = normalizeArchivePath(
-    input.imagePath,
-  );
+  const normalizedImagePath = normalizeArchivePath(input.imagePath);
 
   if (!isSafeArchivePath(normalizedImagePath)) {
     input.report.errors.push(
@@ -193,11 +167,7 @@ function validateReferencedImage(input: {
     );
   }
 
-  if (
-    !allowedImageExtensions.has(
-      getExtension(normalizedImagePath),
-    )
-  ) {
+  if (!allowedImageExtensions.has(getExtension(normalizedImagePath))) {
     input.report.errors.push(
       `${input.label}: niedozwolony format grafiki "${input.imagePath}".`,
     );
@@ -230,18 +200,12 @@ function validateConfiguration(
   data: ExamPackage,
   report: ExamPackageValidationReport,
 ): void {
-  const {
-    durationMinutes,
-    questionsPerAttempt,
-    passingScore,
-  } = data.exam;
+  const { durationMinutes, questionsPerAttempt, passingScore } = data.exam;
 
   const { randomQuestions, categories } = data.sampling;
 
   if (durationMinutes === null) {
-    report.publicationBlockers.push(
-      "Nie ustawiono czasu trwania egzaminu.",
-    );
+    report.publicationBlockers.push("Nie ustawiono czasu trwania egzaminu.");
   }
 
   if (questionsPerAttempt === null) {
@@ -251,9 +215,7 @@ function validateConfiguration(
   }
 
   if (passingScore === null) {
-    report.publicationBlockers.push(
-      "Nie ustawiono progu zaliczenia.",
-    );
+    report.publicationBlockers.push("Nie ustawiono progu zaliczenia.");
   }
 
   if (randomQuestions === null) {
@@ -307,8 +269,7 @@ function validateConfiguration(
       );
     }
 
-    const remainingQuestions =
-      data.questions.length - minimumQuestionsTotal;
+    const remainingQuestions = data.questions.length - minimumQuestionsTotal;
 
     if (remainingQuestions < randomQuestions) {
       report.errors.push(
@@ -324,23 +285,17 @@ function validateQuestions(
   report: ExamPackageValidationReport,
 ): void {
   const categorySlugs = new Set(
-    data.sampling.categories.map(
-      (category) => category.slug,
-    ),
+    data.sampling.categories.map((category) => category.slug),
   );
 
   addDuplicateErrors(
-    data.sampling.categories.map(
-      (category) => category.slug,
-    ),
+    data.sampling.categories.map((category) => category.slug),
     "Slug działu",
     report,
   );
 
   addDuplicateErrors(
-    data.questions.map(
-      (question) => question.externalId,
-    ),
+    data.questions.map((question) => question.externalId),
     "Identyfikator pytania",
     report,
   );
@@ -361,19 +316,15 @@ function validateQuestions(
       );
     }
 
-    if (
-      question.answers.length !==
-      data.exam.answersPerQuestion
-    ) {
+    if (question.answers.length !== data.exam.answersPerQuestion) {
       report.errors.push(
         `${question.externalId}: wykryto ${question.answers.length} odpowiedzi zamiast ${data.exam.answersPerQuestion}.`,
       );
     }
 
-    const correctAnswers =
-      question.answers.filter(
-        (answer) => answer.isCorrect,
-      );
+    const correctAnswers = question.answers.filter(
+      (answer) => answer.isCorrect,
+    );
 
     if (correctAnswers.length !== 1) {
       report.errors.push(
@@ -392,11 +343,9 @@ function validateQuestions(
   }
 
   for (const category of data.sampling.categories) {
-    const questionsInCategory =
-      data.questions.filter(
-        (question) =>
-          question.categorySlug === category.slug,
-      ).length;
+    const questionsInCategory = data.questions.filter(
+      (question) => question.categorySlug === category.slug,
+    ).length;
 
     report.information.push(
       `Dział "${category.name}": ${questionsInCategory} pytań`,
@@ -404,8 +353,7 @@ function validateQuestions(
 
     if (
       category.minimumQuestions !== null &&
-      questionsInCategory <
-        category.minimumQuestions
+      questionsInCategory < category.minimumQuestions
     ) {
       report.errors.push(
         `Dział "${category.name}" zawiera ${questionsInCategory} pytań, ale wymagane minimum wynosi ${category.minimumQuestions}.`,
@@ -432,71 +380,44 @@ function addAssetInformation(
   data: ExamPackage,
   report: ExamPackageValidationReport,
 ): void {
-  const assetFiles = Object.values(
-    archive.files,
-  ).filter(
+  const assetFiles = Object.values(archive.files).filter(
     (entry) =>
-      !entry.dir &&
-      normalizeArchivePath(
-        entry.name,
-      ).startsWith("assets/"),
+      !entry.dir && normalizeArchivePath(entry.name).startsWith("assets/"),
   );
 
   const referencedAssets = new Set([
     ...(data.exam.tileImage === null
       ? []
-      : [
-          normalizeArchivePath(
-            data.exam.tileImage,
-          ),
-        ]),
+      : [normalizeArchivePath(data.exam.tileImage)]),
 
     ...data.questions
       .map((question) => question.image)
-      .filter(
-        (image): image is string =>
-          image !== null,
-      )
-      .map((image) =>
-        normalizeArchivePath(image),
-      ),
+      .filter((image): image is string => image !== null)
+      .map((image) => normalizeArchivePath(image)),
   ]);
 
-  report.information.push(
-    `Egzamin: ${data.exam.name}`,
-  );
+  report.information.push(`Egzamin: ${data.exam.name}`);
 
-  report.information.push(
-    `Działy: ${data.sampling.categories.length}`,
-  );
+  report.information.push(`Działy: ${data.sampling.categories.length}`);
 
-  report.information.push(
-    `Pytania: ${data.questions.length}`,
-  );
+  report.information.push(`Pytania: ${data.questions.length}`);
 
   report.information.push(
     `Odpowiedzi na pytanie: ${data.exam.answersPerQuestion}`,
   );
 
   report.information.push(
-    `Grafika kafelka egzaminu: ${
-      data.exam.tileImage === null
-        ? "NIE"
-        : "TAK"
-    }`,
+    `Grafika kafelka egzaminu: ${data.exam.tileImage === null ? "NIE" : "TAK"}`,
   );
 
-  report.information.push(
-    `Grafiki w ZIP-ie: ${assetFiles.length}`,
-  );
+  report.information.push(`Grafiki w ZIP-ie: ${assetFiles.length}`);
 
   report.information.push(
     `Grafiki używane przez egzamin: ${referencedAssets.size}`,
   );
 
   for (const asset of assetFiles) {
-    const normalizedAssetName =
-      normalizeArchivePath(asset.name);
+    const normalizedAssetName = normalizeArchivePath(asset.name);
 
     if (!referencedAssets.has(normalizedAssetName)) {
       report.warnings.push(
@@ -518,9 +439,7 @@ function createResult(
     data,
     report,
     canImportAsDraft,
-    canPublish:
-      canImportAsDraft &&
-      report.publicationBlockers.length === 0,
+    canPublish: canImportAsDraft && report.publicationBlockers.length === 0,
   };
 }
 
@@ -531,20 +450,18 @@ export async function validateExamPackageBuffer(
 
   let archive: JSZip;
 
-try {
-  archive = await JSZip.loadAsync(zipBuffer, {
-    checkCRC32: true,
-    createFolders: false,
-  });
-} catch {
-  archive = new JSZip();
+  try {
+    archive = await JSZip.loadAsync(zipBuffer, {
+      checkCRC32: true,
+      createFolders: false,
+    });
+  } catch {
+    archive = new JSZip();
 
-  report.errors.push(
-    "Przesłany plik nie jest poprawnym archiwum ZIP.",
-  );
+    report.errors.push("Przesłany plik nie jest poprawnym archiwum ZIP.");
 
-  return createResult(archive, null, report);
-}
+    return createResult(archive, null, report);
+  }
 
   validateArchiveEntries(archive, report);
 
@@ -561,16 +478,11 @@ try {
   let rawJson: unknown;
 
   try {
-    const jsonText = (await jsonFile.async("string")).replace(
-      /^\uFEFF/,
-      "",
-    );
+    const jsonText = (await jsonFile.async("string")).replace(/^\uFEFF/, "");
 
     rawJson = JSON.parse(jsonText);
   } catch {
-    report.errors.push(
-      'Plik "exam.json" nie zawiera poprawnego JSON-a.',
-    );
+    report.errors.push('Plik "exam.json" nie zawiera poprawnego JSON-a.');
 
     return createResult(archive, null, report);
   }
@@ -618,19 +530,11 @@ export function printExamPackageReport(
   }
 
   console.log("");
-  console.log(
-    `Import jako szkic: ${result.canImportAsDraft ? "TAK" : "NIE"}`,
-  );
-  console.log(
-    `Publikacja egzaminu: ${result.canPublish ? "TAK" : "NIE"}`,
-  );
-  console.log(
-    `Błędy blokujące import: ${result.report.errors.length}`,
-  );
+  console.log(`Import jako szkic: ${result.canImportAsDraft ? "TAK" : "NIE"}`);
+  console.log(`Publikacja egzaminu: ${result.canPublish ? "TAK" : "NIE"}`);
+  console.log(`Błędy blokujące import: ${result.report.errors.length}`);
   console.log(
     `Blokady publikacji: ${result.report.publicationBlockers.length}`,
   );
-  console.log(
-    `Pozostałe ostrzeżenia: ${result.report.warnings.length}`,
-  );
+  console.log(`Pozostałe ostrzeżenia: ${result.report.warnings.length}`);
 }

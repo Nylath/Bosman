@@ -1,7 +1,4 @@
-import {
-  selectAttemptQuestions,
-  shuffle,
-} from "./question-selection.js";
+import { selectAttemptQuestions, shuffle } from "./question-selection.js";
 
 import type { PoolClient } from "pg";
 
@@ -43,11 +40,7 @@ type AnswerSelectionRow = {
 
 type AttemptRow = {
   id: string;
-  status:
-    | "in_progress"
-    | "completed"
-    | "expired"
-    | "cancelled";
+  status: "in_progress" | "completed" | "expired" | "cancelled";
   exam_slug: string;
   exam_name: string;
   total_questions: number;
@@ -71,11 +64,7 @@ type CurrentOptionRow = {
 
 export type AttemptView = {
   id: string;
-  status:
-    | "in_progress"
-    | "completed"
-    | "expired"
-    | "cancelled";
+  status: "in_progress" | "completed" | "expired" | "cancelled";
 
   exam: {
     slug: string;
@@ -112,14 +101,11 @@ export type StartAttemptResult =
       attempt: AttemptView;
     };
 
-
 async function getLocalContext(
   client: PoolClient,
   lockParticipant: boolean,
 ): Promise<LocalContextRow> {
-  const lockSql = lockParticipant
-    ? "FOR UPDATE OF p"
-    : "";
+  const lockSql = lockParticipant ? "FOR UPDATE OF p" : "";
 
   const result = await client.query<LocalContextRow>(
     `
@@ -142,9 +128,7 @@ async function getLocalContext(
   const context = result.rows[0];
 
   if (!context) {
-    throw new Error(
-      "Nie znaleziono aktywnego lokalnego profilu użytkownika.",
-    );
+    throw new Error("Nie znaleziono aktywnego lokalnego profilu użytkownika.");
   }
 
   return context;
@@ -213,8 +197,7 @@ async function loadAttemptView(
       },
 
       totalQuestions: attempt.total_questions,
-      currentQuestionPosition:
-        attempt.current_question_position,
+      currentQuestionPosition: attempt.current_question_position,
       startedAt: attempt.started_at,
       expiresAt: attempt.expires_at,
       currentQuestion: null,
@@ -236,18 +219,13 @@ async function loadAttemptView(
         AND aq.position = $2
       LIMIT 1;
     `,
-    [
-      attempt.id,
-      attempt.current_question_position,
-    ],
+    [attempt.id, attempt.current_question_position],
   );
 
   const question = questionResult.rows[0];
 
   if (!question) {
-    throw new Error(
-      "Nie znaleziono aktualnego pytania w rozpoczętej próbie.",
-    );
+    throw new Error("Nie znaleziono aktualnego pytania w rozpoczętej próbie.");
   }
 
   const optionResult = await client.query<CurrentOptionRow>(
@@ -274,8 +252,7 @@ async function loadAttemptView(
     },
 
     totalQuestions: attempt.total_questions,
-    currentQuestionPosition:
-      attempt.current_question_position,
+    currentQuestionPosition: attempt.current_question_position,
     startedAt: attempt.started_at,
     expiresAt: attempt.expires_at,
 
@@ -289,9 +266,7 @@ async function loadAttemptView(
       imageUrl:
         question.image_path === null
           ? null
-          : assetStorage.getPublicUrl(
-              question.image_path,
-            ),
+          : assetStorage.getPublicUrl(question.image_path),
 
       answers: optionResult.rows.map((option) => ({
         id: option.id,
@@ -311,9 +286,8 @@ export async function startOrResumeLocalAttempt(
 
     const context = await getLocalContext(client, true);
 
-    const examResult =
-      await client.query<PublishedExamRow>(
-        `
+    const examResult = await client.query<PublishedExamRow>(
+      `
           SELECT
             e.id AS exam_id,
             e.slug AS exam_slug,
@@ -340,8 +314,8 @@ export async function startOrResumeLocalAttempt(
             AND e.is_active = TRUE
           LIMIT 1;
         `,
-        [context.organization_id, examSlug],
-      );
+      [context.organization_id, examSlug],
+    );
 
     const exam = examResult.rows[0];
 
@@ -383,9 +357,7 @@ export async function startOrResumeLocalAttempt(
         );
 
         if (!attempt) {
-          throw new Error(
-            "Nie udało się odczytać aktywnej próby.",
-          );
+          throw new Error("Nie udało się odczytać aktywnej próby.");
         }
 
         await client.query("COMMIT");
@@ -422,30 +394,26 @@ export async function startOrResumeLocalAttempt(
       [exam.version_id],
     );
 
-    const questionResult =
-      await client.query<QuestionSelectionRow>(
-        `
+    const questionResult = await client.query<QuestionSelectionRow>(
+      `
           SELECT
             id,
             category_id
           FROM questions
           WHERE exam_version_id = $1;
         `,
-        [exam.version_id],
-      );
+      [exam.version_id],
+    );
 
-    const selectedQuestions =
-  selectAttemptQuestions({
-    categories: categoryResult.rows,
-    questions: questionResult.rows,
-    randomQuestions: exam.random_questions,
-    questionsPerAttempt:
-      exam.questions_per_attempt,
-  });
+    const selectedQuestions = selectAttemptQuestions({
+      categories: categoryResult.rows,
+      questions: questionResult.rows,
+      randomQuestions: exam.random_questions,
+      questionsPerAttempt: exam.questions_per_attempt,
+    });
 
-    const answerResult =
-      await client.query<AnswerSelectionRow>(
-        `
+    const answerResult = await client.query<AnswerSelectionRow>(
+      `
           SELECT
             id,
             question_id,
@@ -454,28 +422,17 @@ export async function startOrResumeLocalAttempt(
           WHERE question_id = ANY($1::uuid[])
           ORDER BY question_id, position;
         `,
-        [
-          selectedQuestions.map(
-            (question) => question.id,
-          ),
-        ],
-      );
+      [selectedQuestions.map((question) => question.id)],
+    );
 
-    const answersByQuestionId = new Map<
-      string,
-      AnswerSelectionRow[]
-    >();
+    const answersByQuestionId = new Map<string, AnswerSelectionRow[]>();
 
     for (const answer of answerResult.rows) {
-      const existingAnswers =
-        answersByQuestionId.get(answer.question_id) ?? [];
+      const existingAnswers = answersByQuestionId.get(answer.question_id) ?? [];
 
       existingAnswers.push(answer);
 
-      answersByQuestionId.set(
-        answer.question_id,
-        existingAnswers,
-      );
+      answersByQuestionId.set(answer.question_id, existingAnswers);
     }
 
     const attemptResult = await client.query<{
@@ -521,9 +478,7 @@ export async function startOrResumeLocalAttempt(
     const attempt = attemptResult.rows[0];
 
     if (!attempt) {
-      throw new Error(
-        "Nie udało się utworzyć próby egzaminacyjnej.",
-      );
+      throw new Error("Nie udało się utworzyć próby egzaminacyjnej.");
     }
 
     for (
@@ -531,8 +486,7 @@ export async function startOrResumeLocalAttempt(
       questionPosition < selectedQuestions.length;
       questionPosition += 1
     ) {
-      const selectedQuestion =
-        selectedQuestions[questionPosition];
+      const selectedQuestion = selectedQuestions[questionPosition];
 
       const attemptQuestionResult = await client.query<{
         id: string;
@@ -546,29 +500,21 @@ export async function startOrResumeLocalAttempt(
           VALUES ($1, $2, $3)
           RETURNING id;
         `,
-        [
-          attempt.id,
-          selectedQuestion.id,
-          questionPosition,
-        ],
+        [attempt.id, selectedQuestion.id, questionPosition],
       );
 
-      const attemptQuestion =
-        attemptQuestionResult.rows[0];
+      const attemptQuestion = attemptQuestionResult.rows[0];
 
       if (!attemptQuestion) {
-        throw new Error(
-          "Nie udało się zapisać pytania próby.",
-        );
+        throw new Error("Nie udało się zapisać pytania próby.");
       }
 
       const questionAnswers =
         answersByQuestionId.get(selectedQuestion.id) ?? [];
 
-      for (const [
-        optionPosition,
-        answer,
-      ] of shuffle(questionAnswers).entries()) {
+      for (const [optionPosition, answer] of shuffle(
+        questionAnswers,
+      ).entries()) {
         await client.query(
           `
             INSERT INTO attempt_question_options (
@@ -578,11 +524,7 @@ export async function startOrResumeLocalAttempt(
             )
             VALUES ($1, $2, $3);
           `,
-          [
-            attemptQuestion.id,
-            answer.id,
-            optionPosition,
-          ],
+          [attemptQuestion.id, answer.id, optionPosition],
         );
       }
     }
@@ -594,9 +536,7 @@ export async function startOrResumeLocalAttempt(
     );
 
     if (!attemptView) {
-      throw new Error(
-        "Nie udało się odczytać utworzonej próby.",
-      );
+      throw new Error("Nie udało się odczytać utworzonej próby.");
     }
 
     await client.query("COMMIT");
@@ -651,16 +591,12 @@ export async function getActiveLocalAttemptForExam(
   try {
     await client.query("BEGIN");
 
-    const context = await getLocalContext(
-      client,
-      false,
-    );
+    const context = await getLocalContext(client, false);
 
-    const activeAttemptResult =
-      await client.query<{
-        id: string;
-      }>(
-        `
+    const activeAttemptResult = await client.query<{
+      id: string;
+    }>(
+      `
           SELECT
             a.id
           FROM attempts a
@@ -675,15 +611,10 @@ export async function getActiveLocalAttemptForExam(
           LIMIT 1
           FOR UPDATE OF a;
         `,
-        [
-          context.participant_id,
-          context.organization_id,
-          examSlug,
-        ],
-      );
+      [context.participant_id, context.organization_id, examSlug],
+    );
 
-    const activeAttempt =
-      activeAttemptResult.rows[0];
+    const activeAttempt = activeAttemptResult.rows[0];
 
     if (!activeAttempt) {
       await client.query("COMMIT");
@@ -699,10 +630,7 @@ export async function getActiveLocalAttemptForExam(
 
     await client.query("COMMIT");
 
-    if (
-      !attempt ||
-      attempt.status !== "in_progress"
-    ) {
+    if (!attempt || attempt.status !== "in_progress") {
       return null;
     }
 
@@ -726,9 +654,8 @@ export async function startOrResumeParticipantAttempt(input: {
   try {
     await client.query("BEGIN");
 
-    const examResult =
-      await client.query<PublishedExamRow>(
-        `
+    const examResult = await client.query<PublishedExamRow>(
+      `
           SELECT
             e.id AS exam_id,
             e.slug AS exam_slug,
@@ -770,12 +697,8 @@ export async function startOrResumeParticipantAttempt(input: {
             )
           LIMIT 1;
         `,
-        [
-          input.participantId,
-          input.organizationId,
-          input.examSlug,
-        ],
-      );
+      [input.participantId, input.organizationId, input.examSlug],
+    );
 
     const exam = examResult.rows[0];
 
@@ -803,10 +726,7 @@ export async function startOrResumeParticipantAttempt(input: {
         LIMIT 1
         FOR UPDATE;
       `,
-      [
-        input.participantId,
-        exam.exam_id,
-      ],
+      [input.participantId, exam.exam_id],
     );
 
     const activeAttempt = activeAttemptResult.rows[0];
@@ -820,9 +740,7 @@ export async function startOrResumeParticipantAttempt(input: {
         );
 
         if (!attempt) {
-          throw new Error(
-            "Nie udało się odczytać aktywnej próby.",
-          );
+          throw new Error("Nie udało się odczytać aktywnej próby.");
         }
 
         await client.query("COMMIT");
@@ -859,29 +777,25 @@ export async function startOrResumeParticipantAttempt(input: {
       [exam.version_id],
     );
 
-    const questionResult =
-      await client.query<QuestionSelectionRow>(
-        `
+    const questionResult = await client.query<QuestionSelectionRow>(
+      `
           SELECT
             id,
             category_id
           FROM questions
           WHERE exam_version_id = $1;
         `,
-        [exam.version_id],
-      );
-const selectedQuestions =
-  selectAttemptQuestions({
-    categories: categoryResult.rows,
-    questions: questionResult.rows,
-    randomQuestions: exam.random_questions,
-    questionsPerAttempt:
-      exam.questions_per_attempt,
-  });
+      [exam.version_id],
+    );
+    const selectedQuestions = selectAttemptQuestions({
+      categories: categoryResult.rows,
+      questions: questionResult.rows,
+      randomQuestions: exam.random_questions,
+      questionsPerAttempt: exam.questions_per_attempt,
+    });
 
-    const answerResult =
-      await client.query<AnswerSelectionRow>(
-        `
+    const answerResult = await client.query<AnswerSelectionRow>(
+      `
           SELECT
             id,
             question_id,
@@ -890,28 +804,17 @@ const selectedQuestions =
           WHERE question_id = ANY($1::uuid[])
           ORDER BY question_id, position;
         `,
-        [
-          selectedQuestions.map(
-            (question) => question.id,
-          ),
-        ],
-      );
+      [selectedQuestions.map((question) => question.id)],
+    );
 
-    const answersByQuestionId = new Map<
-      string,
-      AnswerSelectionRow[]
-    >();
+    const answersByQuestionId = new Map<string, AnswerSelectionRow[]>();
 
     for (const answer of answerResult.rows) {
-      const existingAnswers =
-        answersByQuestionId.get(answer.question_id) ?? [];
+      const existingAnswers = answersByQuestionId.get(answer.question_id) ?? [];
 
       existingAnswers.push(answer);
 
-      answersByQuestionId.set(
-        answer.question_id,
-        existingAnswers,
-      );
+      answersByQuestionId.set(answer.question_id, existingAnswers);
     }
 
     const attemptResult = await client.query<{
@@ -957,9 +860,7 @@ const selectedQuestions =
     const attempt = attemptResult.rows[0];
 
     if (!attempt) {
-      throw new Error(
-        "Nie udało się utworzyć próby egzaminacyjnej.",
-      );
+      throw new Error("Nie udało się utworzyć próby egzaminacyjnej.");
     }
 
     for (
@@ -967,8 +868,7 @@ const selectedQuestions =
       questionPosition < selectedQuestions.length;
       questionPosition += 1
     ) {
-      const selectedQuestion =
-        selectedQuestions[questionPosition];
+      const selectedQuestion = selectedQuestions[questionPosition];
 
       const attemptQuestionResult = await client.query<{
         id: string;
@@ -982,29 +882,21 @@ const selectedQuestions =
           VALUES ($1, $2, $3)
           RETURNING id;
         `,
-        [
-          attempt.id,
-          selectedQuestion.id,
-          questionPosition,
-        ],
+        [attempt.id, selectedQuestion.id, questionPosition],
       );
 
-      const attemptQuestion =
-        attemptQuestionResult.rows[0];
+      const attemptQuestion = attemptQuestionResult.rows[0];
 
       if (!attemptQuestion) {
-        throw new Error(
-          "Nie udało się zapisać pytania próby.",
-        );
+        throw new Error("Nie udało się zapisać pytania próby.");
       }
 
       const questionAnswers =
         answersByQuestionId.get(selectedQuestion.id) ?? [];
 
-      for (const [
-        optionPosition,
-        answer,
-      ] of shuffle(questionAnswers).entries()) {
+      for (const [optionPosition, answer] of shuffle(
+        questionAnswers,
+      ).entries()) {
         await client.query(
           `
             INSERT INTO attempt_question_options (
@@ -1014,11 +906,7 @@ const selectedQuestions =
             )
             VALUES ($1, $2, $3);
           `,
-          [
-            attemptQuestion.id,
-            answer.id,
-            optionPosition,
-          ],
+          [attemptQuestion.id, answer.id, optionPosition],
         );
       }
     }
@@ -1030,9 +918,7 @@ const selectedQuestions =
     );
 
     if (!attemptView) {
-      throw new Error(
-        "Nie udało się odczytać utworzonej próby.",
-      );
+      throw new Error("Nie udało się odczytać utworzonej próby.");
     }
 
     await client.query("COMMIT");
@@ -1088,11 +974,10 @@ export async function getActiveParticipantAttemptForExam(input: {
   try {
     await client.query("BEGIN");
 
-    const activeAttemptResult =
-      await client.query<{
-        id: string;
-      }>(
-        `
+    const activeAttemptResult = await client.query<{
+      id: string;
+    }>(
+      `
           SELECT
             a.id
           FROM attempts a
@@ -1117,15 +1002,10 @@ export async function getActiveParticipantAttemptForExam(input: {
           LIMIT 1
           FOR UPDATE OF a;
         `,
-        [
-          input.participantId,
-          input.organizationId,
-          input.examSlug,
-        ],
-      );
+      [input.participantId, input.organizationId, input.examSlug],
+    );
 
-    const activeAttempt =
-      activeAttemptResult.rows[0];
+    const activeAttempt = activeAttemptResult.rows[0];
 
     if (!activeAttempt) {
       await client.query("COMMIT");
@@ -1141,10 +1021,7 @@ export async function getActiveParticipantAttemptForExam(input: {
 
     await client.query("COMMIT");
 
-    if (
-      !attempt ||
-      attempt.status !== "in_progress"
-    ) {
+    if (!attempt || attempt.status !== "in_progress") {
       return null;
     }
 

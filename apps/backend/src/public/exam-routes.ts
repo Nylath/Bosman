@@ -8,9 +8,7 @@ import { pool } from "../db/client.js";
 
 const LOCAL_ORGANIZATION_SLUG = "bosman-local";
 
-const examSlugSchema = z
-  .string()
-  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+const examSlugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 
 type PublicExamRow = {
   id: string;
@@ -56,17 +54,13 @@ async function getLocalOrganizationId(): Promise<string> {
   const organization = result.rows[0];
 
   if (!organization) {
-    throw new Error(
-      'Nie znaleziono aktywnej organizacji "bosman-local".',
-    );
+    throw new Error('Nie znaleziono aktywnej organizacji "bosman-local".');
   }
 
   return organization.id;
 }
 
-function getTileImageUrl(
-  tileImagePath: string | null,
-): string | null {
+function getTileImageUrl(tileImagePath: string | null): string | null {
   if (!tileImagePath) {
     return null;
   }
@@ -152,54 +146,49 @@ publicExamRouter.get("/", async (_request, response, next) => {
   }
 });
 
-publicExamRouter.get(
-  "/:slug",
-  async (request, response, next) => {
-    try {
-      if (!ensureLocalMode(response)) {
-        return;
-      }
+publicExamRouter.get("/:slug", async (request, response, next) => {
+  try {
+    if (!ensureLocalMode(response)) {
+      return;
+    }
 
-      const parsedSlug = examSlugSchema.safeParse(
-        request.params.slug,
-      );
+    const parsedSlug = examSlugSchema.safeParse(request.params.slug);
 
-      if (!parsedSlug.success) {
-        response.status(400).json({
-          message: "Nieprawidłowy adres egzaminu.",
-        });
+    if (!parsedSlug.success) {
+      response.status(400).json({
+        message: "Nieprawidłowy adres egzaminu.",
+      });
 
-        return;
-      }
+      return;
+    }
 
-      const organizationId = await getLocalOrganizationId();
+    const organizationId = await getLocalOrganizationId();
 
-      const result = await pool.query<PublicExamRow>(
-        `
+    const result = await pool.query<PublicExamRow>(
+      `
           ${selectPublishedExamSql}
           WHERE e.organization_id = $1
             AND e.slug = $2
             AND e.is_active = TRUE
           LIMIT 1;
         `,
-        [organizationId, parsedSlug.data],
-      );
+      [organizationId, parsedSlug.data],
+    );
 
-      const exam = result.rows[0];
+    const exam = result.rows[0];
 
-      if (!exam) {
-        response.status(404).json({
-          message: "Nie znaleziono opublikowanego egzaminu.",
-        });
-
-        return;
-      }
-
-      response.json({
-        exam: mapExam(exam),
+    if (!exam) {
+      response.status(404).json({
+        message: "Nie znaleziono opublikowanego egzaminu.",
       });
-    } catch (error) {
-      next(error);
+
+      return;
     }
-  },
-);
+
+    response.json({
+      exam: mapExam(exam),
+    });
+  } catch (error) {
+    next(error);
+  }
+});

@@ -1,14 +1,6 @@
 import type { FormEvent } from "react";
-import {
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
-import {
-  Link,
-  useNavigate,
-  useParams,
-} from "react-router";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router";
 
 import {
   ApiError,
@@ -27,9 +19,7 @@ type EditableCategory = {
   minimumQuestions: string;
 };
 
-function translateStatus(
-  status: AdminExamVersionStatus,
-): string {
+function translateStatus(status: AdminExamVersionStatus): string {
   switch (status) {
     case "draft":
       return "Szkic";
@@ -42,9 +32,7 @@ function translateStatus(
   }
 }
 
-function toInputValue(
-  value: number | null,
-): string {
+function toInputValue(value: number | null): string {
   return value === null ? "" : String(value);
 }
 
@@ -61,10 +49,7 @@ function parseNullableInteger(
 
   const parsedValue = Number(trimmedValue);
 
-  if (
-    !Number.isInteger(parsedValue) ||
-    parsedValue < minimumValue
-  ) {
+  if (!Number.isInteger(parsedValue) || parsedValue < minimumValue) {
     throw new Error(
       `${label}: wpisz liczbę całkowitą nie mniejszą niż ${minimumValue}.`,
     );
@@ -113,10 +98,7 @@ function ArrowRightIcon() {
 
 function SettingsIcon() {
   return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-    >
+    <svg aria-hidden="true" viewBox="0 0 24 24">
       <path
         d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm7-3.5 2-1-2-3-2.2.6a7.8 7.8 0 0 0-1.4-.8L15 4.5h-6l-.4 2.3c-.5.2-1 .5-1.4.8L5 7l-2 3 2 1v2l-2 1 2 3 2.2-.6c.4.3.9.6 1.4.8L9 19.5h6l.4-2.3c.5-.2 1-.5 1.4-.8L19 17l2-3-2-1v-1Z"
         fill="none"
@@ -131,10 +113,7 @@ function SettingsIcon() {
 
 function CategoriesIcon() {
   return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-    >
+    <svg aria-hidden="true" viewBox="0 0 24 24">
       <path
         d="M5 6h14M5 12h14M5 18h14M3 6h.01M3 12h.01M3 18h.01"
         fill="none"
@@ -148,10 +127,7 @@ function CategoriesIcon() {
 
 function CheckIcon() {
   return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-    >
+    <svg aria-hidden="true" viewBox="0 0 24 24">
       <path
         d="m5 12 4.5 4.5L19 7"
         fill="none"
@@ -166,10 +142,7 @@ function CheckIcon() {
 
 function PublishIcon() {
   return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-    >
+    <svg aria-hidden="true" viewBox="0 0 24 24">
       <path
         d="M12 16V4m0 0L8 8m4-4 4 4M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"
         fill="none"
@@ -186,145 +159,108 @@ export function AdminExamVersionPage() {
   const { versionId } = useParams();
   const navigate = useNavigate();
 
-  const [version, setVersion] =
-    useState<AdminExamVersionDetails | null>(null);
+  const [version, setVersion] = useState<AdminExamVersionDetails | null>(null);
 
-  const [durationMinutes, setDurationMinutes] =
-    useState("");
+  const [durationMinutes, setDurationMinutes] = useState("");
 
-  const [
-    questionsPerAttempt,
-    setQuestionsPerAttempt,
-  ] = useState("");
+  const [questionsPerAttempt, setQuestionsPerAttempt] = useState("");
 
-  const [passingScore, setPassingScore] =
-    useState("");
+  const [passingScore, setPassingScore] = useState("");
 
-  const [randomQuestions, setRandomQuestions] =
-    useState("");
+  const [randomQuestions, setRandomQuestions] = useState("");
 
-  const [categories, setCategories] = useState<
-    EditableCategory[]
-  >([]);
+  const [categories, setCategories] = useState<EditableCategory[]>([]);
 
-  const [isLoading, setIsLoading] =
-    useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [isSaving, setIsSaving] =
-    useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const [isPublishing, setIsPublishing] =
-    useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
 
-  const [message, setMessage] =
-    useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
 
-  const [error, setError] =
-    useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const applyVersion = useCallback(
-  (
-    loadedVersion: AdminExamVersionDetails,
-  ): void => {
-    setVersion(loadedVersion);
+    (loadedVersion: AdminExamVersionDetails): void => {
+      setVersion(loadedVersion);
 
-    setDurationMinutes(
-      toInputValue(loadedVersion.durationMinutes),
-    );
+      setDurationMinutes(toInputValue(loadedVersion.durationMinutes));
 
-    setQuestionsPerAttempt(
-      toInputValue(
-        loadedVersion.questionsPerAttempt,
-      ),
-    );
+      setQuestionsPerAttempt(toInputValue(loadedVersion.questionsPerAttempt));
 
-    setPassingScore(
-      toInputValue(loadedVersion.passingScore),
-    );
+      setPassingScore(toInputValue(loadedVersion.passingScore));
 
-    setRandomQuestions(
-      toInputValue(loadedVersion.randomQuestions),
-    );
+      setRandomQuestions(toInputValue(loadedVersion.randomQuestions));
 
-    setCategories(
-      loadedVersion.categories.map((category) => ({
-        id: category.id,
-        slug: category.slug,
-        name: category.name,
-        questionCount: category.questionCount,
-        minimumQuestions: toInputValue(
-          category.minimumQuestions,
-        ),
-      })),
-    );
-  },
-  [],
-);
+      setCategories(
+        loadedVersion.categories.map((category) => ({
+          id: category.id,
+          slug: category.slug,
+          name: category.name,
+          questionCount: category.questionCount,
+          minimumQuestions: toInputValue(category.minimumQuestions),
+        })),
+      );
+    },
+    [],
+  );
 
   const handleUnauthorized = useCallback(
-  (caughtError: unknown): boolean => {
-    if (
-      caughtError instanceof ApiError &&
-      caughtError.status === 401
-    ) {
-      void navigate("/admin/logowanie", {
-        replace: true,
-      });
+    (caughtError: unknown): boolean => {
+      if (caughtError instanceof ApiError && caughtError.status === 401) {
+        void navigate("/admin/logowanie", {
+          replace: true,
+        });
 
-      return true;
-    }
+        return true;
+      }
 
-    return false;
-  },
-  [navigate],
-);
+      return false;
+    },
+    [navigate],
+  );
 
   useEffect(() => {
-  if (!versionId) {
-    return;
-  }
+    if (!versionId) {
+      return;
+    }
 
-  let requestIsActive = true;
+    let requestIsActive = true;
 
-  void getAdminExamVersion(versionId)
-    .then((loadedVersion) => {
-      if (requestIsActive) {
-        applyVersion(loadedVersion);
-      }
-    })
-    .catch((caughtError: unknown) => {
-      if (!requestIsActive) {
-        return;
-      }
+    void getAdminExamVersion(versionId)
+      .then((loadedVersion) => {
+        if (requestIsActive) {
+          applyVersion(loadedVersion);
+        }
+      })
+      .catch((caughtError: unknown) => {
+        if (!requestIsActive) {
+          return;
+        }
 
-      if (handleUnauthorized(caughtError)) {
-        return;
-      }
+        if (handleUnauthorized(caughtError)) {
+          return;
+        }
 
-      setError(
-        caughtError instanceof Error
-          ? caughtError.message
-          : "Nie udało się pobrać wersji.",
-      );
-    })
-    .finally(() => {
-      if (requestIsActive) {
-        setIsLoading(false);
-      }
-    });
+        setError(
+          caughtError instanceof Error
+            ? caughtError.message
+            : "Nie udało się pobrać wersji.",
+        );
+      })
+      .finally(() => {
+        if (requestIsActive) {
+          setIsLoading(false);
+        }
+      });
 
-  return () => {
-    requestIsActive = false;
-  };
-}, [
-  applyVersion,
-  handleUnauthorized,
-  versionId,
-]);
+    return () => {
+      requestIsActive = false;
+    };
+  }, [applyVersion, handleUnauthorized, versionId]);
 
-  async function handleSave(
-    event: FormEvent<HTMLFormElement>,
-  ): Promise<void> {
+  async function handleSave(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
 
     if (!versionId) {
@@ -336,49 +272,44 @@ export function AdminExamVersionPage() {
     setIsSaving(true);
 
     try {
-      const updatedVersion =
-        await updateAdminExamVersionConfiguration(
-          versionId,
-          {
-            durationMinutes: parseNullableInteger(
-              durationMinutes,
-              "Czas trwania",
-              1,
-            ),
+      const updatedVersion = await updateAdminExamVersionConfiguration(
+        versionId,
+        {
+          durationMinutes: parseNullableInteger(
+            durationMinutes,
+            "Czas trwania",
+            1,
+          ),
 
-            questionsPerAttempt:
-              parseNullableInteger(
-                questionsPerAttempt,
-                "Liczba pytań w próbie",
-                1,
-              ),
+          questionsPerAttempt: parseNullableInteger(
+            questionsPerAttempt,
+            "Liczba pytań w próbie",
+            1,
+          ),
 
-            passingScore: parseNullableInteger(
-              passingScore,
-              "Próg zaliczenia",
-              1,
-            ),
+          passingScore: parseNullableInteger(
+            passingScore,
+            "Próg zaliczenia",
+            1,
+          ),
 
-            randomQuestions: parseNullableInteger(
-              randomQuestions,
-              "Dodatkowe pytania losowe",
+          randomQuestions: parseNullableInteger(
+            randomQuestions,
+            "Dodatkowe pytania losowe",
+            0,
+          ),
+
+          categories: categories.map((category) => ({
+            id: category.id,
+
+            minimumQuestions: parseNullableInteger(
+              category.minimumQuestions,
+              `Minimum działu „${category.name}”`,
               0,
             ),
-
-            categories: categories.map(
-              (category) => ({
-                id: category.id,
-
-                minimumQuestions:
-                  parseNullableInteger(
-                    category.minimumQuestions,
-                    `Minimum działu „${category.name}”`,
-                    0,
-                  ),
-              }),
-            ),
-          },
-        );
+          })),
+        },
+      );
 
       applyVersion(updatedVersion);
 
@@ -408,8 +339,7 @@ export function AdminExamVersionPage() {
     setIsPublishing(true);
 
     try {
-      const publishedVersion =
-        await publishAdminExamVersion(versionId);
+      const publishedVersion = await publishAdminExamVersion(versionId);
 
       applyVersion(publishedVersion);
 
@@ -432,32 +362,27 @@ export function AdminExamVersionPage() {
   }
 
   if (!versionId) {
-  return (
-    <main className="nautical-page admin-nautical-page">
-      <p className="home-logo">Bosman</p>
+    return (
+      <main className="nautical-page admin-nautical-page">
+        <p className="home-logo">Bosman</p>
 
-      <Link
-        className="nautical-back-link"
-        to="/admin"
-      >
-        <ArrowLeftIcon />
+        <Link className="nautical-back-link" to="/admin">
+          <ArrowLeftIcon />
 
-        <span>Wróć do panelu administratora</span>
-      </Link>
+          <span>Wróć do panelu administratora</span>
+        </Link>
 
-      <p className="home-message home-message--error">
-        Brakuje identyfikatora wersji egzaminu.
-      </p>
-    </main>
-  );
-}
+        <p className="home-message home-message--error">
+          Brakuje identyfikatora wersji egzaminu.
+        </p>
+      </main>
+    );
+  }
 
   if (isLoading) {
     return (
       <main className="nautical-page admin-nautical-page">
-        <p className="home-message">
-          Ładowanie konfiguracji…
-        </p>
+        <p className="home-message">Ładowanie konfiguracji…</p>
       </main>
     );
   }
@@ -465,9 +390,7 @@ export function AdminExamVersionPage() {
   if (error && !version) {
     return (
       <main className="nautical-page admin-nautical-page">
-        <p className="home-message home-message--error">
-          {error}
-        </p>
+        <p className="home-message home-message--error">{error}</p>
 
         <Link className="nautical-back-link" to="/admin">
           <ArrowLeftIcon />
@@ -498,16 +421,12 @@ export function AdminExamVersionPage() {
       </Link>
 
       <header className="admin-version-header">
-        <p className="admin-nautical-eyebrow">
-          Konfiguracja wersji
-        </p>
+        <p className="admin-nautical-eyebrow">Konfiguracja wersji</p>
 
         <h1>{version.exam.name}</h1>
 
         <div className="admin-version-header__meta">
-          <span>
-            Wersja {version.versionNumber}
-          </span>
+          <span>Wersja {version.versionNumber}</span>
 
           <span
             className={`admin-version-status admin-version-status--${version.status}`}
@@ -518,22 +437,15 @@ export function AdminExamVersionPage() {
       </header>
 
       {message && (
-        <p className="home-message admin-version-message--success">
-          {message}
-        </p>
+        <p className="home-message admin-version-message--success">{message}</p>
       )}
 
-      {error && (
-        <p className="home-message home-message--error">
-          {error}
-        </p>
-      )}
+      {error && <p className="home-message home-message--error">{error}</p>}
 
       {!isEditable && (
         <p className="home-message">
-          Ta wersja nie jest już edytowalna. Zmiany
-          wprowadź przez ponowny import paczki ZIP
-          jako nowy szkic.
+          Ta wersja nie jest już edytowalna. Zmiany wprowadź przez ponowny
+          import paczki ZIP jako nowy szkic.
         </p>
       )}
 
@@ -550,9 +462,7 @@ export function AdminExamVersionPage() {
             </div>
 
             <div>
-              <p className="admin-nautical-eyebrow">
-                Ustawienia egzaminu
-              </p>
+              <p className="admin-nautical-eyebrow">Ustawienia egzaminu</p>
 
               <h2>Podstawowe parametry</h2>
             </div>
@@ -568,9 +478,7 @@ export function AdminExamVersionPage() {
                 value={durationMinutes}
                 disabled={!isEditable || isSaving}
                 onChange={(event) => {
-                  setDurationMinutes(
-                    event.target.value,
-                  );
+                  setDurationMinutes(event.target.value);
                 }}
               />
             </label>
@@ -584,9 +492,7 @@ export function AdminExamVersionPage() {
                 value={questionsPerAttempt}
                 disabled={!isEditable || isSaving}
                 onChange={(event) => {
-                  setQuestionsPerAttempt(
-                    event.target.value,
-                  );
+                  setQuestionsPerAttempt(event.target.value);
                 }}
               />
             </label>
@@ -600,9 +506,7 @@ export function AdminExamVersionPage() {
                 value={passingScore}
                 disabled={!isEditable || isSaving}
                 onChange={(event) => {
-                  setPassingScore(
-                    event.target.value,
-                  );
+                  setPassingScore(event.target.value);
                 }}
               />
             </label>
@@ -616,9 +520,7 @@ export function AdminExamVersionPage() {
                 value={randomQuestions}
                 disabled={!isEditable || isSaving}
                 onChange={(event) => {
-                  setRandomQuestions(
-                    event.target.value,
-                  );
+                  setRandomQuestions(event.target.value);
                 }}
               />
             </label>
@@ -632,29 +534,19 @@ export function AdminExamVersionPage() {
             </div>
 
             <div>
-              <p className="admin-nautical-eyebrow">
-                Reguły losowania
-              </p>
+              <p className="admin-nautical-eyebrow">Reguły losowania</p>
 
-              <h2>
-                Minimalna liczba pytań z działów
-              </h2>
+              <h2>Minimalna liczba pytań z działów</h2>
             </div>
           </div>
 
           <div className="admin-version-category-list">
             {categories.map((category) => (
-              <label
-                className="admin-version-category-row"
-                key={category.id}
-              >
+              <label className="admin-version-category-row" key={category.id}>
                 <span>
                   <strong>{category.name}</strong>
 
-                  <small>
-                    Dostępne pytania:{" "}
-                    {category.questionCount}
-                  </small>
+                  <small>Dostępne pytania: {category.questionCount}</small>
                 </span>
 
                 <input
@@ -663,22 +555,17 @@ export function AdminExamVersionPage() {
                   value={category.minimumQuestions}
                   disabled={!isEditable || isSaving}
                   onChange={(event) => {
-                    const newValue =
-                      event.target.value;
+                    const newValue = event.target.value;
 
-                    setCategories(
-                      (currentCategories) =>
-                        currentCategories.map(
-                          (currentCategory) =>
-                            currentCategory.id ===
-                            category.id
-                              ? {
-                                  ...currentCategory,
-                                  minimumQuestions:
-                                    newValue,
-                                }
-                              : currentCategory,
-                        ),
+                    setCategories((currentCategories) =>
+                      currentCategories.map((currentCategory) =>
+                        currentCategory.id === category.id
+                          ? {
+                              ...currentCategory,
+                              minimumQuestions: newValue,
+                            }
+                          : currentCategory,
+                      ),
                     );
                   }}
                 />
@@ -694,11 +581,7 @@ export function AdminExamVersionPage() {
               type="submit"
               disabled={isSaving || isPublishing}
             >
-              <span>
-                {isSaving
-                  ? "Zapisywanie…"
-                  : "Zapisz konfigurację"}
-              </span>
+              <span>{isSaving ? "Zapisywanie…" : "Zapisz konfigurację"}</span>
 
               <ArrowRightIcon />
             </button>
@@ -713,9 +596,7 @@ export function AdminExamVersionPage() {
           </div>
 
           <div>
-            <p className="admin-nautical-eyebrow">
-              Kontrola jakości
-            </p>
+            <p className="admin-nautical-eyebrow">Kontrola jakości</p>
 
             <h2>Gotowość do publikacji</h2>
           </div>
@@ -725,34 +606,19 @@ export function AdminExamVersionPage() {
           <div>
             <dt>Działy</dt>
 
-            <dd>
-              {
-                version.publication.statistics
-                  .categories
-              }
-            </dd>
+            <dd>{version.publication.statistics.categories}</dd>
           </div>
 
           <div>
             <dt>Pytania</dt>
 
-            <dd>
-              {
-                version.publication.statistics
-                  .questions
-              }
-            </dd>
+            <dd>{version.publication.statistics.questions}</dd>
           </div>
 
           <div>
             <dt>Nieprawidłowe pytania</dt>
 
-            <dd>
-              {
-                version.publication.statistics
-                  .invalidQuestions
-              }
-            </dd>
+            <dd>{version.publication.statistics.invalidQuestions}</dd>
           </div>
         </dl>
 
@@ -761,11 +627,9 @@ export function AdminExamVersionPage() {
             <h3>Blokady publikacji</h3>
 
             <ul>
-              {version.publication.blockers.map(
-                (blocker) => (
-                  <li key={blocker}>{blocker}</li>
-                ),
-              )}
+              {version.publication.blockers.map((blocker) => (
+                <li key={blocker}>{blocker}</li>
+              ))}
             </ul>
           </section>
         ) : (
@@ -774,9 +638,7 @@ export function AdminExamVersionPage() {
               <CheckIcon />
             </div>
 
-            <span>
-              Wersja spełnia warunki publikacji.
-            </span>
+            <span>Wersja spełnia warunki publikacji.</span>
           </div>
         )}
 
@@ -785,19 +647,13 @@ export function AdminExamVersionPage() {
             className="admin-nautical-button admin-version-publish-button"
             type="button"
             disabled={
-              !version.publication.canPublish ||
-              isSaving ||
-              isPublishing
+              !version.publication.canPublish || isSaving || isPublishing
             }
             onClick={() => {
               void handlePublish();
             }}
           >
-            <span>
-              {isPublishing
-                ? "Publikowanie…"
-                : "Opublikuj wersję"}
-            </span>
+            <span>{isPublishing ? "Publikowanie…" : "Opublikuj wersję"}</span>
 
             <PublishIcon />
           </button>

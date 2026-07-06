@@ -1,8 +1,4 @@
-﻿import type {
-  NextFunction,
-  Request,
-  Response,
-} from "express";
+﻿import type { NextFunction, Request, Response } from "express";
 import express from "express";
 
 import { fileURLToPath } from "node:url";
@@ -27,19 +23,14 @@ const frontendDistDirectory = fileURLToPath(
 );
 
 const frontendIndexFile = fileURLToPath(
-  new URL(
-    "../../frontend/dist/index.html",
-    import.meta.url,
-  ),
+  new URL("../../frontend/dist/index.html", import.meta.url),
 );
 
 type JsonParseError = SyntaxError & {
   type?: string;
 };
 
-function isJsonParseError(
-  error: unknown,
-): error is JsonParseError {
+function isJsonParseError(error: unknown): error is JsonParseError {
   return (
     error instanceof SyntaxError &&
     "type" in error &&
@@ -64,9 +55,7 @@ app.get("/health", async (_request, response) => {
     const result = await pool.query<{
       database: string;
       user_name: string;
-    }>(
-      "SELECT current_database() AS database, current_user AS user_name;",
-    );
+    }>("SELECT current_database() AS database, current_user AS user_name;");
 
     response.json({
       status: "ok",
@@ -129,19 +118,13 @@ app.use("/assets", (_request, response) => {
   response.status(404).end();
 });
 
-app.get(
-  "/{*splat}",
-  (_request, response, next) => {
-    response.sendFile(
-      frontendIndexFile,
-      (error) => {
-        if (error) {
-          next(error);
-        }
-      },
-    );
-  },
-);
+app.get("/{*splat}", (_request, response, next) => {
+  response.sendFile(frontendIndexFile, (error) => {
+    if (error) {
+      next(error);
+    }
+  });
+});
 
 app.use(
   (
@@ -170,30 +153,17 @@ async function start(): Promise<void> {
   await pool.query("SELECT 1;");
   await bootstrapApplication();
 
-  app.listen(
-    config.port,
-    "0.0.0.0",
-    () => {
-      console.log(
-        `Bosman działa na porcie ${config.port}`,
-      );
+  app.listen(config.port, "0.0.0.0", () => {
+    console.log(`Bosman działa na porcie ${config.port}`);
 
-      console.log(
-        `Tryb aplikacji: ${config.appMode}`,
-      );
+    console.log(`Tryb aplikacji: ${config.appMode}`);
 
-      console.log(
-        "Połączenie z PostgreSQL działa poprawnie.",
-      );
-    },
-  );
+    console.log("Połączenie z PostgreSQL działa poprawnie.");
+  });
 }
 
 void start().catch((error: unknown) => {
-  console.error(
-    "Nie udało się uruchomić backendu:",
-    error,
-  );
+  console.error("Nie udało się uruchomić backendu:", error);
 
   process.exit(1);
 });

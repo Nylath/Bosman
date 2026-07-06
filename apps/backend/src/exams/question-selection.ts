@@ -10,34 +10,22 @@ export type SelectionQuestion = {
   category_id: string;
 };
 
-type RandomIndexGenerator = (
-  maximumExclusive: number,
-) => number;
+type RandomIndexGenerator = (maximumExclusive: number) => number;
 
-function createCryptoRandomIndex(
-  maximumExclusive: number,
-): number {
+function createCryptoRandomIndex(maximumExclusive: number): number {
   return randomInt(maximumExclusive);
 }
 
 export function shuffle<T>(
   values: readonly T[],
-  randomIndex: RandomIndexGenerator =
-    createCryptoRandomIndex,
+  randomIndex: RandomIndexGenerator = createCryptoRandomIndex,
 ): T[] {
   const result = [...values];
 
-  for (
-    let index = result.length - 1;
-    index > 0;
-    index -= 1
-  ) {
+  for (let index = result.length - 1; index > 0; index -= 1) {
     const selectedIndex = randomIndex(index + 1);
 
-    [
-      result[index],
-      result[selectedIndex],
-    ] = [
+    [result[index], result[selectedIndex]] = [
       result[selectedIndex],
       result[index],
     ];
@@ -57,10 +45,7 @@ export function pickRandom<T>(
     );
   }
 
-  return shuffle(values, randomIndex).slice(
-    0,
-    count,
-  );
+  return shuffle(values, randomIndex).slice(0, count);
 }
 
 export function selectAttemptQuestions(input: {
@@ -70,11 +55,9 @@ export function selectAttemptQuestions(input: {
   questionsPerAttempt: number;
   randomIndex?: RandomIndexGenerator;
 }): SelectionQuestion[] {
-  const selectedQuestionIds =
-    new Set<string>();
+  const selectedQuestionIds = new Set<string>();
 
-  const minimumQuestions: SelectionQuestion[] =
-    [];
+  const minimumQuestions: SelectionQuestion[] = [];
 
   for (const category of input.categories) {
     const categoryPool = input.questions.filter(
@@ -96,8 +79,7 @@ export function selectAttemptQuestions(input: {
   }
 
   const remainingPool = input.questions.filter(
-    (question) =>
-      !selectedQuestionIds.has(question.id),
+    (question) => !selectedQuestionIds.has(question.id),
   );
 
   const additionalQuestions = pickRandom(
@@ -107,17 +89,11 @@ export function selectAttemptQuestions(input: {
   );
 
   const selectedQuestions = shuffle(
-    [
-      ...minimumQuestions,
-      ...additionalQuestions,
-    ],
+    [...minimumQuestions, ...additionalQuestions],
     input.randomIndex,
   );
 
-  if (
-    selectedQuestions.length !==
-    input.questionsPerAttempt
-  ) {
+  if (selectedQuestions.length !== input.questionsPerAttempt) {
     throw new Error(
       "Wylosowana liczba pytań nie odpowiada konfiguracji egzaminu.",
     );

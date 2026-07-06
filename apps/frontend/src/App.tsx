@@ -19,50 +19,23 @@ export default function App() {
     <Routes>
       <Route path="/" element={<HomePage />} />
 
-      <Route
-        path="/historia"
-        element={<HistoryPage />}
-      />
+      <Route path="/historia" element={<HistoryPage />} />
 
-      <Route
-  path="/dostep"
-  element={<ParticipantLoginPage />}
-/>
+      <Route path="/dostep" element={<ParticipantLoginPage />} />
 
-      <Route
-        path="/egzaminy/:slug"
-        element={<ExamStartPage />}
-      />
+      <Route path="/egzaminy/:slug" element={<ExamStartPage />} />
 
-      <Route
-        path="/proby/:attemptId"
-        element={<AttemptPage />}
-      />
+      <Route path="/proby/:attemptId" element={<AttemptPage />} />
 
-      <Route
-        path="/proby/:attemptId/wynik"
-        element={<AttemptResultPage />}
-      />
+      <Route path="/proby/:attemptId/wynik" element={<AttemptResultPage />} />
 
-      <Route
-        path="/proby/:attemptId/bledy"
-        element={<AttemptMistakesPage />}
-      />
+      <Route path="/proby/:attemptId/bledy" element={<AttemptMistakesPage />} />
 
-      <Route
-        path="/admin/logowanie"
-        element={<AdminLoginPage />}
-      />
+      <Route path="/admin/logowanie" element={<AdminLoginPage />} />
 
-      <Route
-        path="/admin"
-        element={<AdminDashboardPage />}
-      />
+      <Route path="/admin" element={<AdminDashboardPage />} />
 
-      <Route
-  path="/admin/uczestnicy"
-  element={<AdminParticipantsPage />}
-/>
+      <Route path="/admin/uczestnicy" element={<AdminParticipantsPage />} />
 
       <Route
         path="/admin/egzaminy/:examId/wersje"

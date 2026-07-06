@@ -27,36 +27,27 @@ const updateExamAccessSchema = z
   })
   .strict();
 
-const accessCodeAlphabet =
-  "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const accessCodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
 function getOrganizationId(response: Response): string {
-  const organizationId =
-    response.locals.adminSession?.organizationId;
+  const organizationId = response.locals.adminSession?.organizationId;
 
   if (typeof organizationId !== "string") {
-    throw new Error(
-      "Nie znaleziono organizacji w sesji administratora.",
-    );
+    throw new Error("Nie znaleziono organizacji w sesji administratora.");
   }
 
   return organizationId;
 }
 
 function hashAccessCode(code: string): string {
-  return createHash("sha256")
-    .update(code.trim().toUpperCase())
-    .digest("hex");
+  return createHash("sha256").update(code.trim().toUpperCase()).digest("hex");
 }
 
 function generateAccessCodeSegment(length: number): string {
   let segment = "";
 
   for (let index = 0; index < length; index += 1) {
-    segment +=
-      accessCodeAlphabet[
-        randomInt(0, accessCodeAlphabet.length)
-      ];
+    segment += accessCodeAlphabet[randomInt(0, accessCodeAlphabet.length)];
   }
 
   return segment;
@@ -90,10 +81,7 @@ async function createUniqueAccessCode(
         DO NOTHING
         RETURNING id;
       `,
-      [
-        participantId,
-        codeHash,
-      ],
+      [participantId, codeHash],
     );
 
     if (result.rows[0]) {
@@ -101,14 +89,10 @@ async function createUniqueAccessCode(
     }
   }
 
-  throw new Error(
-    "Nie udało się wygenerować unikalnego kodu dostępu.",
-  );
+  throw new Error("Nie udało się wygenerować unikalnego kodu dostępu.");
 }
 
-function parseOptionalDate(
-  value: string | null | undefined,
-): Date | null {
+function parseOptionalDate(value: string | null | undefined): Date | null {
   if (value === undefined || value === null) {
     return null;
   }
@@ -188,8 +172,7 @@ adminParticipantRouter.post(
     try {
       const organizationId = getOrganizationId(response);
 
-      const parsedBody =
-        createParticipantSchema.safeParse(request.body);
+      const parsedBody = createParticipantSchema.safeParse(request.body);
 
       if (!parsedBody.success) {
         response.status(400).json({
@@ -211,16 +194,12 @@ adminParticipantRouter.post(
             AND LOWER(label) = LOWER($2)
           LIMIT 1;
         `,
-        [
-          organizationId,
-          parsedBody.data.label,
-        ],
+        [organizationId, parsedBody.data.label],
       );
 
       if (existingParticipant.rows[0]) {
         response.status(409).json({
-          message:
-            "Uczestnik o takiej nazwie już istnieje.",
+          message: "Uczestnik o takiej nazwie już istnieje.",
         });
 
         return;
@@ -257,24 +236,16 @@ adminParticipantRouter.post(
               created_at AS "createdAt",
               updated_at AS "updatedAt";
           `,
-          [
-            organizationId,
-            parsedBody.data.label,
-          ],
+          [organizationId, parsedBody.data.label],
         );
 
         const participant = participantResult.rows[0];
 
         if (!participant) {
-          throw new Error(
-            "Nie udało się utworzyć uczestnika.",
-          );
+          throw new Error("Nie udało się utworzyć uczestnika.");
         }
 
-        const code = await createUniqueAccessCode(
-  client,
-  participant.id,
-);
+        const code = await createUniqueAccessCode(client, participant.id);
 
         await client.query("COMMIT");
 
@@ -343,23 +314,19 @@ adminParticipantRouter.put(
     try {
       const organizationId = getOrganizationId(response);
 
-      const parsedParticipantId =
-        participantIdSchema.safeParse(
-          request.params.participantId,
-        );
+      const parsedParticipantId = participantIdSchema.safeParse(
+        request.params.participantId,
+      );
 
       if (!parsedParticipantId.success) {
         response.status(400).json({
-          message:
-            "Nieprawidłowy identyfikator uczestnika.",
+          message: "Nieprawidłowy identyfikator uczestnika.",
         });
 
         return;
       }
 
-      const parsedExamId = examIdSchema.safeParse(
-        request.params.examId,
-      );
+      const parsedExamId = examIdSchema.safeParse(request.params.examId);
 
       if (!parsedExamId.success) {
         response.status(400).json({
@@ -369,13 +336,11 @@ adminParticipantRouter.put(
         return;
       }
 
-      const parsedBody =
-        updateExamAccessSchema.safeParse(request.body);
+      const parsedBody = updateExamAccessSchema.safeParse(request.body);
 
       if (!parsedBody.success) {
         response.status(400).json({
-          message:
-            "Nieprawidłowe dane dostępu do egzaminu.",
+          message: "Nieprawidłowe dane dostępu do egzaminu.",
           errors: parsedBody.error.issues,
         });
 
@@ -393,10 +358,7 @@ adminParticipantRouter.put(
             AND kind = 'course'
           LIMIT 1;
         `,
-        [
-          parsedParticipantId.data,
-          organizationId,
-        ],
+        [parsedParticipantId.data, organizationId],
       );
 
       if (!participantResult.rows[0]) {
@@ -418,10 +380,7 @@ adminParticipantRouter.put(
             AND is_active = TRUE
           LIMIT 1;
         `,
-        [
-          parsedExamId.data,
-          organizationId,
-        ],
+        [parsedExamId.data, organizationId],
       );
 
       if (!examResult.rows[0]) {
@@ -433,29 +392,19 @@ adminParticipantRouter.put(
       }
 
       const validFrom =
-        parseOptionalDate(parsedBody.data.validFrom) ??
-        new Date();
+        parseOptionalDate(parsedBody.data.validFrom) ?? new Date();
 
-      const validUntil = parseOptionalDate(
-        parsedBody.data.validUntil,
-      );
+      const validUntil = parseOptionalDate(parsedBody.data.validUntil);
 
-      if (
-        parsedBody.data.validUntil &&
-        validUntil === null
-      ) {
+      if (parsedBody.data.validUntil && validUntil === null) {
         response.status(400).json({
-          message:
-            "Nieprawidłowa data ważności dostępu.",
+          message: "Nieprawidłowa data ważności dostępu.",
         });
 
         return;
       }
 
-      if (
-        validUntil &&
-        validUntil.getTime() < validFrom.getTime()
-      ) {
+      if (validUntil && validUntil.getTime() < validFrom.getTime()) {
         response.status(400).json({
           message:
             "Data końca dostępu nie może być wcześniejsza niż data początku.",
@@ -464,8 +413,7 @@ adminParticipantRouter.put(
         return;
       }
 
-      const isActive =
-        parsedBody.data.isActive ?? true;
+      const isActive = parsedBody.data.isActive ?? true;
 
       const accessResult = await pool.query(
         `
@@ -544,15 +492,13 @@ adminParticipantRouter.delete(
     try {
       const organizationId = getOrganizationId(response);
 
-      const parsedParticipantId =
-        participantIdSchema.safeParse(
-          request.params.participantId,
-        );
+      const parsedParticipantId = participantIdSchema.safeParse(
+        request.params.participantId,
+      );
 
       if (!parsedParticipantId.success) {
         response.status(400).json({
-          message:
-            "Nieprawidłowy identyfikator uczestnika.",
+          message: "Nieprawidłowy identyfikator uczestnika.",
         });
 
         return;
@@ -576,10 +522,7 @@ adminParticipantRouter.delete(
           LIMIT 1
           FOR UPDATE;
         `,
-        [
-          parsedParticipantId.data,
-          organizationId,
-        ],
+        [parsedParticipantId.data, organizationId],
       );
 
       const participant = participantResult.rows[0];
@@ -598,8 +541,7 @@ adminParticipantRouter.delete(
         await client.query("ROLLBACK");
 
         response.status(403).json({
-          message:
-            "Nie można trwale usunąć lokalnego profilu systemowego.",
+          message: "Nie można trwale usunąć lokalnego profilu systemowego.",
         });
 
         return;
@@ -620,10 +562,7 @@ adminParticipantRouter.delete(
             AND organization_id = $2
             AND kind = 'course';
         `,
-        [
-          participant.id,
-          organizationId,
-        ],
+        [participant.id, organizationId],
       );
 
       await client.query("COMMIT");

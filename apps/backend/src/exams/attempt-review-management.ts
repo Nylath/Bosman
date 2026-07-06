@@ -95,9 +95,7 @@ export type ReadAttemptMistakesResult =
       mistakes: AttemptMistakeView[];
     };
 
-async function getLocalContext(
-  client: PoolClient,
-): Promise<LocalContextRow> {
+async function getLocalContext(client: PoolClient): Promise<LocalContextRow> {
   const result = await client.query<LocalContextRow>(
     `
       SELECT
@@ -117,9 +115,7 @@ async function getLocalContext(
   const context = result.rows[0];
 
   if (!context) {
-    throw new Error(
-      "Nie znaleziono aktywnego lokalnego profilu użytkownika.",
-    );
+    throw new Error("Nie znaleziono aktywnego lokalnego profilu użytkownika.");
   }
 
   return context;
@@ -203,9 +199,7 @@ function mapResult(row: ResultRow): AttemptResultView {
     row.elapsed_seconds === null ||
     row.finished_at === null
   ) {
-    throw new Error(
-      `Próba "${row.id}" nie ma kompletnego wyniku.`,
-    );
+    throw new Error(`Próba "${row.id}" nie ma kompletnego wyniku.`);
   }
 
   return {
@@ -230,19 +224,9 @@ async function loadAttemptStatus(
   client: PoolClient,
   attemptId: string,
   participantId: string,
-): Promise<
-  | "in_progress"
-  | "completed"
-  | "expired"
-  | "cancelled"
-  | null
-> {
+): Promise<"in_progress" | "completed" | "expired" | "cancelled" | null> {
   const result = await client.query<{
-    status:
-      | "in_progress"
-      | "completed"
-      | "expired"
-      | "cancelled";
+    status: "in_progress" | "completed" | "expired" | "cancelled";
   }>(
     `
       SELECT status
@@ -304,10 +288,7 @@ export async function getLocalAttemptResult(
 
     const context = await getLocalContext(client);
 
-    await finalizeExpiredAttempts(
-      client,
-      context.participant_id,
-    );
+    await finalizeExpiredAttempts(client, context.participant_id);
 
     const status = await loadAttemptStatus(
       client,
@@ -323,10 +304,7 @@ export async function getLocalAttemptResult(
       };
     }
 
-    if (
-      status !== "completed" &&
-      status !== "expired"
-    ) {
+    if (status !== "completed" && status !== "expired") {
       await client.query("ROLLBACK");
 
       return {
@@ -334,16 +312,10 @@ export async function getLocalAttemptResult(
       };
     }
 
-    const result = await loadResult(
-      client,
-      attemptId,
-      context.participant_id,
-    );
+    const result = await loadResult(client, attemptId, context.participant_id);
 
     if (!result) {
-      throw new Error(
-        "Nie udało się odczytać wyniku próby.",
-      );
+      throw new Error("Nie udało się odczytać wyniku próby.");
     }
 
     await client.query("COMMIT");
@@ -371,10 +343,7 @@ export async function getLocalAttemptMistakes(
 
     const context = await getLocalContext(client);
 
-    await finalizeExpiredAttempts(
-      client,
-      context.participant_id,
-    );
+    await finalizeExpiredAttempts(client, context.participant_id);
 
     const status = await loadAttemptStatus(
       client,
@@ -390,10 +359,7 @@ export async function getLocalAttemptMistakes(
       };
     }
 
-    if (
-      status !== "completed" &&
-      status !== "expired"
-    ) {
+    if (status !== "completed" && status !== "expired") {
       await client.query("ROLLBACK");
 
       return {
@@ -455,8 +421,7 @@ export async function getLocalAttemptMistakes(
             : assetStorage.getPublicUrl(row.image_path),
 
         selectedAnswer:
-          row.selected_answer_id === null ||
-          row.selected_answer_text === null
+          row.selected_answer_id === null || row.selected_answer_text === null
             ? null
             : {
                 id: row.selected_answer_id,
@@ -478,9 +443,7 @@ export async function getLocalAttemptMistakes(
   }
 }
 
-export async function getLocalAttemptHistory(): Promise<
-  AttemptHistoryItem[]
-> {
+export async function getLocalAttemptHistory(): Promise<AttemptHistoryItem[]> {
   const client = await pool.connect();
 
   try {
@@ -488,10 +451,7 @@ export async function getLocalAttemptHistory(): Promise<
 
     const context = await getLocalContext(client);
 
-    await finalizeExpiredAttempts(
-      client,
-      context.participant_id,
-    );
+    await finalizeExpiredAttempts(client, context.participant_id);
 
     const result = await client.query<HistoryRow>(
       `
@@ -542,10 +502,7 @@ export async function getParticipantAttemptResult(input: {
   try {
     await client.query("BEGIN");
 
-    await finalizeExpiredAttempts(
-      client,
-      input.participantId,
-    );
+    await finalizeExpiredAttempts(client, input.participantId);
 
     const status = await loadAttemptStatus(
       client,
@@ -561,10 +518,7 @@ export async function getParticipantAttemptResult(input: {
       };
     }
 
-    if (
-      status !== "completed" &&
-      status !== "expired"
-    ) {
+    if (status !== "completed" && status !== "expired") {
       await client.query("ROLLBACK");
 
       return {
@@ -579,9 +533,7 @@ export async function getParticipantAttemptResult(input: {
     );
 
     if (!result) {
-      throw new Error(
-        "Nie udało się odczytać wyniku próby.",
-      );
+      throw new Error("Nie udało się odczytać wyniku próby.");
     }
 
     await client.query("COMMIT");
@@ -608,10 +560,7 @@ export async function getParticipantAttemptMistakes(input: {
   try {
     await client.query("BEGIN");
 
-    await finalizeExpiredAttempts(
-      client,
-      input.participantId,
-    );
+    await finalizeExpiredAttempts(client, input.participantId);
 
     const status = await loadAttemptStatus(
       client,
@@ -627,10 +576,7 @@ export async function getParticipantAttemptMistakes(input: {
       };
     }
 
-    if (
-      status !== "completed" &&
-      status !== "expired"
-    ) {
+    if (status !== "completed" && status !== "expired") {
       await client.query("ROLLBACK");
 
       return {
@@ -692,8 +638,7 @@ export async function getParticipantAttemptMistakes(input: {
             : assetStorage.getPublicUrl(row.image_path),
 
         selectedAnswer:
-          row.selected_answer_id === null ||
-          row.selected_answer_text === null
+          row.selected_answer_id === null || row.selected_answer_text === null
             ? null
             : {
                 id: row.selected_answer_id,
@@ -723,10 +668,7 @@ export async function getParticipantAttemptHistory(input: {
   try {
     await client.query("BEGIN");
 
-    await finalizeExpiredAttempts(
-      client,
-      input.participantId,
-    );
+    await finalizeExpiredAttempts(client, input.participantId);
 
     const result = await client.query<HistoryRow>(
       `

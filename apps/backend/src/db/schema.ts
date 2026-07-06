@@ -308,10 +308,7 @@ export const courseStatus = pgEnum("course_status", [
   "archived",
 ]);
 
-export const participantKind = pgEnum("participant_kind", [
-  "local",
-  "course",
-]);
+export const participantKind = pgEnum("participant_kind", ["local", "course"]);
 
 export const courses = pgTable(
   "courses",
@@ -447,18 +444,18 @@ export const participants = pgTable(
       .where(sql`${table.kind} = 'local'`),
 
     uniqueIndex("participants_organization_id_label_course_unique")
-  .on(table.organizationId, table.label)
-  .where(sql`${table.kind} = 'course'`),
+      .on(table.organizationId, table.label)
+      .where(sql`${table.kind} = 'course'`),
 
     check(
-  "participants_kind_course_relation_valid",
-  sql`(
+      "participants_kind_course_relation_valid",
+      sql`(
     ${table.kind} = 'local'
     AND ${table.courseId} IS NULL
   ) OR (
     ${table.kind} = 'course'
   )`,
-),
+    ),
   ],
 );
 
@@ -548,13 +545,9 @@ export const participantExamAccesses = pgTable(
       table.participantId,
     ),
 
-    index("participant_exam_accesses_exam_id_idx").on(
-      table.examId,
-    ),
+    index("participant_exam_accesses_exam_id_idx").on(table.examId),
 
-    index("participant_exam_accesses_valid_until_idx").on(
-      table.validUntil,
-    ),
+    index("participant_exam_accesses_valid_until_idx").on(table.validUntil),
 
     unique("participant_exam_accesses_participant_exam_unique").on(
       table.participantId,
@@ -908,9 +901,7 @@ export const adminLoginAttempts = pgTable(
 
     clientKeyHash: text("client_key_hash").notNull(),
 
-    wasSuccessful: boolean("was_successful")
-      .notNull()
-      .default(false),
+    wasSuccessful: boolean("was_successful").notNull().default(false),
 
     attemptedAt: timestamp("attempted_at", {
       withTimezone: true,
