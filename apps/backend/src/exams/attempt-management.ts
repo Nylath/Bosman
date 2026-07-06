@@ -1,4 +1,7 @@
-import { randomInt } from "node:crypto";
+import {
+  selectAttemptQuestions,
+  shuffle,
+} from "./question-selection.js";
 
 import type { PoolClient } from "pg";
 
@@ -109,30 +112,6 @@ export type StartAttemptResult =
       attempt: AttemptView;
     };
 
-function shuffle<T>(values: T[]): T[] {
-  const result = [...values];
-
-  for (let index = result.length - 1; index > 0; index -= 1) {
-    const randomIndex = randomInt(index + 1);
-
-    [result[index], result[randomIndex]] = [
-      result[randomIndex],
-      result[index],
-    ];
-  }
-
-  return result;
-}
-
-function pickRandom<T>(values: T[], count: number): T[] {
-  if (count > values.length) {
-    throw new Error(
-      `Nie można wylosować ${count} elementów z puli zawierającej ${values.length} elementów.`,
-    );
-  }
-
-  return shuffle(values).slice(0, count);
-}
 
 async function getLocalContext(
   client: PoolClient,
@@ -455,51 +434,14 @@ export async function startOrResumeLocalAttempt(
         [exam.version_id],
       );
 
-    const selectedQuestionIds = new Set<string>();
-
-    const minimumQuestions: QuestionSelectionRow[] = [];
-
-    for (const category of categoryResult.rows) {
-      const categoryPool = questionResult.rows.filter(
-        (question) =>
-          question.category_id === category.id &&
-          !selectedQuestionIds.has(question.id),
-      );
-
-      const selectedFromCategory = pickRandom(
-        categoryPool,
-        category.minimum_questions,
-      );
-
-      for (const question of selectedFromCategory) {
-        selectedQuestionIds.add(question.id);
-        minimumQuestions.push(question);
-      }
-    }
-
-    const remainingPool = questionResult.rows.filter(
-      (question) =>
-        !selectedQuestionIds.has(question.id),
-    );
-
-    const additionalQuestions = pickRandom(
-      remainingPool,
-      exam.random_questions,
-    );
-
-    const selectedQuestions = shuffle([
-      ...minimumQuestions,
-      ...additionalQuestions,
-    ]);
-
-    if (
-      selectedQuestions.length !==
-      exam.questions_per_attempt
-    ) {
-      throw new Error(
-        "Wylosowana liczba pytań nie odpowiada konfiguracji egzaminu.",
-      );
-    }
+    const selectedQuestions =
+  selectAttemptQuestions({
+    categories: categoryResult.rows,
+    questions: questionResult.rows,
+    randomQuestions: exam.random_questions,
+    questionsPerAttempt:
+      exam.questions_per_attempt,
+  });
 
     const answerResult =
       await client.query<AnswerSelectionRow>(
@@ -928,52 +870,14 @@ export async function startOrResumeParticipantAttempt(input: {
         `,
         [exam.version_id],
       );
-
-    const selectedQuestionIds = new Set<string>();
-
-    const minimumQuestions: QuestionSelectionRow[] = [];
-
-    for (const category of categoryResult.rows) {
-      const categoryPool = questionResult.rows.filter(
-        (question) =>
-          question.category_id === category.id &&
-          !selectedQuestionIds.has(question.id),
-      );
-
-      const selectedFromCategory = pickRandom(
-        categoryPool,
-        category.minimum_questions,
-      );
-
-      for (const question of selectedFromCategory) {
-        selectedQuestionIds.add(question.id);
-        minimumQuestions.push(question);
-      }
-    }
-
-    const remainingPool = questionResult.rows.filter(
-      (question) =>
-        !selectedQuestionIds.has(question.id),
-    );
-
-    const additionalQuestions = pickRandom(
-      remainingPool,
-      exam.random_questions,
-    );
-
-    const selectedQuestions = shuffle([
-      ...minimumQuestions,
-      ...additionalQuestions,
-    ]);
-
-    if (
-      selectedQuestions.length !==
-      exam.questions_per_attempt
-    ) {
-      throw new Error(
-        "Wylosowana liczba pytań nie odpowiada konfiguracji egzaminu.",
-      );
-    }
+const selectedQuestions =
+  selectAttemptQuestions({
+    categories: categoryResult.rows,
+    questions: questionResult.rows,
+    randomQuestions: exam.random_questions,
+    questionsPerAttempt:
+      exam.questions_per_attempt,
+  });
 
     const answerResult =
       await client.query<AnswerSelectionRow>(
