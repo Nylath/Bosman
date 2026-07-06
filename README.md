@@ -11,6 +11,13 @@ Bosman is a full-stack application for sailing schools. Participants prepare for
 
 Administrator credentials are intentionally not published.
 
+## Screenshots
+<img width="2001" height="1201" alt="image" src="https://github.com/user-attachments/assets/61f78e09-1796-44c1-9fa6-b18569c3230f" />
+<img width="1388" height="862" alt="image" src="https://github.com/user-attachments/assets/3847071c-6e6b-4563-b713-534b858b4042" />
+<img width="1004" height="1022" alt="image" src="https://github.com/user-attachments/assets/c16b8b53-63d2-472a-9d8d-823ba7423616" />
+<img width="1375" height="1150" alt="image" src="https://github.com/user-attachments/assets/43bf22b0-16e3-49f2-9520-b927bf25738b" />
+
+
 ## Main features
 
 ### Participant
