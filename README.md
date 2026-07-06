@@ -45,16 +45,16 @@ Administrator credentials are intentionally not published.
 
 ## Technology stack
 
-| Area | Technologies |
-| --- | --- |
-| Frontend | React, TypeScript, Vite, React Router |
-| Backend | Node.js, Express, TypeScript, Zod |
-| Database | PostgreSQL, Drizzle ORM, Drizzle Kit |
-| Authentication | bcryptjs, HTTP-only cookie sessions |
-| File processing | Multer, JSZip |
-| Testing and quality | Vitest, ESLint, Prettier |
-| Infrastructure | Docker Compose, Railway, GitHub Actions |
-| Repository | npm workspaces monorepo |
+| Area                | Technologies                            |
+| ------------------- | --------------------------------------- |
+| Frontend            | React, TypeScript, Vite, React Router   |
+| Backend             | Node.js, Express, TypeScript, Zod       |
+| Database            | PostgreSQL, Drizzle ORM, Drizzle Kit    |
+| Authentication      | bcryptjs, HTTP-only cookie sessions     |
+| File processing     | Multer, JSZip                           |
+| Testing and quality | Vitest, ESLint, Prettier                |
+| Infrastructure      | Docker Compose, Railway, GitHub Actions |
+| Repository          | npm workspaces monorepo                 |
 
 ## Architecture
 
