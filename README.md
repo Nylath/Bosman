@@ -2,204 +2,119 @@
 
 [![CI](https://github.com/Nylath/Bosman/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Nylath/Bosman/actions/workflows/ci.yml)
 
-A full-stack web application for sailing schools that allows participants to prepare for theoretical sailing exams through interactive mock tests.
-
-Bosman provides separate interfaces for school administrators and course participants. Administrators manage participants, access codes and available exams, while participants can complete randomized tests, review results and track their previous attempts.
+Bosman is a full-stack application for sailing schools. Participants prepare for theoretical sailing exams through randomized mock tests, while administrators manage users, access codes and versioned exam packages.
 
 ## Live demo
 
-**Application:** `bosman.up.railway.app`
+**Application:** [https://bosman.up.railway.app](https://bosman.up.railway.app)  
+**Participant access code:** `BOS-E69P-PJYL`
 
-A dedicated demo participant account can be created for portfolio presentation.
-
-> Administrator credentials are intentionally not published.
-
-## Project overview
-
-Bosman was created as an MVP for sailing schools offering courses such as:
-
-- sailing licence courses,
-- motorboat licence courses,
-- SRC radio certificate courses.
-
-The application is designed to simplify the process of sharing mock exams with course participants.
-
-Question databases are prepared externally and imported into the application as validated ZIP packages. The school administrator does not need to manage technical file formats or database structures.
+Administrator credentials are intentionally not published.
 
 ## Main features
 
-### Participant application
+### Participant
 
-- login using an individual access code,
-- list of assigned exams,
+- login with an individual access code,
+- assigned exam list,
 - randomized questions and answers,
-- configurable exam duration,
-- configurable number of questions,
-- automatic score calculation,
-- configurable passing threshold,
+- configurable duration, question count and passing score,
+- automatic result calculation,
 - review of incorrect answers,
-- exam attempt history,
+- attempt history,
 - resume unfinished attempts,
-- responsive interface for mobile devices.
+- responsive mobile interface.
 
-### School administrator panel
+### School administrator
 
-- administrator authentication,
 - participant management,
-- generation of individual access codes,
-- assignment of exams to participants or courses,
-- access expiration management,
-- activation and deactivation of participants,
-- overview of available exams,
+- access code generation,
+- exam assignment,
+- access expiration,
+- participant activation and deactivation,
+- overview of available exams and participant activity,
 - permanent removal of demonstration data.
 
-### System administrator panel
+### System administrator
 
-- management of exams and question packages,
-- ZIP package validation,
-- importing new exam versions,
+- ZIP package validation and import,
+- exam version management,
 - publishing and archiving exams,
-- management of system-level data,
-- separation between system and school administrator permissions.
+- system-level data management,
+- separate system and school permissions.
 
 ## Technology stack
 
-### Frontend
-
-- React
-- TypeScript
-- Vite
-- React Router
-- React Icons
-- responsive CSS
-
-### Backend
-
-- Node.js
-- Express
-- TypeScript
-- Zod
-- bcryptjs
-- cookie-based sessions
-- Multer
-- JSZip
-
-### Database
-
-- PostgreSQL
-- Drizzle ORM
-- Drizzle Kit migrations
-
-### Infrastructure
-
-- npm workspaces monorepo
-- Docker Compose for local PostgreSQL
-- Railway deployment
-- Railway PostgreSQL
-- persistent volume storage for imported assets
+| Area | Technologies |
+| --- | --- |
+| Frontend | React, TypeScript, Vite, React Router |
+| Backend | Node.js, Express, TypeScript, Zod |
+| Database | PostgreSQL, Drizzle ORM, Drizzle Kit |
+| Authentication | bcryptjs, HTTP-only cookie sessions |
+| File processing | Multer, JSZip |
+| Testing and quality | Vitest, ESLint, Prettier |
+| Infrastructure | Docker Compose, Railway, GitHub Actions |
+| Repository | npm workspaces monorepo |
 
 ## Architecture
 
 ```text
 Bosman
 ├── apps
-│   ├── backend
-│   │   ├── API routes
-│   │   ├── authentication
-│   │   ├── exam import
-│   │   ├── database access
-│   │   └── application bootstrap
-│   │
-│   └── frontend
-│       ├── participant application
-│       ├── school administrator panel
-│       └── system administrator panel
-│
+│   ├── backend        # REST API, authentication and exam processing
+│   └── frontend       # participant and administrator interfaces
 ├── packages
-│   └── shared
-│
+│   └── shared         # shared application code
 ├── db
-│   └── migrations
-│
+│   └── migrations     # database migrations
 ├── data
-│   └── assets
-│
+│   └── assets         # imported exam assets
+├── examples
+│   └── exam-packages  # example import packages
 └── docs
 ```
 
-The production Express server serves both the REST API and the compiled React application.
+The production Express server exposes the REST API and serves the compiled React application. PostgreSQL stores structured data, while imported images are kept on persistent volume storage.
 
 ## Application modes
 
-Bosman supports two application modes.
+Bosman supports two modes:
 
-### Local mode
+- `LOCAL` — creates demonstration data and does not require participant access codes,
+- `SCHOOL` — enables access codes, administrator authentication and organization-specific data.
 
-```env
-APP_MODE=LOCAL
-VITE_APP_MODE=LOCAL
-```
+The backend mode is configured with `APP_MODE`, and the frontend mode with `VITE_APP_MODE`.
 
-Local mode automatically creates a demonstration organization and participant profile.
-
-### School mode
-
-```env
-APP_MODE=SCHOOL
-VITE_APP_MODE=SCHOOL
-```
-
-School mode enables participant access codes, administrator authentication and organization-specific data.
-
-## Local installation
+## Local development
 
 ### Requirements
 
-- Node.js 22
-- npm 10 or newer
-- Docker
-- Docker Compose
+- Node.js 22,
+- npm 10 or newer,
+- Docker with Docker Compose.
 
-### 1. Clone the repository
+### Installation
 
 ```bash
-git clone https://github.com/<username>/Bosman.git
+git clone https://github.com/Nylath/Bosman.git
 cd Bosman
-```
-
-### 2. Install dependencies
-
-```bash
 npm install
-```
-
-### 3. Start PostgreSQL
-
-```bash
 docker compose up -d
 ```
 
-### 4. Configure environment variables
-
-Create a `.env` file in the project root.
+Create `.env` in the project root:
 
 ```env
 NODE_ENV=development
-
 DATABASE_URL=postgresql://bosman:bosman@localhost:5432/bosman
-
 APP_MODE=LOCAL
-
 ASSET_STORAGE=local
 ASSET_DIRECTORY=./data/assets
-
 ADMIN_PASSWORD_HASH=<bcrypt-hash>
 SCHOOL_ADMIN_PASSWORD_HASH=<bcrypt-hash>
-
 ADMIN_SESSION_TTL_HOURS=8
 ADMIN_LOGIN_MAX_FAILURES=5
 ADMIN_LOGIN_WINDOW_MINUTES=15
-
 EXAM_PACKAGE_MAX_MB=50
 ```
 
@@ -207,59 +122,119 @@ Create `apps/frontend/.env`:
 
 ```env
 VITE_APP_MODE=LOCAL
-
 VITE_APP_NAME=Bosman
 VITE_ORGANIZATION_NAME=Demo Sailing School
-
-VITE_LOGIN_TITLE=Participant access
-VITE_LOGIN_DESCRIPTION=Enter the access code provided by your course organizer.
-
-VITE_HOME_TITLE=Sailing mock exams
-VITE_HOME_DESCRIPTION=Select an available exam and test your theoretical knowledge.
 ```
 
-Do not commit real environment files or passwords.
-
-### 5. Run database migrations
+Run migrations and start both applications:
 
 ```bash
 npm run db:migrate
-```
-
-### 6. Start development servers
-
-Backend:
-
-```bash
 npm run dev:backend
 ```
 
-Frontend:
+In another terminal:
 
 ```bash
 npm run dev:frontend
 ```
 
-The frontend is normally available at:
+Default addresses:
 
 ```text
-http://localhost:5173
+Frontend: http://localhost:5173
+Backend:  http://localhost:3001
 ```
 
-The backend is normally available at:
+Do not commit real passwords, secrets or environment files.
+
+## Exam package import
+
+Exams are imported as validated ZIP packages. `exam.json` must be placed directly in the archive root, without an additional parent directory.
 
 ```text
-http://localhost:3001
+bosman-zeglarz-jachtowy.zip
+├── exam.json
+└── assets
+    ├── course-cover.webp
+    ├── q001.png
+    └── q014.jpg
 ```
 
-## Production build
+The `assets` directory may be empty when the exam contains no images. Supported formats are `.png`, `.jpg`, `.jpeg` and `.webp`.
+
+The package contains:
+
+- exam metadata and optional tile image,
+- categories and category sampling minimums,
+- questions with stable external identifiers,
+- answers with exactly one correct option per question,
+- optional question images stored under `assets/`.
+
+Parameters such as duration, number of questions, passing score and random question count may remain `null` during draft import and can be configured later in the administrator panel.
+
+The validator checks:
+
+- ZIP and JSON structure,
+- required fields and valid slugs,
+- unique category and question identifiers,
+- category references,
+- consistent answer counts,
+- exactly one correct answer per question,
+- referenced and missing assets,
+- unsafe archive paths,
+- publishing requirements.
+
+Example packages are available in:
+
+```text
+examples/exam-packages/minimal
+examples/exam-packages/with-image
+```
+
+## Key technical decisions
+
+- **Versioned exams:** existing attempts remain connected to the exact exam version used when they were started.
+- **Validated imports:** invalid JSON, duplicate identifiers, missing images and unsafe paths are rejected before import.
+- **Randomized attempts:** question selection respects category minimums and prevents duplicates.
+- **Persistent assets:** imported images are stored outside the application build.
+- **Role separation:** participants, school administrators and system administrators have different permissions and access scopes.
+
+## Security
+
+- bcrypt password hashing,
+- HTTP-only session cookies,
+- role-based authorization,
+- login rate limiting,
+- session expiration,
+- protected administrator routes,
+- participant access codes,
+- ZIP path validation,
+- environment-based secret management.
+
+## Quality checks
+
+```bash
+npm run format:check
+npm run lint
+npm test
+npm run build
+```
+
+GitHub Actions runs the same checks automatically for pushes and pull requests to `main`.
+
+To format the repository:
+
+```bash
+npm run format
+```
+
+## Production
 
 ```bash
 npm run build
 npm start
 ```
-
-The production backend serves the compiled frontend from the same application.
 
 Health endpoint:
 
@@ -267,140 +242,17 @@ Health endpoint:
 GET /health
 ```
 
-## Exam package import
-
-Bosman imports exams using validated ZIP packages.
-
-A package may contain:
-
-```text
-exam.json
-assets/
-├── question-image-1.png
-├── chart-2.jpg
-└── ...
-```
-
-The import process validates:
-
-- package structure,
-- JSON syntax,
-- required exam settings,
-- questions and answers,
-- correct answer definitions,
-- archive paths,
-- referenced images,
-- duplicated or missing files.
-
-Imported exams can be stored as separate versions, allowing existing attempts to remain connected to the version used when the exam was started.
-
-## Security features
-
-- passwords stored as bcrypt hashes,
-- HTTP-only session cookies,
-- role-based authorization,
-- separate system and school administrator permissions,
-- participant access codes stored securely,
-- login attempt rate limiting,
-- session expiration,
-- protected administrator API routes,
-- organization-level data separation,
-- validation of imported archive paths,
-- environment-based secret management.
-
-## Key technical challenges
-
-### Monorepo deployment
-
-The project uses npm workspaces for the frontend, backend and shared packages. The production build compiles all workspaces and serves the React application through Express.
-
-### Native build dependencies
-
-The production deployment required resolving platform-specific optional dependencies used by Vite and Rolldown. The project uses a single root `package-lock.json` to ensure consistent Linux builds.
-
-### Persistent assets
-
-Images extracted from imported exam packages are stored on a persistent Railway volume, while structured application data is stored in PostgreSQL.
-
-### Multiple user roles
-
-The application separates:
-
-- participants,
-- school administrators,
-- system administrators.
-
-Each role has a different authentication flow and access scope.
-
-### Responsive participant interface
-
-The participant interface was designed for mobile use because most course participants are expected to complete mock exams on smartphones.
-
-## Future development
-
-Potential future improvements include:
-
-- participant progress statistics,
-- average exam results,
-- last attempt date,
-- course group analytics,
-- difficult question analysis,
-- automatic email delivery of access codes,
-- DOCX question database import,
-- school logo upload,
-- custom domains,
-- multiple organizations within one deployment,
-- automated tests and CI/CD checks.
-
-## Screenshots
-
-Recommended screenshots for the repository:
-
-1. Participant login screen.
-2. Participant exam list.
-3. Mobile exam interface.
-4. Exam result and incorrect answers.
-5. School administrator participant list.
-6. Exam import and configuration panel.
-
-Store screenshots in:
-
-```text
-docs/screenshots/
-```
-
-Example:
-
-```markdown
-![Participant dashboard](docs/screenshots/participant-dashboard.png)
-```
-
-## What this project demonstrates
-
-- designing an application around a real business problem,
-- building a complete frontend and backend,
-- relational database design,
-- authentication and authorization,
-- file upload and validation,
-- versioned data imports,
-- responsive user interface development,
-- production deployment,
-- persistent storage configuration,
-- debugging Linux build and dependency issues.
+The application is deployed on Railway with PostgreSQL and persistent asset storage.
 
 ## Project status
 
-The application is an operational MVP.
-
-The core participant, administrator, exam and deployment flows are implemented. Further development will be based on feedback from potential users and portfolio review.
+Bosman is an operational MVP. The participant, administrator, exam import, versioning, testing and deployment flows are implemented.
 
 ## Author
 
-Created as a full-stack portfolio project.
-
-**Author:** `Bartłomiej K.`
-**GitHub:** `Nylath`
+Created as a full-stack portfolio project by **Bartłomiej K.**  
+GitHub: [Nylath](https://github.com/Nylath)
 
 ## License
 
-No license has been selected yet.
+No license has been selected.
